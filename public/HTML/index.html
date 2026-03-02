@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+     <header class="header-search">
+        <div class="search-container">
+            <input type="search" class="search-box" id="searchBox" placeholder="Buscar libros, autores, categorías..."
+                autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </header>
+
+
+    <main>
+        <!-- CARRUSEL DE LIBROS RECOMENDADOS -->
+        <section class="carousel">
+            <h2>Libros Recomendados</h2>
+            <div class="carousel-container" id="librosRecomendados">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando libros recomendados...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CATEGORÍAS -->
+        <section class="categories">
+            <h2>Categorías de Libros</h2>
+            <div class="categories-grid" id="categoriasGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando categorías...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- LIBROS MÁS PEDIDOS -->
+        <section class="most-requested">
+            <h2>Libros Más Pedidos</h2>
+            <div class="books-grid" id="librosMasPedidos">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando libros más pedidos...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/main.js"></script>
+</body>
+
+</html>

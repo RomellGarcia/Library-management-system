@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Libros - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="pagina-catalogo">
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- HEADER TOP -->
+    <header class="header-top">
+        <div class="logo-container">
+            <div class="logo"></div>
+            <h1 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">Biblioteca UTHH</h1>
+        </div>
+        <div id="session-button-container">
+            <a href="/HTML/iniciarsesion.html">
+                <button class="btn-logout-top">Iniciar Sesión</button>
+            </a>
+        </div>
+    </header>
+
+    <!-- HEADER MENU -->
+    <header class="header-menu">
+        <div class="menu-container">
+            <nav class="menu">
+                <ul>
+                    <a href="/HTML/index.html">Inicio</a>
+                    <a href="/HTML/iniciarsesion.html">Iniciar Sesión</a>
+                    <a href="/HTML/catalogo.html">Catálogo</a>
+                    <a href="/HTML/contacto.html">Contacto</a>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- BUSCADOR -->
+    <header class="header-search">
+        <div class="search-container">
+            <input type="search" class="search-box" id="searchBox" placeholder="Buscar libros, autores, categorías...">
+        </div>
+    </header>
+
+    <!-- CATÁLOGO -->
+    <main class="catalogo-container">
+        <h1 class="catalogo-titulo">Catálogo de Libros</h1>
+
+        <section class="catalogo-grid" id="catalogoGrid">
+            <!-- Los libros se cargarán aquí dinámicamente -->
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Cargando catálogo...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <div id="footer-container"></div>
+
+    <!-- SCRIPTS -->
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/catalogo.js"></script>
+</body>
+
+</html>

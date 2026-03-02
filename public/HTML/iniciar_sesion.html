@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+
+    <header class="header-top">
+        <div class="logo-container">
+            <div class="logo"></div>
+            <h1 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">Biblioteca UTHH</h1>
+        </div>
+        <div id="session-button-container">
+            <!-- El botón se cargará dinámicamente -->
+        </div>
+    </header>
+
+    <main class="contenedor-autenticacion">
+        <div class="tarjeta-autenticacion">
+            <div class="encabezado-tarjeta">
+                <h1>Biblioteca UTHH</h1>
+                <p>Sistema de Gestión Bibliotecaria</p>
+            </div>
+
+            <form class="formulario-autenticacion" id="formularioLogin">
+                <h2>Iniciar Sesión</h2>
+
+                <div class="grupo-input">
+                    <label for="correoLogin">Matrícula</label>
+                    <input type="text" id="correoLogin" name="correo" placeholder="Ej: 2021010001" required>
+                </div>
+
+                <div class="grupo-input">
+                    <label for="contrasenaLogin">Contraseña</label>
+                    <div class="input-password-container">
+                        <input type="password" id="contrasenaLogin" name="contrasena" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password-btn" onclick="togglePassword()">
+                            <img src="../images/iconos/ojo.png" alt="Mostrar contraseña" id="eyeIcon">
+                        </button>
+                    </div>
+                </div>
+
+                <div class="opciones-formulario">
+                    <label class="checkbox-recordar">
+                        <input type="checkbox" id="recordarme" name="recordar">
+                        <span>Recordarme</span>
+                    </label>
+                    <a href="#" class="enlace-recuperar">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button type="submit" class="boton-principal">
+                    Iniciar Sesión
+                </button>
+                <br><br>
+                <button type="button" class="boton-principal" onclick="window.location.href='/HTML/index.html'">
+                    Volver al inicio
+                </button>
+
+                <div class="separador">
+                    <span>o</span>
+                </div>
+
+                <p class="texto-registro">
+                    ¿No tienes una cuenta?
+                    <a href="registro.html" class="enlace-registro">Regístrate aquí</a>
+                </p>
+            </form>
+        </div>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/auth.js"></script>
+    <script src="../JS/session_handler.js"></script>
+</body>
+
+</html>
