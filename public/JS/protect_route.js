@@ -10,7 +10,7 @@ async function protegerPagina(rolesPermitidos = []) {
         
         // Si no hay sesión, redirigir a login
         if (!data.logged_in) {
-            window.location.href = '/HTML/iniciarsesion.html';
+            window.location.href = '/HTML/iniciar_sesion.html';
             return false;
         }
         
@@ -26,7 +26,7 @@ async function protegerPagina(rolesPermitidos = []) {
         return data.usuario;
     } catch (error) {
         console.error('Error al proteger página:', error);
-        window.location.href = '/HTML/iniciarsesion.html';
+        window.location.href = '/HTML/iniciar_sesion.html';
         return false;
     }
 }
