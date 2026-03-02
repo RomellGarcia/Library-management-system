@@ -45,7 +45,7 @@ async function cargarCatalogo() {
         console.error('Error al cargar catálogo:', error);
         container.innerHTML = `
             <div class="sin-libros">
-                <div class="sin-libros-icono">⚠️</div>
+                <div class="sin-libros-icono"></div>
                 <p class="sin-libros-texto">Error al cargar el catálogo</p>
                 <button onclick="cargarCatalogo()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
                     Reintentar
@@ -101,7 +101,7 @@ function crearTarjetaLibro(libro) {
             this.style.display = 'none';
             const placeholder = document.createElement('div');
             placeholder.className = 'libro-imagen-placeholder';
-            placeholder.textContent = '📖';
+            placeholder.textContent = '';
             imagenContainer.appendChild(placeholder);
         };
         
@@ -109,7 +109,7 @@ function crearTarjetaLibro(libro) {
     } else {
         const placeholder = document.createElement('div');
         placeholder.className = 'libro-imagen-placeholder';
-        placeholder.textContent = '📖';
+        placeholder.textContent = '';
         if (libro.color_fondo) {
             placeholder.style.background = libro.color_fondo;
         }

@@ -109,7 +109,7 @@ async function cargarCategorias() {
 
                 img.onerror = function () {
                     console.warn(`No se pudo cargar la imagen para: ${categoria.vchcategoria}`);
-                    iconContainer.innerHTML = '📚';
+                    iconContainer.innerHTML = '';
                     iconContainer.style.fontSize = '4rem';
                 };
 
@@ -166,7 +166,7 @@ async function cargarLibrosMasPedidos() {
                     coverDiv.style.backgroundPosition = 'center';
                 } else {
                     coverDiv.style.backgroundColor = libro.color_fondo || '#4ECDC4';
-                    coverDiv.innerHTML = '📖';
+                    coverDiv.innerHTML = '';
                     coverDiv.style.display = 'flex';
                     coverDiv.style.alignItems = 'center';
                     coverDiv.style.justifyContent = 'center';
