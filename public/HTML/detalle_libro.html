@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Libro - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <main class="detalle-libro-container">
+        <!-- Botón de regreso dinámico -->
+        <div id="boton-regreso-container">
+            <!-- Se carga dinámicamente desde JavaScript -->
+        </div>
+
+        <!-- Contenedor del detalle del libro -->
+        <article class="tarjeta-detalle-libro" id="tarjeta-detalle-libro">
+            <div class="contenido-detalle-libro" id="detalle-libro">
+                <!-- Loading inicial -->
+                <div class="loading" style="grid-column: 1 / -1;">
+                    <div class="spinner"></div>
+                    <p>Cargando información del libro...</p>
+                </div>
+            </div>
+        </article>
+    </main>
+    <!-- SCRIPTS -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/detalle_libro.js"></script>
+</body>
+</html>

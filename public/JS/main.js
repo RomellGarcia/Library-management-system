@@ -1,7 +1,6 @@
 // Función para cargar libros recomendados
 async function cargarLibrosRecomendados() {
     try {
-        // ✅ Ruta corregida a /api/libros
         const response = await fetch('/api/libros/recomendados/aleatorios');
 
         if (!response.ok) {
@@ -25,7 +24,7 @@ async function cargarLibrosRecomendados() {
                 bookCard.style.cursor = 'pointer';
 
                 bookCard.onclick = function () {
-                    window.location.href = `/HTML/detalle-libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+                    window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
                 };
 
                 const coverDiv = document.createElement('div');
@@ -67,6 +66,7 @@ async function cargarLibrosRecomendados() {
             `<p style="text-align: center; color: red;">Error: ${error.message}</p>`;
     }
 }
+
 // Función para cargar categorías
 async function cargarCategorias() {
     try {
@@ -93,7 +93,7 @@ async function cargarCategorias() {
                 categoryCard.style.cursor = 'pointer';
 
                 categoryCard.onclick = function () {
-                    window.location.href = `/HTML/categoria.html?id=${categoria.intidcategoria}`;
+                    window.location.href = `/HTML/libros_categoria.html?id=${categoria.intidcategoria}`;
                 };
 
                 // Icono
@@ -133,6 +133,7 @@ async function cargarCategorias() {
             `<p style="text-align: center; color: red; grid-column: 1 / -1;">Error: ${error.message}</p>`;
     }
 }
+
 // Función para cargar libros más pedidos
 async function cargarLibrosMasPedidos() {
     try {
@@ -154,7 +155,7 @@ async function cargarLibrosMasPedidos() {
                 bookCard.style.cursor = 'pointer';
 
                 bookCard.onclick = function () {
-                    window.location.href = `/HTML/detalle-libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+                    window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
                 };
 
                 const coverDiv = document.createElement('div');
@@ -279,7 +280,7 @@ function configurarBusquedaTiempoReal() {
                             `;
 
                             resultItem.addEventListener('click', () => {
-                                window.location.href = `/HTML/detalle-libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+                                window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
                             });
 
                             searchResults.appendChild(resultItem);

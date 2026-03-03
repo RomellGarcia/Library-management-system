@@ -37,7 +37,7 @@ async function cargarCatalogo() {
                 container.appendChild(card);
             });
 
-            console.log(`✅ ${data.total} libros cargados en el catálogo`);
+            console.log(`${data.total} libros cargados en el catálogo`);
         } else {
             throw new Error(data.error || 'Error al cargar el catálogo');
         }
@@ -83,7 +83,7 @@ function crearTarjetaLibro(libro) {
 
     // Crear elemento <a>
     const card = document.createElement('a');
-    card.href = `/HTML/detalle-libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+    card.href = `../HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
     card.className = `libro-card ${claseEstado}`;
     card.dataset.folio = libro.vchfolio;
 

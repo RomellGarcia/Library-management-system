@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contáctenos - UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+
+<body>
+
+    <section class="uthh-contact-section">
+        <div class="uthh-main-container">
+            <div class="uthh-contact-wrapper">
+                <div class="uthh-form-box">
+                    <h2 class="uthh-form-title">CONTÁCTENOS</h2>
+                    <form id="contactForm">
+                        <div class="uthh-input-group">
+                            <label for="name">Ingrese su nombre</label>
+                            <input type="text" id="name" name="name" placeholder="Ingrese su nombre completo" required>
+                        </div>
+
+                        <div class="uthh-input-group">
+                            <label for="email">Ingrese su correo</label>
+                            <input type="email" id="email" name="email" placeholder="Ingrese su correo electrónico"
+                                required>
+                        </div>
+
+                        <div class="uthh-input-group">
+                            <label for="message">Ingrese su mensaje</label>
+                            <textarea id="message" name="message" rows="6" placeholder="Escriba su mensaje aquí"
+                                required maxlength="500"></textarea>
+                            <span class="uthh-char-count">0/500</span>
+                        </div>
+
+                        <button type="submit" class="uthh-submit-btn">ENVIAR</button>
+
+                        <div id="formMessage" class="uthh-form-msg"></div>
+                    </form>
+                    
+                    <!-- Notificación de éxito/error -->
+                    <div id="notification" class="notification"></div>
+                </div>
+
+                <div class="uthh-img-box">
+                    <img src="../images/UTHH/UTHHFondo.jpg" alt="UTHH Campus">
+                    <div class="uthh-img-overlay">
+                        <h3>Universidad Tecnológica de la Huasteca Hidalguense</h3>
+                        <p>Excelencia Educativa</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- FOOTER CARGADO DINÁMICAMENTE -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/contacto.js"></script>
+</body>
+
+</html>

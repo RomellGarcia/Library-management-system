@@ -348,4 +348,174 @@ router.get('/buscar', (req, res) => {
         });
     });
 });
+
+
+// GET /api/libros/detalle - Obtener detalle de un libro
+router.get('/detalle', (req, res) => {
+    const folio = req.query.folio;
+    
+    if (!folio) {
+        return res.status(400).json({
+            success: false,
+            error: 'Folio requerido'
+        });
+    }
+
+    const sql = `
+        SELECT 
+            l.*,
+            c.vchcategoria,
+            (SELECT COUNT(*) FROM tblejemplares e 
+             WHERE e.vchfolio = l.vchfolio 
+             AND e.booldisponible = 1) as ejemplares_disponibles,
+            (SELECT COUNT(*) FROM tblejemplares e 
+             WHERE e.vchfolio = l.vchfolio) as total_ejemplares
+        FROM tbllibros l
+        LEFT JOIN tblcategoria c ON l.intidcategoria = c.intidcategoria
+        WHERE l.vchfolio = ?
+    `;
+
+    conexion.query(sql, [folio], (error, resultados) => {
+        if (error) {
+            console.error('Error al obtener detalle del libro:', error);
+            return res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+
+        if (resultados.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Libro no encontrado'
+            });
+        }
+
+        const libro = resultados[0];
+        const libroProcessado = { ...libro };
+
+        if (libro.imagen) {
+            const imagenBase64 = Buffer.from(libro.imagen).toString('base64');
+            const imagenBuffer = Buffer.from(libro.imagen);
+            let mimeType = 'image/jpeg';
+            
+            if (imagenBuffer[0] === 0x89 && 
+                imagenBuffer[1] === 0x50 && 
+                imagenBuffer[2] === 0x4E && 
+                imagenBuffer[3] === 0x47) {
+                mimeType = 'image/png';
+            }
+
+            libroProcessado.imagen = `data:${mimeType};base64,${imagenBase64}`;
+        }
+
+        res.json({
+            success: true,
+            data: libroProcessado
+        });
+    });
+});
+
+// GET /api/libros/categoria/:id - Obtener libros de una categoría específica
+router.get('/categoria/:id', (req, res) => {
+    const categoriaId = parseInt(req.params.id);
+
+    if (isNaN(categoriaId) || categoriaId <= 0) {
+        return res.status(400).json({
+            success: false,
+            error: 'ID de categoría inválido'
+        });
+    }
+
+    // Obtener información de la categoría
+    const sqlCategoria = "SELECT vchcategoria, vchdescripcion FROM tblcategoria WHERE intidcategoria = ?";
+    
+    conexion.query(sqlCategoria, [categoriaId], (errorCategoria, resultadosCategoria) => {
+        if (errorCategoria) {
+            console.error('Error al obtener categoría:', errorCategoria);
+            return res.status(500).json({
+                success: false,
+                error: errorCategoria.message
+            });
+        }
+
+        if (resultadosCategoria.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Categoría no encontrada'
+            });
+        }
+
+        const categoria = resultadosCategoria[0];
+
+        // Obtener libros de esta categoría
+        const sqlLibros = `
+            SELECT 
+                l.vchfolio,
+                l.vchtitulo,
+                l.vchautor,
+                l.vcheditorial,
+                l.intanio,
+                l.imagen,
+                l.vchisbn,
+                l.boolactivo,
+                (SELECT COUNT(*) FROM tblejemplares e 
+                 WHERE e.vchfolio = l.vchfolio 
+                 AND e.booldisponible = 1) as ejemplares_disponibles,
+                (SELECT COUNT(*) FROM tblejemplares e 
+                 WHERE e.vchfolio = l.vchfolio) as total_ejemplares
+            FROM tbllibros l
+            WHERE l.intidcategoria = ?
+            ORDER BY l.vchtitulo ASC
+        `;
+
+        conexion.query(sqlLibros, [categoriaId], (errorLibros, resultadosLibros) => {
+            if (errorLibros) {
+                console.error('Error al obtener libros:', errorLibros);
+                return res.status(500).json({
+                    success: false,
+                    error: errorLibros.message
+                });
+            }
+
+            const colores = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#DDA0DD', '#F4A460'];
+
+            const librosConImagenes = resultadosLibros.map(libro => {
+                const libroProcessado = { ...libro };
+
+                if (libro.imagen) {
+                    const imagenBase64 = Buffer.from(libro.imagen).toString('base64');
+                    const imagenBuffer = Buffer.from(libro.imagen);
+                    let mimeType = 'image/jpeg';
+                    
+                    if (imagenBuffer[0] === 0x89 && 
+                        imagenBuffer[1] === 0x50 && 
+                        imagenBuffer[2] === 0x4E && 
+                        imagenBuffer[3] === 0x47) {
+                        mimeType = 'image/png';
+                    }
+
+                    libroProcessado.imagen = `data:${mimeType};base64,${imagenBase64}`;
+                } else {
+                    libroProcessado.color_fondo = colores[Math.floor(Math.random() * colores.length)];
+                }
+
+                return libroProcessado;
+            });
+
+            res.json({
+                success: true,
+                data: {
+                    categoria: {
+                        id: categoriaId,
+                        nombre: categoria.vchcategoria,
+                        descripcion: categoria.vchdescripcion
+                    },
+                    libros: librosConImagenes
+                }
+            });
+        });
+    });
+});
+
 module.exports = router;

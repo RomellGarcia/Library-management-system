@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Libros - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+
+    <main>
+        <a href="/HTML/index.html" class="boton-volver-detalle">
+            <span>←</span>
+            <span>Volver al inicio</span>
+        </a>
+
+        <div class="categoria-header" id="categoriaHeader">
+            <!-- Se carga dinámicamente -->
+        </div>
+
+        <div class="busqueda-categoria">
+            <input type="search" id="buscarEnCategoria" placeholder="Buscar en esta categoría...">
+        </div>
+
+        <div class="resultados-info" id="resultadosInfo">
+            <!-- Se actualiza dinámicamente -->
+        </div>
+
+        <section class="libros-grid" id="librosGrid">
+            <!-- Loading inicial -->
+            <div class="loading" style="grid-column: 1 / -1;">
+                <div class="spinner"></div>
+                <p>Cargando libros de la categoría...</p>
+            </div>
+        </section>
+    </main>
+
+
+
+    <!-- SCRIPTS -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/catalogo.js"></script>
+    <script src="../JS/categoria.js"></script>
+</body>
+
+</html>

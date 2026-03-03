@@ -34,11 +34,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // IMPORTAR RUTAS
 const librosRoutes = require('./routers/libros');
-const authRoutes = require('./routers/auth');  // ← Importante
+const authRoutes = require('./routers/auth'); 
 
 // MONTAR RUTAS
 app.use('/api/libros', librosRoutes);
-app.use('/api/auth', authRoutes);  // ← Importante
+app.use('/api/auth', authRoutes); 
 
 // Ruta principal
 app.get('/', (req, res) => {
