@@ -84,7 +84,7 @@ function actualizarMenu(usuario) {
                 { href: '/HTML/gestionar_libros.html', texto: 'Gestionar Libros' },
                 { href: '/HTML/registrar_libros.html', texto: 'Registrar Libros' },
                 { href: '/HTML/realizar_prestamo.html', texto: 'Realizar Préstamo' },
-                { href: '/HTML/consultar_prestamos.html', texto: 'Consultar Préstamos' },
+                { href: '/HTML/gestion_prestamos.html', texto: 'Consultar Préstamos' },
                 { href: '/HTML/visualizar_ar.html', texto: 'Visualizar AR' }
             ];
             break;
@@ -99,7 +99,7 @@ function actualizarMenu(usuario) {
                 { href: '/HTML/gestionar_libros.html', texto: 'Gestionar Libros' },
                 { href: '/HTML/registrar_libros.html', texto: 'Registrar Libros' },
                 { href: '/HTML/realizar_prestamo.html', texto: 'Realizar Préstamo' },
-                { href: '/HTML/consultar_prestamos.html', texto: 'Consultar Préstamos' },
+                { href: '/HTML/gestion_prestamos.html', texto: 'Consultar Préstamos' },
                 { href: '/HTML/visualizar_ar.html', texto: 'Visualizar AR' }
             ];
             break;

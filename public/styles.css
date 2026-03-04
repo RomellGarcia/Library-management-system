@@ -2044,23 +2044,23 @@ footer {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0;
-    background: #ffffff; 
+    background: #ffffff;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     animation: uthhFadeIn 0.6s ease-out;
 }
 
 
 .uthh-form-box {
     padding: 60px 50px;
-    background: #ffffff; 
+    background: #ffffff;
 }
 
 .uthh-form-title {
     font-size: 2rem;
     font-weight: 700;
-    color: #333; 
+    color: #333;
     margin-bottom: 40px;
     text-align: center;
     letter-spacing: 1px;
@@ -2112,8 +2112,8 @@ footer {
 .uthh-submit-btn {
     width: 100%;
     padding: 15px 30px;
-    background: #A02142; 
-    color: #ffffff; 
+    background: #A02142;
+    color: #ffffff;
     border: none;
     border-radius: 4px;
     font-size: 16px;
@@ -2218,12 +2218,12 @@ footer {
     .uthh-contact-wrapper {
         grid-template-columns: 1fr;
     }
-    
+
     .uthh-img-box {
         min-height: 300px;
         order: -1;
     }
-    
+
     .uthh-form-box {
         padding: 40px 30px;
     }
@@ -2233,15 +2233,15 @@ footer {
     .uthh-contact-section {
         padding: 30px 15px;
     }
-    
+
     .uthh-form-box {
         padding: 30px 20px;
     }
-    
+
     .uthh-form-title {
         font-size: 1.5rem;
     }
-    
+
     .uthh-img-overlay h3 {
         font-size: 1.2rem;
     }
@@ -2252,11 +2252,13 @@ footer {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
+
 /* ============================================
    ESTILOS PARA LA NOTIFICACION DE CONTACTO
    ============================================*/
@@ -2387,6 +2389,320 @@ footer {
 .qr-instructions li {
     margin-bottom: 8px;
 }
+
+/* ============================================
+   GESTION DE PRESTAMOS
+   ============================================*/
+.estadisticas-prestamos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.tarjeta-estadistica {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 25px;
+    border-radius: 15px;
+    color: white;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.tarjeta-estadistica:hover {
+    transform: translateY(-5px);
+}
+
+.tarjeta-estadistica.activos {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+
+.tarjeta-estadistica.devueltos {
+    background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+}
+
+.tarjeta-estadistica.vencidos {
+    background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+}
+
+.tarjeta-estadistica.proximos {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+}
+
+.tarjeta-estadistica.sanciones {
+    background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+}
+
+.tarjeta-estadistica h3 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.tarjeta-estadistica p {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* Estados de filas */
+.fila-devuelto {
+    background-color: #e2e8f0 !important;
+}
+
+.fila-vencido {
+    background-color: #fed7d7 !important;
+}
+
+.fila-proximo {
+    background-color: #feebc8 !important;
+}
+
+.fila-activo {
+    background-color: #c6f6d5 !important;
+}
+
+/* Badges de estado */
+.badge-estado {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-activo {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.badge-devuelto {
+    background: #cbd5e0;
+    color: #2d3748;
+}
+
+.badge-vencido {
+    background: #fed7d7;
+    color: #742a2a;
+}
+
+.badge-proximo {
+    background: #feebc8;
+    color: #7c2d12;
+}
+
+.badge-sancion {
+    background: #e9d8fd;
+    color: #553c9a;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    margin-left: 5px;
+}
+
+.detalle-prestamo {
+    font-size: 0.85rem;
+    color: #718096;
+    margin-top: 5px;
+}
+
+/* Botones de acción */
+.acciones-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.btn-accion {
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-devolver {
+    background: #48bb78;
+    color: white;
+}
+
+.btn-devolver:hover {
+    background: #38a169;
+}
+
+.btn-info {
+    background: #4299e1;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #3182ce;
+}
+
+.btn-sancion {
+    background: #9f7aea;
+    color: white;
+}
+
+.btn-sancion:hover {
+    background: #805ad5;
+}
+
+.btn-sancion.pagada {
+    background: #a0aec0;
+}
+
+.dias-restantes {
+    font-weight: bold;
+}
+
+.dias-restantes.positivo {
+    color: #38a169;
+}
+
+.dias-restantes.negativo {
+    color: #e53e3e;
+}
+
+.libro-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.libro-titulo {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.libro-autor {
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* Info de devolución */
+.info-devolucion {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-top: 5px;
+    padding: 5px;
+    background: #f7fafc;
+    border-radius: 5px;
+}
+
+.info-devolucion strong {
+    color: #2d3748;
+}
+
+/* Modal de información */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2d3748;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #718096;
+}
+
+.modal-close:hover {
+    color: #2d3748;
+}
+
+.info-grupo {
+    margin-bottom: 15px;
+}
+
+.info-grupo label {
+    font-weight: 600;
+    color: #4a5568;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.info-grupo p {
+    color: #2d3748;
+    margin: 0;
+    padding: 8px;
+    background: #f7fafc;
+    border-radius: 5px;
+}
+
+.estado-entrega {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: 600;
+}
+
+.estado-entrega.bueno {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.estado-entrega.regular {
+    background: #feebc8;
+    color: #7c2d12;
+}
+
+.estado-entrega.mal {
+    background: #fed7d7;
+    color: #742a2a;
+}
+
+
 
 /* ============================================
    VOLVER DEL QE

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Préstamos - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <!-- Los headers se cargan desde header.js -->
+
+    <!-- Modal de Información de Devolución -->
+    <div class="modal-overlay" id="modal-info">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Información del Préstamo</h3>
+                <button class="modal-close" onclick="cerrarModal()">&times;</button>
+            </div>
+            <div id="modal-body">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <main class="container">
+        <a href="/HTML/index.html" class="boton-volver-detalle">
+            <span>←</span>
+            <span>Volver al inicio</span>
+        </a>
+
+        <!-- Alertas dinámicas -->
+        <div id="alertas-container"></div>
+
+        <!-- Título principal -->
+        <section>
+            <h1 style="text-align: center; color: #2d3748; margin-bottom: 10px;">
+                📚 Gestión de Préstamos
+            </h1>
+            <p style="text-align: center; color: #718096; margin-bottom: 30px;">
+                Control completo de préstamos de la biblioteca
+            </p>
+        </section>
+
+        <!-- Estadísticas -->
+        <section class="estadisticas-prestamos" id="estadisticas-prestamos">
+            <!-- Se cargan dinámicamente -->
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Cargando estadísticas...</p>
+            </div>
+        </section>
+
+        <!-- Filtros y búsqueda -->
+        <section class="filtros-section">
+            <h2>Buscar y Filtrar Préstamos</h2>
+            <div class="filtros-grupo">
+                <div class="campo-busqueda">
+                    <label for="busqueda">Buscar:</label>
+                    <input type="text" id="busqueda" name="busqueda" 
+                           placeholder="Ticket, matrícula, usuario, libro..." 
+                           autocomplete="off">
+                </div>
+
+                <div class="campo-filtro">
+                    <label for="filtro">Filtrar por estado:</label>
+                    <select id="filtro" name="filtro">
+                        <option value="todos">Todos los préstamos</option>
+                        <option value="activos">Solo Activos</option>
+                        <option value="devueltos">Solo Devueltos</option>
+                        <option value="vencidos">Solo Vencidos</option>
+                        <option value="proximos">Próximos a Vencer</option>
+                        <option value="con_sancion">Con Sanción Pendiente</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Listado de préstamos -->
+        <section class="listado-section">
+            <h2>Listado de Préstamos
+                <span class="badge" id="contador-resultados">0 resultado(s)</span>
+            </h2>
+
+            <div class="tabla-responsive" id="tabla-container">
+                <!-- Se carga dinámicamente -->
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando préstamos...</p>
+                </div>
+            </div>
+
+            <div class="no-resultados" id="no-resultados" style="display: none;">
+                <div class="no-resultados-icon">🔍</div>
+                <h3>No se encontraron préstamos</h3>
+                <p>Intenta con otros términos de búsqueda o cambia el filtro</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <div id="footer-container"></div>
+
+    <!-- SCRIPTS -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/gestionar_prestamos.js"></script>
+
+    <script>
+        // Proteger esta página - Solo admin (1) y empleado (2)
+        document.addEventListener('DOMContentLoaded', async function() {
+            await protegerPagina([1, 2]);
+        });
+    </script>
+</body>
+
+</html>
