@@ -83,7 +83,7 @@ function actualizarMenu(usuario) {
                 { href: '/HTML/registrar_usuarios.html', texto: 'Registrar Usuarios' },
                 { href: '/HTML/gestionar_libros.html', texto: 'Gestionar Libros' },
                 { href: '/HTML/registrar_libros.html', texto: 'Registrar Libros' },
-                { href: '/HTML/realizar_prestamo.html', texto: 'Realizar Préstamo' },
+                { href: '/HTML/registrar_prestamo.html', texto: 'Realizar Préstamo' },
                 { href: '/HTML/gestion_prestamos.html', texto: 'Consultar Préstamos' },
                 { href: '/HTML/visualizar_ar.html', texto: 'Visualizar AR' }
             ];
@@ -98,7 +98,7 @@ function actualizarMenu(usuario) {
                 { href: '/HTML/gestionar_usuarios.html', texto: 'Gestionar Usuarios' },
                 { href: '/HTML/gestionar_libros.html', texto: 'Gestionar Libros' },
                 { href: '/HTML/registrar_libros.html', texto: 'Registrar Libros' },
-                { href: '/HTML/realizar_prestamo.html', texto: 'Realizar Préstamo' },
+                { href: '/HTML/registrar_prestamo.html', texto: 'Realizar Préstamo' },
                 { href: '/HTML/gestion_prestamos.html', texto: 'Consultar Préstamos' },
                 { href: '/HTML/visualizar_ar.html', texto: 'Visualizar AR' }
             ];

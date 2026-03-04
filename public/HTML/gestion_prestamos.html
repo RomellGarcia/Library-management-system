@@ -25,10 +25,7 @@
     </div>
 
     <main class="container">
-        <a href="/HTML/index.html" class="boton-volver-detalle">
-            <span>←</span>
-            <span>Volver al inicio</span>
-        </a>
+
 
         <!-- Alertas dinámicas -->
         <div id="alertas-container"></div>
@@ -36,7 +33,7 @@
         <!-- Título principal -->
         <section>
             <h1 style="text-align: center; color: #2d3748; margin-bottom: 10px;">
-                📚 Gestión de Préstamos
+                Gestión de Préstamos
             </h1>
             <p style="text-align: center; color: #718096; margin-bottom: 30px;">
                 Control completo de préstamos de la biblioteca
@@ -58,9 +55,8 @@
             <div class="filtros-grupo">
                 <div class="campo-busqueda">
                     <label for="busqueda">Buscar:</label>
-                    <input type="text" id="busqueda" name="busqueda" 
-                           placeholder="Ticket, matrícula, usuario, libro..." 
-                           autocomplete="off">
+                    <input type="text" id="busqueda" name="busqueda" placeholder="Ticket, matrícula, usuario, libro..."
+                        autocomplete="off">
                 </div>
 
                 <div class="campo-filtro">
@@ -111,7 +107,7 @@
 
     <script>
         // Proteger esta página - Solo admin (1) y empleado (2)
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', async function () {
             await protegerPagina([1, 2]);
         });
     </script>

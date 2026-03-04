@@ -252,7 +252,7 @@ function crearFilaPrestamo(prestamo) {
             const btnSancion = document.createElement('button');
             btnSancion.type = 'button';
             btnSancion.className = 'btn-accion btn-sancion';
-            btnSancion.innerHTML = '💰 Cobrar Sanción';
+            btnSancion.innerHTML = 'Cobrar Sanción';
             btnSancion.onclick = () => marcarSancionCumplida(prestamo.intiddevolucion);
             divAcciones.appendChild(btnSancion);
         } else if (prestamo.flmontosancion > 0 && prestamo.boolsancion == 1) {
@@ -260,7 +260,7 @@ function crearFilaPrestamo(prestamo) {
             const spanPagada = document.createElement('span');
             spanPagada.className = 'btn-accion btn-sancion pagada';
             spanPagada.style.cursor = 'default';
-            spanPagada.innerHTML = '✅ Sanción Pagada';
+            spanPagada.innerHTML = 'Sanción Pagada';
             divAcciones.appendChild(spanPagada);
         }
     } else {
@@ -268,7 +268,7 @@ function crearFilaPrestamo(prestamo) {
         const linkDevolucion = document.createElement('a');
         linkDevolucion.href = `/HTML/devolucion_prestamo.html?ticket=${encodeURIComponent(prestamo.vchticket)}`;
         linkDevolucion.className = 'btn-accion btn-devolver';
-        linkDevolucion.innerHTML = '📤 Devolución';
+        linkDevolucion.innerHTML = 'Devolución';
         divAcciones.appendChild(linkDevolucion);
     }
 

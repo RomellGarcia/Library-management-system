@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Préstamos - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="pagina-prestamos">
+    <!-- Header con búsqueda -->
+    <header class="header-search">
+        <div class="search-container">
+            <input type="search" class="search-box" id="searchBox" placeholder="Buscar libros, autores, categorías..."
+                autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </header>
+
+    <!-- Modal de ejemplares -->
+    <div class="modal-ejemplares" id="modalEjemplares">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <h3 id="modalTitulo">Seleccionar Ejemplar</h3>
+                <button type="button" class="btn-cerrar-modal" onclick="cerrarModalEjemplares()">✕</button>
+            </div>
+            <div class="lista-ejemplares" id="listaEjemplares">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <main class="contenedor-principal">
+        <a href="/HTML/index.html" class="boton-volver-detalle">
+            <span>←</span>
+            <span>Volver al inicio</span>
+        </a>
+
+        <section class="seccion-prestamos">
+            <div class="titulo-seccion">
+                <h1>📚 Registro de Préstamo de Libros</h1>
+            </div>
+
+            <form id="formPrestamo" class="formulario-prestamo">
+                <div class="grid-formulario">
+                    <!-- Información del Ticket -->
+                    <div class="grupo-campo">
+                        <label for="vchticket">🎫 Ticket de Préstamo</label>
+                        <input type="text" id="vchticket" name="vchticket" readonly
+                            placeholder="Se generará automáticamente">
+                        <small class="texto-ayuda">Identificador único del préstamo</small>
+                    </div>
+
+                    <!-- Búsqueda de Usuario -->
+                    <div class="grupo-campo">
+                        <label for="intmatriculausuario">👤 Matrícula del Usuario *</label>
+                        <div class="campo-busqueda">
+                            <input type="text" id="intmatriculausuario" name="intmatriculausuario"
+                                placeholder="Ingrese matrícula" required>
+                        </div>
+                        <div id="infoUsuario" class="info-resultado"></div>
+                    </div>
+
+                    <!-- Empleado que registra -->
+                    <div class="grupo-campo">
+                        <label for="intmatriculaempleado">👨‍💼 Empleado que Registra</label>
+                        <div class="campo-busqueda">
+                            <input type="text" id="intmatriculaempleado" name="intmatriculaempleado"
+                                placeholder="Se detectará automáticamente" readonly style="background-color: #f0f0f0;">
+                        </div>
+                        <div id="infoEmpleado" class="info-resultado">
+                            Se registrará con tu usuario actual
+                        </div>
+                    </div>
+
+                    <!-- Fecha de Préstamo -->
+                    <div class="grupo-campo">
+                        <label for="fechaprestamo">📅 Fecha de Préstamo *</label>
+                        <input type="date" id="fechaprestamo" name="fechaprestamo" required>
+                    </div>
+
+                    <!-- Fecha de Devolución -->
+                    <div class="grupo-campo">
+                        <label for="fechadevolucion">📆 Fecha de Devolución *</label>
+                        <input type="date" id="fechadevolucion" name="fechadevolucion" required>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="grupo-campo campo-completo">
+                        <label for="vchobservaciones">📝 Observaciones</label>
+                        <textarea id="vchobservaciones" name="vchobservaciones" rows="3"
+                            placeholder="Observaciones adicionales sobre el préstamo"></textarea>
+                    </div>
+                </div>
+
+                <!-- Sección de búsqueda de libros -->
+                <div class="seccion-libros">
+                    <h2>Buscar Libro para Préstamo</h2>
+
+                    <div class="buscador-libros">
+                        <input type="text" id="buscarLibro" placeholder="Buscar por título, autor o código ISBN...">
+                        <span class="icono-busqueda"></span>
+                    </div>
+
+                    <div id="resultadosLibros" class="resultados-libros"></div>
+
+                    <!-- Libro seleccionado -->
+                    <div id="libroSeleccionado" class="libro-seleccionado" style="display: none;">
+                        <h3>✓ Libro Seleccionado</h3>
+                        <div class="detalle-libro">
+                            <div class="portada-libro">
+                                <img id="imagenPortada" src="" alt="Portada del libro">
+                            </div>
+                            <div class="info-libro">
+                                <h4 id="tituloLibro"></h4>
+                                <p><strong>Autor:</strong> <span id="autorLibro"></span></p>
+                                <p><strong>Editorial:</strong> <span id="editorialLibro"></span></p>
+                                <p><strong>ISBN:</strong> <span id="isbnLibro"></span></p>
+                                <p><strong>Ubicación:</strong> <span id="ubicacionLibro"></span></p>
+                                <input type="hidden" id="intidejemplar" name="intidejemplar">
+                                <button type="button" class="btn-cancelar-libro" onclick="cancelarSeleccion()">
+                                    ✕ Cancelar Selección
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="botones-accion">
+                    <button type="submit" class="btn-principal">
+                        <span>💾</span> Registrar Préstamo
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/registrar_prestamo.js"></script>
+
+    <script>
+        // Proteger esta página - Solo admin (1) y empleado (2)
+        document.addEventListener('DOMContentLoaded', async function() {
+            await protegerPagina([1, 2]);
+        });
+    </script>
+</body>
+
+</html>
