@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (data.success) {
                     // Login exitoso
-                    console.log('✅ Login exitoso:', data.usuario);
+                    console.log('Login exitoso:', data.usuario);
                     
                     // Mostrar mensaje de bienvenida con alert
                     alert(`¡Bienvenido ${data.usuario.nombre}!`);

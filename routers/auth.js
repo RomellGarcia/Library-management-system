@@ -8,6 +8,32 @@ function md5(texto) {
     return crypto.createHash('md5').update(texto).digest('hex');
 }
 
+// ============================================
+// MIDDLEWARES DE AUTENTICACIÓN
+// ============================================
+
+// Middleware para verificar autenticación
+function verificarAutenticacion(req, res, next) {
+    if (!req.session || !req.session.logueado || !req.session.usuario) {
+        return res.status(401).json({
+            success: false,
+            error: 'No autenticado'
+        });
+    }
+    next();
+}
+
+// Middleware para verificar rol admin/empleado (ya lo tienes al final, lo movemos aquí)
+function verificarRolAdminEmpleado(req, res, next) {
+    const idRol = req.session.usuario.idrol;
+    if (idRol !== 1 && idRol !== 2) {
+        return res.status(403).json({
+            success: false,
+            error: 'No tienes permisos para acceder a esta sección'
+        });
+    }
+    next();
+}
 // POST /api/auth/login - Iniciar sesión
 router.post('/login', (req, res) => {
     const { matricula, password, recordar } = req.body;
@@ -192,7 +218,7 @@ router.post('/logout', (req, res) => {
             });
         }
 
-        res.clearCookie('connect.sid'); // Nombre por defecto de la cookie de sesión
+        res.clearCookie('connect.sid');
         res.json({
             success: true,
             message: 'Sesión cerrada correctamente',
@@ -200,5 +226,159 @@ router.post('/logout', (req, res) => {
         });
     });
 });
+
+// GET /api/auth/usuarios - Obtener todos los usuarios (estudiantes)
+router.get('/usuarios', verificarAutenticacion, verificarRolAdminEmpleado, (req, res) => {
+    const sql = `
+        SELECT 
+            u.intmatricula,
+            u.vchnombre,
+            u.vchapaterno,
+            u.vchamaterno,
+            u.vchcorreo,
+            u.vchtelefono,
+            u.vchcalle,
+            u.vchcolonia,
+            u.intidrol,
+            'Usuario' as tipo_usuario,
+            'tblusuarios' as tabla_origen
+        FROM tblusuarios u
+        ORDER BY u.vchnombre ASC
+    `;
+
+    conexion.query(sql, (error, resultados) => {
+        if (error) {
+            console.error('Error al obtener usuarios:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Error al obtener usuarios'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: resultados
+        });
+    });
+});
+
+// GET /api/auth/administradores - Obtener todos los administradores
+router.get('/administradores', verificarAutenticacion, verificarRolAdminEmpleado, (req, res) => {
+    const sql = `
+        SELECT 
+            a.intmatricula,
+            a.vchnombre,
+            a.vchapaterno,
+            a.vchamaterno,
+            a.vchcorreo,
+            a.vchtelefono,
+            a.vchcalle,
+            a.vchcolonia,
+            a.intidrol,
+            'Administrador' as tipo_usuario,
+            'tbladministrador' as tabla_origen
+        FROM tbladministrador a
+        ORDER BY a.vchnombre ASC
+    `;
+
+    conexion.query(sql, (error, resultados) => {
+        if (error) {
+            console.error('Error al obtener administradores:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Error al obtener administradores'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: resultados
+        });
+    });
+});
+
+// GET /api/auth/empleados - Obtener todos los empleados
+router.get('/empleados', verificarAutenticacion, verificarRolAdminEmpleado, (req, res) => {
+    const sql = `
+        SELECT 
+            e.intmatricula,
+            e.vchnombre,
+            e.vchapaterno,
+            e.vchamaterno,
+            e.vchcorreo,
+            e.vchtelefono,
+            e.vchcalle,
+            e.vchcolonia,
+            e.intidrol,
+            'Empleado' as tipo_usuario,
+            'tblempleados' as tabla_origen
+        FROM tblempleados e
+        ORDER BY e.vchnombre ASC
+    `;
+
+    conexion.query(sql, (error, resultados) => {
+        if (error) {
+            console.error('Error al obtener empleados:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Error al obtener empleados'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: resultados
+        });
+    });
+});
+
+// DELETE /api/auth/usuarios/:matricula - Eliminar usuario
+router.delete('/usuarios/:matricula', verificarAutenticacion, verificarRolAdminEmpleado, (req, res) => {
+    const { matricula } = req.params;
+    const { tabla } = req.query;
+
+    if (!tabla || !['tblusuarios', 'tbladministrador', 'tblempleados'].includes(tabla)) {
+        return res.status(400).json({
+            success: false,
+            error: 'Tabla no válida'
+        });
+    }
+
+    const sql = `DELETE FROM ${tabla} WHERE intmatricula = ?`;
+
+    conexion.query(sql, [matricula], (error, resultado) => {
+        if (error) {
+            console.error('Error al eliminar usuario:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Error al eliminar usuario'
+            });
+        }
+
+        if (resultado.affectedRows === 0) {
+            return res.json({
+                success: false,
+                error: 'Usuario no encontrado'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Usuario eliminado correctamente'
+        });
+    });
+});
+
+// Middleware para verificar rol admin/empleado
+function verificarRolAdminEmpleado(req, res, next) {
+    const idRol = req.session.usuario.idrol;
+    if (idRol !== 1 && idRol !== 2) {
+        return res.status(403).json({
+            success: false,
+            error: 'No tienes permisos para acceder a esta sección'
+        });
+    }
+    next();
+}
 
 module.exports = router;

@@ -25,7 +25,7 @@ async function cargarCatalogo() {
             if (data.data.length === 0) {
                 container.innerHTML = `
                     <div class="sin-libros">
-                        <div class="sin-libros-icono">📚</div>
+                        <div class="sin-libros-icono"></div>
                         <p class="sin-libros-texto">No hay libros registrados en el catálogo</p>
                     </div>
                 `;
@@ -197,7 +197,7 @@ function configurarBuscador() {
                 const mensajeSinResultados = document.createElement('div');
                 mensajeSinResultados.className = 'sin-resultados-busqueda';
                 mensajeSinResultados.innerHTML = `
-                    <div class="sin-libros-icono">🔍</div>
+                    <div class="sin-libros-icono"></div>
                     <p class="sin-libros-texto">No se encontraron resultados para "${escapeHtml(searchTerm)}"</p>
                 `;
                 catalogoGrid.appendChild(mensajeSinResultados);

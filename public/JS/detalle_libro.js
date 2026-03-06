@@ -75,7 +75,7 @@ async function cargarDetalleLibro() {
             mostrarError(data.error || 'Error al cargar el libro');
         }
     } catch (error) {
-        console.error('❌ Error completo:', error);
+        console.error('Error completo:', error);
         mostrarError(error.message);
     }
 }
@@ -93,7 +93,7 @@ function mostrarDetalle(libro) {
             <figure class="portada-libro-detalle">
                 ${libro.imagen 
                     ? `<img src="${libro.imagen}" alt="Portada de ${escapeHtml(libro.vchtitulo)}">`
-                    : `<div class="icono-libro-placeholder">📖</div>`
+                    : `<div class="icono-libro-placeholder"></div>`
                 }
             </figure>
 

@@ -538,4 +538,211 @@ router.post('/sancion', verificarAutenticacion, verificarRolAdminEmpleado, (req,
     });
 });
 
+// GET /api/prestamos/buscar-por-ticket - Buscar préstamo por ticket para devolución
+router.get('/buscar-por-ticket', verificarAutenticacion, verificarRolAdminEmpleado, (req, res) => {
+    const { ticket } = req.query;
+
+    if (!ticket) {
+        return res.status(400).json({
+            success: false,
+            mensaje: 'Ticket requerido'
+        });
+    }
+
+    const sql = `
+        SELECT 
+            p.intidprestamo,
+            p.vchticket,
+            p.intmatricula_usuario,
+            p.intmatricula_empleado,
+            p.fecha_prestamo,
+            p.fecha_devolucion,
+            p.booldevuelto,
+            p.intidejemplar,
+            CONCAT(u.vchnombre, ' ', u.vchapaterno, ' ', COALESCE(u.vchamaterno, '')) as nombre_usuario,
+            l.vchtitulo as titulo_libro,
+            l.vchautor as autor_libro,
+            ej.vchcodigobarras
+        FROM tblprestamos p
+        LEFT JOIN tblusuarios u ON p.intmatricula_usuario = u.intmatricula
+        LEFT JOIN tblejemplares ej ON p.intidejemplar = ej.intidejemplar
+        LEFT JOIN tbllibros l ON ej.vchfolio = l.vchfolio
+        WHERE p.vchticket = ?
+    `;
+
+    conexion.query(sql, [ticket], (error, resultados) => {
+        if (error) {
+            console.error('Error al buscar préstamo:', error);
+            return res.status(500).json({
+                success: false,
+                mensaje: 'Error al buscar préstamo'
+            });
+        }
+
+        if (resultados.length === 0) {
+            return res.json({
+                success: false,
+                mensaje: 'No se encontró un préstamo con ese ticket'
+            });
+        }
+
+        res.json({
+            success: true,
+            prestamo: resultados[0]
+        });
+    });
+});
+
+// POST /api/prestamos/devolucion - Procesar devolución de préstamo
+router.post('/devolucion', verificarAutenticacion, verificarRolAdminEmpleado, (req, res) => {
+    const {
+        intidprestamo,
+        intidejemplar,
+        intmatricula_empleado,
+        vchentrega,
+        fechareal_devolucion,
+        vchsancion,
+        flmontosancion,
+        boolsancion
+    } = req.body;
+
+    // Validar campos requeridos
+    if (!intidprestamo || !intidejemplar || !intmatricula_empleado || !vchentrega || !fechareal_devolucion) {
+        return res.status(400).json({
+            success: false,
+            mensaje: 'Faltan campos requeridos'
+        });
+    }
+
+    // Iniciar transacción
+    conexion.beginTransaction(error => {
+        if (error) {
+            console.error('Error al iniciar transacción:', error);
+            return res.status(500).json({
+                success: false,
+                mensaje: 'Error al iniciar transacción'
+            });
+        }
+
+        // 1. Verificar que el préstamo existe y no está devuelto
+        const sqlVerificar = "SELECT booldevuelto FROM tblprestamos WHERE intidprestamo = ?";
+        
+        conexion.query(sqlVerificar, [intidprestamo], (errorV, prestamoResult) => {
+            if (errorV || prestamoResult.length === 0) {
+                return conexion.rollback(() => {
+                    res.json({
+                        success: false,
+                        mensaje: 'Préstamo no encontrado'
+                    });
+                });
+            }
+
+            if (prestamoResult[0].booldevuelto == 1) {
+                return conexion.rollback(() => {
+                    res.json({
+                        success: false,
+                        mensaje: 'Este préstamo ya fue devuelto anteriormente'
+                    });
+                });
+            }
+
+            // 2. Obtener ID de estado de entrega
+            const sqlEstado = "SELECT intidestrega FROM tblestadoentrega WHERE vchestadoentrega = ?";
+            
+            conexion.query(sqlEstado, [vchentrega], (errorE, estadoResult) => {
+                let intidestrega = null;
+                
+                if (estadoResult && estadoResult.length > 0) {
+                    intidestrega = estadoResult[0].intidestrega;
+                } else {
+                    // Si no existe el estado, usar valor por defecto (1 = Bueno)
+                    if (vchentrega === 'Bueno') intidestrega = 1;
+                    else if (vchentrega === 'Regular') intidestrega = 2;
+                    else if (vchentrega === 'Mal') intidestrega = 3;
+                }
+
+                // 3. Insertar registro de devolución
+                const sqlDevolucion = `
+                    INSERT INTO tbldevolucion 
+                    (intidprestamo, fechareal_devolucion, intmatricula_empleado, 
+                     vchsancion, flmontosancion, boolsancion, intidestrega)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                `;
+
+                const montoSancion = flmontosancion ? parseFloat(flmontosancion) : 0;
+                const sancionCumplida = boolsancion ? 1 : 0;
+
+                conexion.query(sqlDevolucion, 
+                    [intidprestamo, fechareal_devolucion, intmatricula_empleado, 
+                     vchsancion || null, montoSancion, sancionCumplida, intidestrega],
+                (errorD, resultadoD) => {
+                    if (errorD) {
+                        return conexion.rollback(() => {
+                            console.error('Error al insertar devolución:', errorD);
+                            res.status(500).json({
+                                success: false,
+                                mensaje: 'Error al registrar devolución'
+                            });
+                        });
+                    }
+
+                    // 4. Actualizar estado del préstamo
+                    const sqlUpdatePrestamo = "UPDATE tblprestamos SET booldevuelto = 1 WHERE intidprestamo = ?";
+                    
+                    conexion.query(sqlUpdatePrestamo, [intidprestamo], (errorUP) => {
+                        if (errorUP) {
+                            return conexion.rollback(() => {
+                                console.error('Error al actualizar préstamo:', errorUP);
+                                res.status(500).json({
+                                    success: false,
+                                    mensaje: 'Error al actualizar préstamo'
+                                });
+                            });
+                        }
+
+                        // 5. Liberar ejemplar (marcar como disponible)
+                        const sqlUpdateEjemplar = "UPDATE tblejemplares SET booldisponible = 1 WHERE intidejemplar = ?";
+                        
+                        conexion.query(sqlUpdateEjemplar, [intidejemplar], (errorUE) => {
+                            if (errorUE) {
+                                return conexion.rollback(() => {
+                                    console.error('Error al liberar ejemplar:', errorUE);
+                                    res.status(500).json({
+                                        success: false,
+                                        mensaje: 'Error al liberar ejemplar'
+                                    });
+                                });
+                            }
+
+                            // Commit
+                            conexion.commit(errorC => {
+                                if (errorC) {
+                                    return conexion.rollback(() => {
+                                        console.error('Error al hacer commit:', errorC);
+                                        res.status(500).json({
+                                            success: false,
+                                            mensaje: 'Error al confirmar transacción'
+                                        });
+                                    });
+                                }
+
+                                res.json({
+                                    success: true,
+                                    mensaje: 'Devolución registrada exitosamente',
+                                    data: {
+                                        iddevolucion: resultadoD.insertId,
+                                        sancion_aplicada: montoSancion > 0,
+                                        monto_sancion: montoSancion.toFixed(2)
+                                    }
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
+
 module.exports = router;

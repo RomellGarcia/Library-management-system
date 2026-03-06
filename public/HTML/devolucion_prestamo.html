@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devolución de Préstamo - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <main class="container-devolucion">
+        <a href="/HTML/gestion_prestamos.html" class="boton-volver-detalle" style="margin-bottom: 20px;">
+            <span>←</span>
+            <span>Volver a Préstamos</span>
+        </a>
+
+        <!-- Loading inicial -->
+        <div id="loading-inicial" class="card" style="text-align: center;">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #718096;">Cargando datos del préstamo...</p>
+        </div>
+
+        <!-- Mensaje de error si no se encuentra -->
+        <div id="mensaje-error-inicial" style="display: none;">
+            <div class="card">
+                <div class="alert alert-danger">
+                    <span id="texto-error">No se pudo cargar el préstamo</span>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="/HTML/gestion_prestamos.html" class="btn btn-primary">
+                        Volver a Préstamos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de Datos del Préstamo -->
+        <section class="card" id="datos-prestamo" style="display: none;">
+            <div class="card-header">
+                <h2>Datos del Préstamo</h2>
+            </div>
+
+            <div id="mensaje-error"></div>
+
+            <form id="form-devolucion">
+                <input type="hidden" name="intidprestamo" id="intidprestamo">
+                <input type="hidden" name="intidejemplar" id="intidejemplar">
+
+                <!-- Información del Préstamo -->
+                <div class="info-prestamo">
+                    <div class="info-item">
+                        <span class="info-label">Ticket</span>
+                        <span class="info-value" id="display-ticket">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Usuario</span>
+                        <span class="info-value" id="display-usuario">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Libro</span>
+                        <span class="info-value" id="display-libro">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Código de Barras</span>
+                        <span class="info-value" id="display-codigo">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Fecha Préstamo</span>
+                        <span class="info-value" id="display-fecha-prestamo">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Fecha Devolución Esperada</span>
+                        <span class="info-value" id="display-fecha-devolucion">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Estado</span>
+                        <span class="info-value" id="display-estado">-</span>
+                    </div>
+                </div>
+
+                <!-- Alerta de estado -->
+                <div id="alerta-estado"></div>
+
+                <!-- Cálculo de Sanción -->
+                <div id="calculo-sancion" style="display: none;">
+                    <div class="calculo-sancion">
+                        <h3>Cálculo de Sanción por Retraso</h3>
+                        <div class="sancion-detalle">
+                            <div class="sancion-item">
+                                <strong>Días de Retraso:</strong>
+                                <span id="dias-retraso" style="font-size: 1.5rem; color: #c53030;">0</span>
+                            </div>
+                            <div class="sancion-item">
+                                <strong>Monto Sugerido:</strong>
+                                <span id="monto-sancion" style="font-size: 1.5rem; color: #c53030;">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulario de Devolución -->
+                <div class="form-group">
+                    <label for="intmatricula_empleado">Matrícula del Empleado que Recibe *</label>
+                    <input type="text" id="intmatricula_empleado" name="intmatricula_empleado" 
+                           placeholder="Ej: 20000001" required pattern="[0-9]+" title="Solo números">
+                    <small style="color: #718096; margin-top: 5px; display: block;">
+                        Ingrese la matrícula del empleado que procesa la devolución
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="vchentrega">Estado de Entrega del Libro *</label>
+                    <select id="vchentrega" name="vchentrega" required>
+                        <option value="">Seleccione el estado...</option>
+                        <option value="Bueno">Bueno - El libro está en excelente condición</option>
+                        <option value="Regular">Regular - El libro tiene desgaste leve</option>
+                        <option value="Mal">Mal - El libro está dañado o deteriorado</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="fechareal_devolucion">Fecha y Hora de Devolución *</label>
+                    <input type="datetime-local" id="fechareal_devolucion" name="fechareal_devolucion" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="vchsancion">Observaciones / Motivo de Sanción</label>
+                    <textarea id="vchsancion" name="vchsancion" rows="3" 
+                              placeholder="Opcional: Describe observaciones o el motivo de la sanción..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="flmontosancion">Monto de la Sanción ($)</label>
+                    <input type="number" id="flmontosancion" name="flmontosancion" 
+                           step="0.01" min="0" placeholder="0.00" value="0.00">
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="boolsancion" name="boolsancion" value="1">
+                        <label for="boolsancion">
+                            <strong>Sanción Pagada/Cumplida</strong><br>
+                            <small style="color: #718096;">Marca esta casilla si el usuario ya pagó o cumplió la sanción</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <a href="/HTML/gestion_prestamos.html" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary" id="btn-submit">
+                        Registrar Devolución
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/devolucion_prestamo.js"></script>
+
+    <script>
+        // Proteger esta página - Solo admin (1) y empleado (2)
+        document.addEventListener('DOMContentLoaded', async function() {
+            await protegerPagina([1, 2]);
+        });
+    </script>
+</body>
+</html>

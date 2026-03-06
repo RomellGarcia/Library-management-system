@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <!-- Los headers se cargan desde header.js -->
+
+    <main class="container">
+
+        <section>
+            <h1 style="text-align: center; color: #2d3748; margin-bottom: 10px;">Gestión de Usuarios
+            </h1>
+            <p style="text-align: center; color: #718096; margin-bottom: 30px;">
+                Administra usuarios, empleados y administradores del sistema
+            </p>
+        </section>
+
+        <!-- Filtros -->
+        <section class="filtros-section">
+            <h2>Buscar y Filtrar Usuarios</h2>
+            <div class="filtros-grupo">
+                <div class="campo-busqueda">
+                    <label for="busqueda">Buscar:</label>
+                    <input type="text" id="busqueda"
+                        placeholder="Nombre, matrícula, correo, teléfono..."
+                        autocomplete="off">
+                </div>
+                <div class="campo-filtro">
+                    <label for="filtro">Filtrar por tipo:</label>
+                    <select id="filtro">
+                        <option value="todos">Todos los usuarios</option>
+                        <option value="usuarios">Solo Usuarios</option>
+                        <option value="administradores">Solo Administradores</option>
+                        <option value="empleados">Solo Empleados</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Listado -->
+        <section class="listado-section">
+            <h2>
+                Listado de Usuarios
+                <span class="badge" id="contador-resultados">0 resultado(s)</span>
+            </h2>
+
+            <div class="no-resultados" id="no-resultados" style="display:none;">
+                <div class="no-resultados-icon"></div>
+                <h3>No se encontraron usuarios</h3>
+                <p>Intenta con otros términos de búsqueda o cambia el filtro</p>
+            </div>
+
+            <div class="tabla-responsive">
+                <table class="tabla-usuarios" id="tabla-usuarios" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Matrícula</th>
+                            <th>Nombre Completo</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Tipo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-usuarios">
+                        <!-- Cargando... -->
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px;">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <p>Cargando usuarios...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <div id="footer-container"></div>
+
+    <!-- SCRIPTS -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/listadoUsuario.js"></script>
+
+    <script>
+        // Proteger esta página - Solo admin (1) y empleado (2)
+        document.addEventListener('DOMContentLoaded', async function() {
+            await protegerPagina([1, 2]);
+        });
+    </script>
+</body>
+
+</html>

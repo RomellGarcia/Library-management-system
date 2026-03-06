@@ -36,7 +36,7 @@ async function cargarLibrosRecomendados() {
                     coverDiv.style.backgroundPosition = 'center';
                 } else {
                     coverDiv.style.backgroundColor = libro.color_fondo || '#667eea';
-                    coverDiv.innerHTML = '📖';
+                    coverDiv.innerHTML = '';
                     coverDiv.style.display = 'flex';
                     coverDiv.style.alignItems = 'center';
                     coverDiv.style.justifyContent = 'center';
@@ -325,7 +325,7 @@ function configurarBusquedaTiempoReal() {
         }
     });
 
-    console.log('✅ Búsqueda en tiempo real configurada');
+    console.log('Búsqueda en tiempo real configurada');
 }
 
 // Función auxiliar para escapar HTML
@@ -343,7 +343,7 @@ function escapeHtml(text) {
 
 // INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('📱 main.js cargado');
+    console.log('main.js cargado');
     
     // Cargar datos de la página
     cargarLibrosRecomendados();

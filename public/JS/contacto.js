@@ -79,7 +79,7 @@ async function manejarEnvioFormulario(e) {
             'error'
         );
         formMessage.style.color = '#dc3545';
-        formMessage.innerHTML = '✗ Correo no válido (use su cuenta UTHH)';
+        formMessage.innerHTML = 'Correo no válido (use su cuenta UTHH)';
         return;
     }
 
@@ -109,7 +109,7 @@ async function manejarEnvioFormulario(e) {
         // Mostrar mensaje de éxito
         mostrarNotificacion('¡Mensaje enviado correctamente a la biblioteca!', 'success');
         formMessage.style.color = '#28a745';
-        formMessage.innerHTML = '✓ Enviado con éxito';
+        formMessage.innerHTML = 'Enviado con éxito';
 
         // Limpiar formulario
         contactForm.reset();

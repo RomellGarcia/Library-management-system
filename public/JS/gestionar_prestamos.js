@@ -177,7 +177,7 @@ function crearFilaPrestamo(prestamo) {
             <span class="libro-autor">Por: ${escapeHtml(prestamo.autor_libro || 'Sin autor')}</span>
             ${prestamo.vchcodigobarras ? `
                 <div class="detalle-prestamo">
-                    📊 ${escapeHtml(prestamo.vchcodigobarras)}
+                    ${escapeHtml(prestamo.vchcodigobarras)}
                 </div>
             ` : ''}
         </div>
@@ -317,16 +317,16 @@ function filtrarPrestamosLocal() {
 // Ver información de devolución
 function verInfoDevolucion(prestamo) {
     const estadoEntregaTexto = {
-        1: '<span class="estado-entrega bueno">✅ Bueno</span>',
-        2: '<span class="estado-entrega regular">⚠️ Regular</span>',
-        3: '<span class="estado-entrega mal">❌ Mal Estado</span>'
+        1: '<span class="estado-entrega bueno">Bueno</span>',
+        2: '<span class="estado-entrega regular">Regular</span>',
+        3: '<span class="estado-entrega mal">Mal Estado</span>'
     };
 
     let sancionHTML = '';
     if (prestamo.flmontosancion > 0) {
         const estadoSancion = prestamo.boolsancion == 1 
-            ? '<span style="color: #38a169;">✅ Pagada</span>' 
-            : '<span style="color: #e53e3e;">⏳ Pendiente</span>';
+            ? '<span style="color: #38a169;">Pagada</span>' 
+            : '<span style="color: #e53e3e;">Pendiente</span>';
         
         sancionHTML = `
             <div class="info-grupo">
@@ -345,37 +345,37 @@ function verInfoDevolucion(prestamo) {
     const modalBody = document.getElementById('modal-body');
     modalBody.innerHTML = `
         <div class="info-grupo">
-            <label>🎫 Ticket</label>
+            <label>Ticket</label>
             <p>${escapeHtml(prestamo.vchticket || 'N/A')}</p>
         </div>
         <div class="info-grupo">
-            <label>👤 Usuario</label>
+            <label>Usuario</label>
             <p>${escapeHtml(prestamo.nombre_usuario || 'N/A')}<br>
                <small style="color:#718096;">${prestamo.intmatricula_usuario || 'N/A'}</small></p>
         </div>
         <div class="info-grupo">
-            <label>📚 Libro</label>
+            <label>Libro</label>
             <p>${escapeHtml(prestamo.titulo_libro || 'N/A')}</p>
         </div>
         <div class="info-grupo">
-            <label>📅 Fecha de Préstamo</label>
+            <label>Fecha de Préstamo</label>
             <p>${formatearFecha(prestamo.fecha_prestamo)}</p>
         </div>
         <div class="info-grupo">
-            <label>📆 Fecha Devolución Esperada</label>
+            <label>Fecha Devolución Esperada</label>
             <p>${formatearFecha(prestamo.fecha_devolucion)}</p>
         </div>
         <div class="info-grupo">
-            <label>✅ Fecha Devolución Real</label>
+            <label>Fecha Devolución Real</label>
             <p>${prestamo.fechareal_devolucion ? formatearFechaHora(prestamo.fechareal_devolucion) : 'N/A'}</p>
         </div>
         <div class="info-grupo">
-            <label>👨‍💼 Recibido por</label>
+            <label>Recibido por</label>
             <p>${escapeHtml(prestamo.nombre_recibio || 'No registrado')}<br>
                <small style="color:#718096;">Matrícula: ${prestamo.matricula_recibio || 'N/A'}</small></p>
         </div>
         <div class="info-grupo">
-            <label>📋 Estado de Entrega</label>
+            <label>Estado de Entrega</label>
             <p>${estadoEntregaTexto[prestamo.intidestrega] || 'No especificado'}</p>
         </div>
         ${sancionHTML}
@@ -452,7 +452,7 @@ function mostrarError(mensaje) {
     const container = document.getElementById('tabla-container');
     container.innerHTML = `
         <div style="text-align: center; padding: 40px; color: #e53e3e;">
-            <h3>⚠️ Error</h3>
+            <h3>Error</h3>
             <p>${escapeHtml(mensaje)}</p>
             <button onclick="cargarPrestamos()" 
                     style="margin-top: 20px; padding: 12px 24px; background: #BC955B; color: white; border: none; border-radius: 8px; cursor: pointer;">
