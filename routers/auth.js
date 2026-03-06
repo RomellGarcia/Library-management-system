@@ -369,6 +369,172 @@ router.delete('/usuarios/:matricula', verificarAutenticacion, verificarRolAdminE
     });
 });
 
+// GET /api/auth/perfil - Obtener perfil del usuario logueado
+router.get('/perfil', verificarAutenticacion, (req, res) => {
+    const matricula = req.session.usuario.matricula;
+    const idRol = req.session.usuario.idrol;
+
+    // Determinar tabla según el rol
+    let tabla = '';
+    switch (idRol) {
+        case 1: // Administrador
+            tabla = 'tbladministrador';
+            break;
+        case 2: // Empleado
+            tabla = 'tblempleados';
+            break;
+        case 3: // Usuario
+            tabla = 'tblusuarios';
+            break;
+        default:
+            return res.status(400).json({
+                success: false,
+                error: 'Rol no válido'
+            });
+    }
+
+    const sql = `
+        SELECT 
+            u.intmatricula, 
+            u.vchnombre, 
+            u.vchapaterno, 
+            u.vchamaterno, 
+            u.vchtelefono, 
+            u.vchcorreo, 
+            u.vchcalle, 
+            u.vchcolonia, 
+            r.vchrol
+        FROM ${tabla} u
+        JOIN tblroles r ON u.intidrol = r.intidrol
+        WHERE u.intmatricula = ?
+    `;
+
+    conexion.query(sql, [matricula], (error, resultados) => {
+        if (error) {
+            console.error('Error al obtener perfil:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Error al obtener perfil'
+            });
+        }
+
+        if (resultados.length === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Usuario no encontrado'
+            });
+        }
+
+        res.json({
+            success: true,
+            usuario: resultados[0]
+        });
+    });
+});
+
+// PUT /api/auth/perfil - Actualizar perfil del usuario logueado
+router.put('/perfil', verificarAutenticacion, (req, res) => {
+    const matricula = req.session.usuario.matricula;
+    const idRol = req.session.usuario.idrol;
+    
+    const {
+        vchnombre,
+        vchapaterno,
+        vchamaterno,
+        vchtelefono,
+        vchcorreo,
+        vchcalle,
+        vchcolonia,
+        vchpassword
+    } = req.body;
+
+    // Validaciones
+    if (!vchnombre || !vchcorreo) {
+        return res.status(400).json({
+            success: false,
+            mensaje: 'Nombre y correo son requeridos'
+        });
+    }
+
+    // Determinar tabla según el rol
+    let tabla = '';
+    switch (idRol) {
+        case 1:
+            tabla = 'tbladministrador';
+            break;
+        case 2:
+            tabla = 'tblempleados';
+            break;
+        case 3:
+            tabla = 'tblusuarios';
+            break;
+        default:
+            return res.status(400).json({
+                success: false,
+                mensaje: 'Rol no válido'
+            });
+    }
+
+    // Construir SQL dinámicamente
+    let sql = `
+        UPDATE ${tabla} SET 
+            vchnombre = ?,
+            vchapaterno = ?,
+            vchamaterno = ?,
+            vchtelefono = ?,
+            vchcorreo = ?,
+            vchcalle = ?,
+            vchcolonia = ?
+    `;
+
+    const params = [
+        vchnombre,
+        vchapaterno || '',
+        vchamaterno || '',
+        vchtelefono || '',
+        vchcorreo,
+        vchcalle || '',
+        vchcolonia || ''
+    ];
+
+    // Si se proporciona nueva contraseña, hashearla y agregarla
+    if (vchpassword && vchpassword.trim() !== '') {
+        sql += ', vchpassword = ?';
+        params.push(md5(vchpassword));
+    }
+
+    sql += ' WHERE intmatricula = ?';
+    params.push(matricula);
+
+    conexion.query(sql, params, (error, resultado) => {
+        if (error) {
+            console.error('Error al actualizar perfil:', error);
+            return res.status(500).json({
+                success: false,
+                mensaje: 'Error al actualizar perfil'
+            });
+        }
+
+        if (resultado.affectedRows === 0) {
+            return res.json({
+                success: false,
+                mensaje: 'No se pudo actualizar el perfil'
+            });
+        }
+
+        // Actualizar información en la sesión
+        req.session.usuario.nombre = vchnombre;
+        req.session.usuario.apellido_paterno = vchapaterno || '';
+        req.session.usuario.apellido_materno = vchamaterno || '';
+        req.session.usuario.correo = vchcorreo;
+
+        res.json({
+            success: true,
+            mensaje: 'Perfil actualizado correctamente'
+        });
+    });
+});
+
 // Middleware para verificar rol admin/empleado
 function verificarRolAdminEmpleado(req, res, next) {
     const idRol = req.session.usuario.idrol;

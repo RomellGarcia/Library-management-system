@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Usuario - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <!-- Los headers se cargan desde header.js -->
+
+    <main class="contenedor-perfil">
+        <section class="tarjeta-datos">
+            <h2>Datos de Usuario</h2>
+
+            <!-- Loading -->
+            <div id="loading-perfil" style="text-align: center; padding: 40px;">
+                <div class="spinner"></div>
+                <p>Cargando perfil...</p>
+            </div>
+
+            <!-- Formulario -->
+            <form id="formulario-edicion" style="display: none;">
+                <div class="grupo-campos">
+                    <div class="campo-dato">
+                        <label for="matricula">Matrícula:</label>
+                        <input type="text" id="matricula" name="matricula" disabled readonly>
+                    </div>
+
+                    <div class="campo-dato">
+                        <label for="nombre">Nombre: *</label>
+                        <input type="text" id="nombre" name="vchnombre" disabled required>
+                    </div>
+
+                    <div class="campo-dato">
+                        <label for="apaterno">Apellido Paterno: *</label>
+                        <input type="text" id="apaterno" name="vchapaterno" disabled required>
+                    </div>
+
+                    <div class="campo-dato">
+                        <label for="amaterno">Apellido Materno:</label>
+                        <input type="text" id="amaterno" name="vchamaterno" disabled>
+                    </div>
+
+                    <div class="campo-dato">
+                        <label for="telefono">Teléfono:</label>
+                        <input type="text" id="telefono" name="vchtelefono" disabled>
+                    </div>
+
+                    <div class="campo-dato">
+                        <label for="correo">Correo: *</label>
+                        <input type="email" id="correo" name="vchcorreo" disabled required>
+                    </div>
+
+                    <div class="campo-dato">
+                        <label for="calle">Calle:</label>
+                        <input type="text" id="calle" name="vchcalle" disabled>
+                    </div>
+
+                    <div class="campo-dato">
+                        <label for="colonia">Colonia:</label>
+                        <input type="text" id="colonia" name="vchcolonia" disabled>
+                    </div>
+
+                    <div class="campo-dato">
+                        <label for="password">Nueva Contraseña:</label>
+                        <input type="password" id="password" name="vchpassword"
+                            placeholder="Dejar vacío para no cambiar" disabled>
+                    </div>
+                </div>
+
+                <div class="contenedor-controles">
+                    <button type="button" id="btn-editar" class="boton-accion estilo-editar">
+                        Editar Usuario
+                    </button>
+                    <button type="submit" id="btn-guardar" class="boton-accion estilo-guardar" style="display: none;">
+                        Guardar cambios
+                    </button>
+                    <button type="button" id="btn-cancelar" class="boton-accion estilo-cancelar" style="display: none;">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <div id="footer-container"></div>
+
+    <!-- SCRIPTS -->
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/perfil.js"></script>
+
+    <script>
+        // Proteger esta página - Todos los roles pueden acceder
+        document.addEventListener('DOMContentLoaded', async function() {
+            await protegerPagina([1, 2, 3]);
+        });
+    </script>
+</body>
+
+</html>

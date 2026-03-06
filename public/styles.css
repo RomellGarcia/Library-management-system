@@ -4217,8 +4217,114 @@ footer {
 }
 
 
+/* ============================================
+   PERFIL
+   ============================================ */
 
+.contenedor-perfil {
+    width: 100%;
+    max-width: 1100px;
+}
 
+.tarjeta-datos {
+    background: #ffffff;
+    padding: 25px 35px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.tarjeta-datos h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+    font-size: 26px;
+}
+.grupo-campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.campo-dato {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo-dato label {
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #333;
+}
+
+.campo-dato input {
+    padding: 10px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: 0.3s;
+    background-color: #f3f3f3;
+}
+
+.campo-dato input:enabled {
+    background-color: white;
+    border-color: #BC955B;
+    box-shadow: 0 0 5px rgba(188, 149, 91, 0.3);
+}
+
+.contenedor-controles {
+    margin-top: 25px; 
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+.boton-accion {
+    text-decoration: none;
+    padding: 15px 15px;
+    font-size: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s;
+    display: inline-block;
+    text-align: center;
+    font-weight: bold;
+    width: 35%;
+    max-width: 200px;
+}
+.estilo-editar {
+    background-color: #A02142;
+    color: white;
+}
+.estilo-editar:hover {
+    background-color: #BC955B;
+}
+.estilo-guardar {
+    background-color: #A02142; 
+    color: white;
+}
+.estilo-guardar:hover {
+    background-color: #BC955B; 
+}
+.estilo-volver {
+    background-color: #6b7280;
+    color: white;
+}
+.estilo-volver:hover {
+    background-color: #4b5563;
+}
+@media (max-width: 600px) {
+    .grupo-campos {
+        grid-template-columns: 1fr;
+    }
+    .contenedor-controles {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .boton-accion {
+        width: 100%;
+        max-width: none;
+    }
+}
 
 /* ============================================
    VOLVER DEL QE
