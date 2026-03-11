@@ -31,7 +31,7 @@ function configurarEventos() {
 // Cargar préstamos desde el servidor
 async function cargarPrestamos(filtro = 'todos', busqueda = '') {
     try {
-        const url = CONFIG.BASE_URL + `/api/prestamos?filtro=${filtro}&busqueda=${encodeURIComponent(busqueda)}`;
+        const url = `/api/prestamos?filtro=${filtro}&busqueda=${encodeURIComponent(busqueda)}`;
         const response = await fetchConToken(url);
 
         if (!response.ok) {
@@ -329,7 +329,7 @@ async function marcarSancionCumplida(idDevolucion) {
 
     try {
         // ✅ fetchConToken en lugar de fetch
-        const response = await fetchConToken(CONFIG.BASE_URL + '/api/prestamos/sancion', {
+        const response = await fetchConToken('/api/prestamos/sancion', {
             method: 'POST',
             body: JSON.stringify({ intiddevolucion: idDevolucion })
         });
