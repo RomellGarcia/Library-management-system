@@ -12,7 +12,7 @@ async function protegerPagina(rolesPermitidos = []) {
     const usuario = JSON.parse(usuarioGuardado);
 
     // Verificar rol si se especificaron roles permitidos
-    if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(usuario.idrol)) {
+    if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(parseInt(usuario.idrol))) {
         alert('No tienes permisos para acceder a esta página');
         window.location.href = '/HTML/index.html';
         return false;
@@ -36,7 +36,7 @@ async function verificarConServidor(rolesPermitidos = []) {
             return false;
         }
         
-        if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(data.usuario.idrol)) {
+        if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(parseInt(data.usuario.idrol))) {
             alert('No tienes permisos para acceder a esta página');
             window.location.href = '/HTML/index.html';
             return false;
