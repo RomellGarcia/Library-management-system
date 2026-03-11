@@ -1,68 +1,82 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Usuario - Biblioteca UTHH</title>
     <link rel="stylesheet" href="../styles.css">
 </head>
+
 <body>
+    <!-- Header cargado dinámicamente -->
+
     <main class="contenedor-perfil">
         <section class="tarjeta-datos">
             <h2>Registro de Usuario</h2>
 
-            <div id="mensaje-exito" style="display:none; background:#d4edda; color:#155724; padding:20px; border-radius:8px; margin-bottom:20px; text-align:center;">
-                <h3>¡Registro Exitoso!</h3>
-                <p>La matrícula asignada es: <strong id="matricula-asignada"></strong></p>
-                <button onclick="document.getElementById('mensaje-exito').style.display='none'" class="boton-accion estilo-editar">Entendido</button>
+            <div id="mensaje-exito" style="display: none; background: #c6f6d5; border: 1px solid #38a169; border-radius: 8px; padding: 20px; margin-bottom: 20px; text-align: center;">
+                <h3 style="color: #276749;">¡Registro Exitoso!</h3>
+                <p>El usuario ha sido creado correctamente.</p>
+                <p>Matrícula asignada: <strong id="matricula-asignada" style="font-size: 1.2rem; color: #A02142;"></strong></p>
+                <button type="button" class="boton-accion estilo-guardar" onclick="ocultarMensajeExito()">Registrar otro usuario</button>
             </div>
 
-            <form id="formulario-registro">
+            <form id="formulario-registro" autocomplete="off" style="display: block;">
                 <div class="grupo-campos">
                     <div class="campo-dato">
                         <label for="vchnombre">Nombre: *</label>
-                        <input type="text" id="vchnombre" required>
+                        <input type="text" id="vchnombre" name="vchnombre" placeholder="Nombre(s)" required autocomplete="off">
                     </div>
+
                     <div class="campo-dato">
                         <label for="vchapaterno">Apellido Paterno: *</label>
-                        <input type="text" id="vchapaterno" required>
+                        <input type="text" id="vchapaterno" name="vchapaterno" placeholder="Apellido paterno" required autocomplete="off">
                     </div>
+
                     <div class="campo-dato">
                         <label for="vchamaterno">Apellido Materno:</label>
-                        <input type="text" id="vchamaterno">
+                        <input type="text" id="vchamaterno" name="vchamaterno" placeholder="Apellido materno" autocomplete="off">
                     </div>
+
                     <div class="campo-dato">
                         <label for="vchtelefono">Teléfono: *</label>
-                        <input type="tel" id="vchtelefono" pattern="[0-9]{10}" placeholder="10 dígitos" required>
+                        <input type="tel" id="vchtelefono" name="vchtelefono" placeholder="10 dígitos" maxlength="10" required autocomplete="off">
                     </div>
+
                     <div class="campo-dato">
                         <label for="vchcorreo">Correo: *</label>
-                        <input type="email" id="vchcorreo" required>
+                        <input type="email" id="vchcorreo" name="vchcorreo" placeholder="correo@ejemplo.com" required autocomplete="off">
                     </div>
+
                     <div class="campo-dato">
                         <label for="vchcalle">Calle:</label>
-                        <input type="text" id="vchcalle">
+                        <input type="text" id="vchcalle" name="vchcalle" placeholder="Calle" autocomplete="off">
                     </div>
+
                     <div class="campo-dato">
                         <label for="vchcolonia">Colonia:</label>
-                        <input type="text" id="vchcolonia">
+                        <input type="text" id="vchcolonia" name="vchcolonia" placeholder="Colonia" autocomplete="off">
                     </div>
+
                     <div class="campo-dato">
                         <label for="intidrol">Rol: *</label>
-                        <select id="intidrol" required>
+                        <select id="intidrol" name="intidrol" required>
                             <option value="">Seleccione un rol</option>
                             <option value="1">Administrador</option>
                             <option value="2">Empleado</option>
                             <option value="3">Usuario</option>
                         </select>
                     </div>
+
                     <div class="campo-dato">
                         <label for="vchpassword">Contraseña: *</label>
-                        <input type="password" id="vchpassword" minlength="8" required>
+                        <input type="password" id="vchpassword" name="vchpassword" placeholder="Mínimo 8 caracteres" minlength="8" required autocomplete="new-password">
                     </div>
+
                     <div class="campo-dato">
-                        <label for="confirmar">Confirmar Contraseña: *</label>
-                        <input type="password" id="confirmar" minlength="8" required>
+                        <label for="confirmar-password">Confirmar Contraseña: *</label>
+                        <input type="password" id="confirmar-password" placeholder="Repetir contraseña" minlength="8" required autocomplete="new-password">
                     </div>
                 </div>
 
@@ -74,8 +88,7 @@
         </section>
     </main>
 
-    <div id="footer-container"></div>
-
+    <!-- SCRIPTS -->
     <script src="../JS/config.js"></script>
     <script src="../JS/utils.js"></script>
     <script src="../JS/header.js"></script>
@@ -84,4 +97,5 @@
     <script src="../JS/protect_route.js"></script>
     <script src="../JS/registrar_usuarios.js"></script>
 </body>
+
 </html>
