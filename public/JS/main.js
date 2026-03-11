@@ -2,7 +2,7 @@
 
 async function cargarLibrosRecomendados() {
     try {
-        const response = await fetch('/api/libros/recomendados/aleatorios');
+        const response = await fetch(CONFIG.BASE_URL + '/api/libros/recomendados/aleatorios');
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -68,7 +68,7 @@ async function cargarLibrosRecomendados() {
 
 async function cargarCategorias() {
     try {
-        const response = await fetch('/api/libros/categorias');
+        const response = await fetch(CONFIG.BASE_URL + '/api/libros/categorias');
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -130,7 +130,7 @@ async function cargarCategorias() {
 
 async function cargarLibrosMasPedidos() {
     try {
-        const response = await fetch('/api/libros/mas-pedidos');
+        const response = await fetch(CONFIG.BASE_URL + '/api/libros/mas-pedidos');
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -224,7 +224,7 @@ function configurarBusquedaTiempoReal() {
 
         searchTimeout = setTimeout(async () => {
             try {
-                const response = await fetch(`/api/libros/buscar?q=${encodeURIComponent(query)}`);
+                const response = await fetch(CONFIG.BASE_URL + `/api/libros/buscar?q=${encodeURIComponent(query)}`);
                 const data = await response.json();
 
                 if (data.success && data.data.length > 0) {
