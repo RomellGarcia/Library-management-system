@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btnSubmit.textContent = 'Iniciando sesión...';
             
             try {
-                const response = await fetch('/api/auth/login', {
+                const response = await fetch(CONFIG.BASE_URL + '/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -61,7 +61,7 @@ async function verificarSesionYRedirigir() {
 
     // Si no hay token local, verificar con el servidor
     try {
-        const response = await fetch('/api/auth/verificar', {
+        const response = await fetch(CONFIG.BASE_URL + '/api/auth/verificar', {
             method: 'GET',
             credentials: 'include'
         });
