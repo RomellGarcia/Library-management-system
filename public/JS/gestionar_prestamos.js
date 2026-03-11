@@ -35,13 +35,7 @@ async function cargarPrestamos(filtro = 'todos', busqueda = '') {
         const response = await fetchConToken(url);
 
         if (!response.ok) {
-            if (response.status === 401) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('usuario');
-                window.location.href = '/HTML/iniciar_sesion.html';
-                return;
-            }
-            throw new Error('Error al cargar préstamos');
+            throw new Error('Error al cargar préstamos');  // ← quita el bloque del 401
         }
 
         const data = await response.json();
@@ -328,7 +322,7 @@ async function marcarSancionCumplida(idDevolucion) {
     if (!confirm('¿Confirmar que la sanción ha sido pagada?')) return;
 
     try {
-        // ✅ fetchConToken en lugar de fetch
+        // fetchConToken en lugar de fetch
         const response = await fetchConToken('/api/prestamos/sancion', {
             method: 'POST',
             body: JSON.stringify({ intiddevolucion: idDevolucion })
