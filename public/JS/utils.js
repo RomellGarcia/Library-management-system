@@ -5,19 +5,18 @@
 // ─────────────────────────────────────────
 // FETCH CON TOKEN
 // ─────────────────────────────────────────
-function fetchConToken(url, opciones = {}) {
-    const token = localStorage.getItem('token');
+async function fetchConToken(url, options = {}) {
+    const token = localStorage.getItem('token'); // Asegúrate de que este nombre sea correcto
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // <--- ESTO ES LO MÁS IMPORTANTE
+    };
 
-    return fetch(CONFIG.BASE_URL + url, {
-        ...opciones,
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            ...opciones.headers
-        }
+    return await fetch(url, {
+        ...options,
+        headers: { ...headers, ...options.headers }
     });
 }
-
 // ─────────────────────────────────────────
 // OBTENER USUARIO DEL LOCALSTORAGE
 // ─────────────────────────────────────────
