@@ -1,15 +1,15 @@
 // catalogo.js - Cargar y mostrar el catálogo de libros
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     cargarCatalogo();
     configurarBuscador();
 });
 
 async function cargarCatalogo() {
     const container = document.getElementById('catalogoGrid');
-    
+
     try {
-        // ✅ Endpoint público — se quitó credentials: 'include'
-        const response = await fetch('/api/libros', { method: 'GET' });
+        // Endpoint público — se quitó credentials: 'include'
+        const response = await fetch(CONFIG.BASE_URL + '/api/libros', { method: 'GET' });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -91,7 +91,7 @@ function crearTarjetaLibro(libro) {
         img.src = libro.imagen;
         img.alt = libro.vchtitulo;
         img.className = 'libro-imagen';
-        img.onerror = function() {
+        img.onerror = function () {
             this.style.display = 'none';
             const placeholder = document.createElement('div');
             placeholder.className = 'libro-imagen-placeholder';
@@ -145,7 +145,7 @@ function crearTarjetaLibro(libro) {
     card.appendChild(imagenContainer);
     card.appendChild(infoDiv);
 
-    card.addEventListener('click', function(e) {
+    card.addEventListener('click', function (e) {
         document.getElementById('loadingOverlay').style.display = 'flex';
     });
 
@@ -154,9 +154,9 @@ function crearTarjetaLibro(libro) {
 
 function configurarBuscador() {
     const searchBox = document.getElementById('searchBox');
-    
+
     if (searchBox) {
-        searchBox.addEventListener('input', function(e) {
+        searchBox.addEventListener('input', function (e) {
             const searchTerm = e.target.value.toLowerCase().trim();
             const catalogoGrid = document.getElementById('catalogoGrid');
             const libros = catalogoGrid.querySelectorAll('.libro-card');
