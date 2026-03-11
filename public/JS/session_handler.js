@@ -71,7 +71,7 @@ function actualizarMenu(usuario) {
                 { href: '/HTML/perfil.html', texto: 'Perfil' },
                 { href: '/HTML/gestion_usuarios.html', texto: 'Gestionar Usuarios' },
                 { href: '/HTML/registrar_usuario_rol.html', texto: 'Registrar Usuarios' },
-                { href: '/HTML/gestionar_libros.html', texto: 'Gestionar Libros' },
+                { href: '/HTML/gestion_libros.html', texto: 'Gestionar Libros' },
                 { href: '/HTML/registrar_libros.html', texto: 'Registrar Libros' },
                 { href: '/HTML/registrar_prestamo.html', texto: 'Realizar Préstamo' },
                 { href: '/HTML/gestion_prestamos.html', texto: 'Consultar Préstamos' },
@@ -83,7 +83,7 @@ function actualizarMenu(usuario) {
             menuItems = [
                 { href: '/HTML/perfil.html', texto: 'Perfil' },
                 { href: '/HTML/gestion_usuarios.html', texto: 'Gestionar Usuarios' },
-                { href: '/HTML/gestionar_libros.html', texto: 'Gestionar Libros' },
+                { href: '/HTML/gestion_libros.html', texto: 'Gestionar Libros' },
                 { href: '/HTML/registrar_libros.html', texto: 'Registrar Libros' },
                 { href: '/HTML/registrar_prestamo.html', texto: 'Realizar Préstamo' },
                 { href: '/HTML/gestion_prestamos.html', texto: 'Consultar Préstamos' },
