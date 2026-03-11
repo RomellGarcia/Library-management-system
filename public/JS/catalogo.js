@@ -8,10 +8,8 @@ async function cargarCatalogo() {
     const container = document.getElementById('catalogoGrid');
     
     try {
-        const response = await fetch('/api/libros', {
-            method: 'GET',
-            credentials: 'include'
-        });
+        // ✅ Endpoint público — se quitó credentials: 'include'
+        const response = await fetch('/api/libros', { method: 'GET' });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -60,7 +58,6 @@ function crearTarjetaLibro(libro) {
     const totalEjemplares = libro.total_ejemplares || 0;
     const esActivo = libro.boolactivo;
 
-    // Determinar estado del libro
     let claseEstado = '';
     let textoEtiqueta = '';
     let claseEtiquetaExtra = '';
@@ -81,13 +78,11 @@ function crearTarjetaLibro(libro) {
         textoEtiqueta = `${ejemplaresDisponibles} disponible${ejemplaresDisponibles > 1 ? 's' : ''}`;
     }
 
-    // Crear elemento <a>
     const card = document.createElement('a');
     card.href = `../HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
     card.className = `libro-card ${claseEstado}`;
     card.dataset.folio = libro.vchfolio;
 
-    // Contenedor de imagen
     const imagenContainer = document.createElement('div');
     imagenContainer.className = 'libro-imagen-container';
 
@@ -96,7 +91,6 @@ function crearTarjetaLibro(libro) {
         img.src = libro.imagen;
         img.alt = libro.vchtitulo;
         img.className = 'libro-imagen';
-        
         img.onerror = function() {
             this.style.display = 'none';
             const placeholder = document.createElement('div');
@@ -104,7 +98,6 @@ function crearTarjetaLibro(libro) {
             placeholder.textContent = '';
             imagenContainer.appendChild(placeholder);
         };
-        
         imagenContainer.appendChild(img);
     } else {
         const placeholder = document.createElement('div');
@@ -116,13 +109,11 @@ function crearTarjetaLibro(libro) {
         imagenContainer.appendChild(placeholder);
     }
 
-    // Etiqueta de disponibilidad
     const etiqueta = document.createElement('span');
     etiqueta.className = `libro-etiqueta ${claseEtiquetaExtra}`;
     etiqueta.textContent = textoEtiqueta;
     imagenContainer.appendChild(etiqueta);
 
-    // Información del libro
     const infoDiv = document.createElement('div');
     infoDiv.className = 'libro-info';
 
@@ -151,11 +142,9 @@ function crearTarjetaLibro(libro) {
         infoDiv.appendChild(anio);
     }
 
-    // Ensamblar tarjeta
     card.appendChild(imagenContainer);
     card.appendChild(infoDiv);
 
-    // Evento de clic para mostrar loading
     card.addEventListener('click', function(e) {
         document.getElementById('loadingOverlay').style.display = 'flex';
     });
@@ -173,7 +162,6 @@ function configurarBuscador() {
             const libros = catalogoGrid.querySelectorAll('.libro-card');
             let resultadosEncontrados = 0;
 
-            // Eliminar mensaje anterior si existe
             const mensajeAnterior = catalogoGrid.querySelector('.sin-resultados-busqueda');
             if (mensajeAnterior) {
                 mensajeAnterior.remove();
@@ -192,7 +180,6 @@ function configurarBuscador() {
                 }
             });
 
-            // Si no hay resultados y hay término de búsqueda, mostrar mensaje
             if (resultadosEncontrados === 0 && searchTerm.length > 0) {
                 const mensajeSinResultados = document.createElement('div');
                 mensajeSinResultados.className = 'sin-resultados-busqueda';
@@ -206,7 +193,6 @@ function configurarBuscador() {
     }
 }
 
-// Función para limpiar la búsqueda
 function limpiarBusqueda() {
     const searchBox = document.getElementById('searchBox');
     if (searchBox) {
@@ -215,7 +201,6 @@ function limpiarBusqueda() {
     }
 }
 
-// Función para escapar HTML
 function escapeHtml(text) {
     const map = {
         '&': '&amp;',
@@ -227,6 +212,5 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-// Exportar funciones
 window.cargarCatalogo = cargarCatalogo;
 window.limpiarBusqueda = limpiarBusqueda;

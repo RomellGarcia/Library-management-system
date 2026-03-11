@@ -3,7 +3,11 @@
 let prestamosOriginales = [];
 let estadisticasActuales = {};
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // ✅ Proteger página: solo admin (1) y empleado (2)
+    const usuario = await protegerPagina([1, 2]);
+    if (!usuario) return;
+
     cargarPrestamos();
     configurarEventos();
 });
@@ -19,7 +23,6 @@ function configurarEventos() {
 
     if (selectFiltro) {
         selectFiltro.addEventListener('change', function() {
-            // Recargar desde el servidor con el nuevo filtro
             cargarPrestamos(this.value);
         });
     }
@@ -28,16 +31,16 @@ function configurarEventos() {
 // Cargar préstamos desde el servidor
 async function cargarPrestamos(filtro = 'todos', busqueda = '') {
     try {
-        const url = `${window.location.origin}/api/prestamos?filtro=${filtro}&busqueda=${encodeURIComponent(busqueda)}`;
+        const url = `/api/prestamos?filtro=${filtro}&busqueda=${encodeURIComponent(busqueda)}`;
         
-        const response = await fetch(url, {
-            method: 'GET',
-            credentials: 'include'
-        });
+        // ✅ fetchConToken en lugar de fetch
+        const response = await fetchConToken(url);
 
         if (!response.ok) {
             if (response.status === 401) {
-                window.location.href = '/HTML/iniciarsesion.html';
+                localStorage.removeItem('token');
+                localStorage.removeItem('usuario');
+                window.location.href = '/HTML/iniciar_sesion.html';
                 return;
             }
             throw new Error('Error al cargar préstamos');
@@ -48,7 +51,6 @@ async function cargarPrestamos(filtro = 'todos', busqueda = '') {
         if (data.success) {
             prestamosOriginales = data.data.prestamos;
             estadisticasActuales = data.data.estadisticas;
-            
             mostrarEstadisticas(estadisticasActuales);
             mostrarPrestamos(prestamosOriginales);
         } else {
@@ -108,7 +110,6 @@ function mostrarPrestamos(prestamos) {
     tabla.className = 'tabla-usuarios';
     tabla.id = 'tabla-prestamos';
 
-    // Crear thead
     tabla.innerHTML = `
         <thead>
             <tr>
@@ -129,7 +130,6 @@ function mostrarPrestamos(prestamos) {
     container.appendChild(tabla);
 
     const tbody = document.getElementById('tbody-prestamos');
-    
     prestamos.forEach(prestamo => {
         const fila = crearFilaPrestamo(prestamo);
         tbody.appendChild(fila);
@@ -146,7 +146,6 @@ function crearFilaPrestamo(prestamo) {
     tr.dataset.libro = prestamo.titulo_libro || '';
     tr.dataset.estado = prestamo.estado;
 
-    // Columna Ticket
     const tdTicket = document.createElement('td');
     tdTicket.innerHTML = `
         <strong>${escapeHtml(prestamo.vchticket || 'Sin ticket')}</strong>
@@ -157,37 +156,29 @@ function crearFilaPrestamo(prestamo) {
         ` : ''}
     `;
 
-    // Columna Usuario
     const tdUsuario = document.createElement('td');
     tdUsuario.innerHTML = `
-        <div><strong>${escapeHtml(prestamo.intmatricula_usuario || '')}</strong></div>
+        <div><strong>${escapeHtml(String(prestamo.intmatricula_usuario || ''))}</strong></div>
         <div style="font-size: 0.9rem;">${escapeHtml(prestamo.nombre_usuario || 'Sin nombre')}</div>
         ${prestamo.correo_usuario ? `
-            <div class="detalle-prestamo">
-                📧 ${escapeHtml(prestamo.correo_usuario)}
-            </div>
+            <div class="detalle-prestamo">📧 ${escapeHtml(prestamo.correo_usuario)}</div>
         ` : ''}
     `;
 
-    // Columna Libro
     const tdLibro = document.createElement('td');
     tdLibro.innerHTML = `
         <div class="libro-info">
             <span class="libro-titulo">${escapeHtml(prestamo.titulo_libro || 'Sin título')}</span>
             <span class="libro-autor">Por: ${escapeHtml(prestamo.autor_libro || 'Sin autor')}</span>
             ${prestamo.vchcodigobarras ? `
-                <div class="detalle-prestamo">
-                    ${escapeHtml(prestamo.vchcodigobarras)}
-                </div>
+                <div class="detalle-prestamo">${escapeHtml(prestamo.vchcodigobarras)}</div>
             ` : ''}
         </div>
     `;
 
-    // Columna Fecha Préstamo
     const tdFechaPrestamo = document.createElement('td');
     tdFechaPrestamo.textContent = formatearFecha(prestamo.fecha_prestamo);
 
-    // Columna Fecha Devolución
     const tdFechaDevolucion = document.createElement('td');
     let fechaDevHTML = formatearFecha(prestamo.fecha_devolucion);
     if (prestamo.booldevuelto == 1 && prestamo.fechareal_devolucion) {
@@ -199,7 +190,6 @@ function crearFilaPrestamo(prestamo) {
     }
     tdFechaDevolucion.innerHTML = fechaDevHTML;
 
-    // Columna Días
     const tdDias = document.createElement('td');
     if (prestamo.booldevuelto == 1) {
         let diasHTML = '<span class="badge-estado badge-devuelto">Devuelto</span>';
@@ -209,37 +199,20 @@ function crearFilaPrestamo(prestamo) {
         tdDias.innerHTML = diasHTML;
     } else {
         const dias = prestamo.dias_restantes;
-        let texto = '';
+        let texto = dias > 0 ? `${dias} días` : dias == 0 ? 'Hoy' : `${Math.abs(dias)} días de retraso`;
         let clase = dias >= 0 ? 'positivo' : 'negativo';
-        
-        if (dias > 0) {
-            texto = `${dias} días`;
-        } else if (dias == 0) {
-            texto = 'Hoy';
-        } else {
-            texto = `${Math.abs(dias)} días de retraso`;
-        }
-        
         tdDias.innerHTML = `<span class="dias-restantes ${clase}">${texto}</span>`;
     }
 
-    // Columna Estado
     const tdEstado = document.createElement('td');
-    const estadoTexto = {
-        'devuelto': 'Devuelto',
-        'vencido': 'Vencido',
-        'proximo': 'Por Vencer',
-        'activo': 'Activo'
-    };
+    const estadoTexto = { 'devuelto': 'Devuelto', 'vencido': 'Vencido', 'proximo': 'Por Vencer', 'activo': 'Activo' };
     tdEstado.innerHTML = `<span class="badge-estado badge-${prestamo.estado}">${estadoTexto[prestamo.estado] || 'Activo'}</span>`;
 
-    // Columna Acciones
     const tdAcciones = document.createElement('td');
     const divAcciones = document.createElement('div');
     divAcciones.className = 'acciones-btn';
 
     if (prestamo.booldevuelto == 1) {
-        // Préstamo devuelto
         const btnInfo = document.createElement('button');
         btnInfo.type = 'button';
         btnInfo.className = 'btn-accion btn-info';
@@ -248,7 +221,6 @@ function crearFilaPrestamo(prestamo) {
         divAcciones.appendChild(btnInfo);
 
         if (prestamo.flmontosancion > 0 && prestamo.boolsancion == 0) {
-            // Sanción pendiente
             const btnSancion = document.createElement('button');
             btnSancion.type = 'button';
             btnSancion.className = 'btn-accion btn-sancion';
@@ -256,7 +228,6 @@ function crearFilaPrestamo(prestamo) {
             btnSancion.onclick = () => marcarSancionCumplida(prestamo.intiddevolucion);
             divAcciones.appendChild(btnSancion);
         } else if (prestamo.flmontosancion > 0 && prestamo.boolsancion == 1) {
-            // Sanción pagada
             const spanPagada = document.createElement('span');
             spanPagada.className = 'btn-accion btn-sancion pagada';
             spanPagada.style.cursor = 'default';
@@ -264,7 +235,6 @@ function crearFilaPrestamo(prestamo) {
             divAcciones.appendChild(spanPagada);
         }
     } else {
-        // Préstamo activo
         const linkDevolucion = document.createElement('a');
         linkDevolucion.href = `/HTML/devolucion_prestamo.html?ticket=${encodeURIComponent(prestamo.vchticket)}`;
         linkDevolucion.className = 'btn-accion btn-devolver';
@@ -273,24 +243,13 @@ function crearFilaPrestamo(prestamo) {
     }
 
     tdAcciones.appendChild(divAcciones);
-
-    // Agregar todas las columnas a la fila
-    tr.appendChild(tdTicket);
-    tr.appendChild(tdUsuario);
-    tr.appendChild(tdLibro);
-    tr.appendChild(tdFechaPrestamo);
-    tr.appendChild(tdFechaDevolucion);
-    tr.appendChild(tdDias);
-    tr.appendChild(tdEstado);
-    tr.appendChild(tdAcciones);
-
+    tr.append(tdTicket, tdUsuario, tdLibro, tdFechaPrestamo, tdFechaDevolucion, tdDias, tdEstado, tdAcciones);
     return tr;
 }
 
-// Filtrar préstamos localmente (búsqueda en tiempo real)
+// Filtrar préstamos localmente
 function filtrarPrestamosLocal() {
-    const inputBusqueda = document.getElementById('busqueda');
-    const textoBusqueda = inputBusqueda.value.toLowerCase().trim();
+    const textoBusqueda = document.getElementById('busqueda').value.toLowerCase().trim();
 
     if (!textoBusqueda) {
         mostrarPrestamos(prestamosOriginales);
@@ -298,17 +257,11 @@ function filtrarPrestamosLocal() {
     }
 
     const prestamosFiltrados = prestamosOriginales.filter(prestamo => {
-        const ticket = (prestamo.vchticket || '').toLowerCase();
-        const usuario = (prestamo.nombre_usuario || '').toLowerCase();
-        const matricula = String(prestamo.intmatricula_usuario || '').toLowerCase();
-        const libro = (prestamo.titulo_libro || '').toLowerCase();
-        const autor = (prestamo.autor_libro || '').toLowerCase();
-
-        return ticket.includes(textoBusqueda) ||
-               usuario.includes(textoBusqueda) ||
-               matricula.includes(textoBusqueda) ||
-               libro.includes(textoBusqueda) ||
-               autor.includes(textoBusqueda);
+        return (prestamo.vchticket || '').toLowerCase().includes(textoBusqueda) ||
+               (prestamo.nombre_usuario || '').toLowerCase().includes(textoBusqueda) ||
+               String(prestamo.intmatricula_usuario || '').toLowerCase().includes(textoBusqueda) ||
+               (prestamo.titulo_libro || '').toLowerCase().includes(textoBusqueda) ||
+               (prestamo.autor_libro || '').toLowerCase().includes(textoBusqueda);
     });
 
     mostrarPrestamos(prestamosFiltrados);
@@ -324,10 +277,9 @@ function verInfoDevolucion(prestamo) {
 
     let sancionHTML = '';
     if (prestamo.flmontosancion > 0) {
-        const estadoSancion = prestamo.boolsancion == 1 
-            ? '<span style="color: #38a169;">Pagada</span>' 
+        const estadoSancion = prestamo.boolsancion == 1
+            ? '<span style="color: #38a169;">Pagada</span>'
             : '<span style="color: #e53e3e;">Pendiente</span>';
-        
         sancionHTML = `
             <div class="info-grupo">
                 <label>💰 Sanción</label>
@@ -342,86 +294,53 @@ function verInfoDevolucion(prestamo) {
         `;
     }
 
-    const modalBody = document.getElementById('modal-body');
-    modalBody.innerHTML = `
-        <div class="info-grupo">
-            <label>Ticket</label>
-            <p>${escapeHtml(prestamo.vchticket || 'N/A')}</p>
-        </div>
+    document.getElementById('modal-body').innerHTML = `
+        <div class="info-grupo"><label>Ticket</label><p>${escapeHtml(prestamo.vchticket || 'N/A')}</p></div>
         <div class="info-grupo">
             <label>Usuario</label>
             <p>${escapeHtml(prestamo.nombre_usuario || 'N/A')}<br>
                <small style="color:#718096;">${prestamo.intmatricula_usuario || 'N/A'}</small></p>
         </div>
-        <div class="info-grupo">
-            <label>Libro</label>
-            <p>${escapeHtml(prestamo.titulo_libro || 'N/A')}</p>
-        </div>
-        <div class="info-grupo">
-            <label>Fecha de Préstamo</label>
-            <p>${formatearFecha(prestamo.fecha_prestamo)}</p>
-        </div>
-        <div class="info-grupo">
-            <label>Fecha Devolución Esperada</label>
-            <p>${formatearFecha(prestamo.fecha_devolucion)}</p>
-        </div>
-        <div class="info-grupo">
-            <label>Fecha Devolución Real</label>
-            <p>${prestamo.fechareal_devolucion ? formatearFechaHora(prestamo.fechareal_devolucion) : 'N/A'}</p>
-        </div>
+        <div class="info-grupo"><label>Libro</label><p>${escapeHtml(prestamo.titulo_libro || 'N/A')}</p></div>
+        <div class="info-grupo"><label>Fecha de Préstamo</label><p>${formatearFecha(prestamo.fecha_prestamo)}</p></div>
+        <div class="info-grupo"><label>Fecha Devolución Esperada</label><p>${formatearFecha(prestamo.fecha_devolucion)}</p></div>
+        <div class="info-grupo"><label>Fecha Devolución Real</label><p>${prestamo.fechareal_devolucion ? formatearFechaHora(prestamo.fechareal_devolucion) : 'N/A'}</p></div>
         <div class="info-grupo">
             <label>Recibido por</label>
             <p>${escapeHtml(prestamo.nombre_recibio || 'No registrado')}<br>
                <small style="color:#718096;">Matrícula: ${prestamo.matricula_recibio || 'N/A'}</small></p>
         </div>
-        <div class="info-grupo">
-            <label>Estado de Entrega</label>
-            <p>${estadoEntregaTexto[prestamo.intidestrega] || 'No especificado'}</p>
-        </div>
+        <div class="info-grupo"><label>Estado de Entrega</label><p>${estadoEntregaTexto[prestamo.intidestrega] || 'No especificado'}</p></div>
         ${sancionHTML}
     `;
 
     document.getElementById('modal-info').style.display = 'flex';
 }
 
-// Cerrar modal
 function cerrarModal() {
     document.getElementById('modal-info').style.display = 'none';
 }
 
-// Cerrar modal al hacer clic fuera
 document.getElementById('modal-info')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        cerrarModal();
-    }
+    if (e.target === this) cerrarModal();
 });
 
 // Marcar sanción como cumplida
 async function marcarSancionCumplida(idDevolucion) {
-    if (!confirm('¿Confirmar que la sanción ha sido pagada?')) {
-        return;
-    }
+    if (!confirm('¿Confirmar que la sanción ha sido pagada?')) return;
 
     try {
-        const response = await fetch(`${window.location.origin}/api/prestamos/sancion`, {
+        // ✅ fetchConToken en lugar de fetch
+        const response = await fetchConToken('/api/prestamos/sancion', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-                intiddevolucion: idDevolucion
-            })
+            body: JSON.stringify({ intiddevolucion: idDevolucion })
         });
 
         const data = await response.json();
 
         if (data.success) {
             mostrarAlerta(data.message, 'success');
-            // Recargar préstamos
-            setTimeout(() => {
-                cargarPrestamos(document.getElementById('filtro').value);
-            }, 1000);
+            setTimeout(() => cargarPrestamos(document.getElementById('filtro').value), 1000);
         } else {
             mostrarAlerta('Error: ' + data.error, 'error');
         }
@@ -437,7 +356,6 @@ function mostrarAlerta(mensaje, tipo) {
     const alerta = document.createElement('div');
     alerta.className = `alert alert-${tipo}`;
     alerta.textContent = mensaje;
-    
     container.appendChild(alerta);
 
     setTimeout(() => {
@@ -447,7 +365,6 @@ function mostrarAlerta(mensaje, tipo) {
     }, 5000);
 }
 
-// Mostrar error general
 function mostrarError(mensaje) {
     const container = document.getElementById('tabla-container');
     container.innerHTML = `
@@ -462,40 +379,18 @@ function mostrarError(mensaje) {
     `;
 }
 
-// Utilidades
 function formatearFecha(fecha) {
     if (!fecha) return 'N/A';
     const date = new Date(fecha);
-    const dia = String(date.getDate()).padStart(2, '0');
-    const mes = String(date.getMonth() + 1).padStart(2, '0');
-    const anio = date.getFullYear();
-    return `${dia}/${mes}/${anio}`;
+    return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`;
 }
 
 function formatearFechaHora(fecha) {
     if (!fecha) return 'N/A';
     const date = new Date(fecha);
-    const dia = String(date.getDate()).padStart(2, '0');
-    const mes = String(date.getMonth() + 1).padStart(2, '0');
-    const anio = date.getFullYear();
-    const hora = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${dia}/${mes}/${anio} ${hora}:${min}`;
+    return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return String(text).replace(/[&<>"']/g, m => map[m]);
-}
-
-// Exportar funciones globalmente
 window.verInfoDevolucion = verInfoDevolucion;
 window.cerrarModal = cerrarModal;
 window.marcarSancionCumplida = marcarSancionCumplida;

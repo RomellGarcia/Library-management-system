@@ -1,11 +1,10 @@
-// Función para cargar libros recomendados
+// main.js - Página PÚBLICA — sin cambios respecto al original
+
 async function cargarLibrosRecomendados() {
     try {
         const response = await fetch('/api/libros/recomendados/aleatorios');
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
 
@@ -23,7 +22,7 @@ async function cargarLibrosRecomendados() {
                 bookCard.className = 'book-card';
                 bookCard.style.cursor = 'pointer';
 
-                bookCard.onclick = function () {
+                bookCard.onclick = function() {
                     window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
                 };
 
@@ -67,14 +66,11 @@ async function cargarLibrosRecomendados() {
     }
 }
 
-// Función para cargar categorías
 async function cargarCategorias() {
     try {
         const response = await fetch('/api/libros/categorias');
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
 
@@ -92,11 +88,10 @@ async function cargarCategorias() {
                 categoryCard.className = 'category-card';
                 categoryCard.style.cursor = 'pointer';
 
-                categoryCard.onclick = function () {
+                categoryCard.onclick = function() {
                     window.location.href = `/HTML/libros_categoria.html?id=${categoria.intidcategoria}`;
                 };
 
-                // Icono
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'category-icon';
 
@@ -107,7 +102,7 @@ async function cargarCategorias() {
                 img.style.height = '80px';
                 img.style.objectFit = 'contain';
 
-                img.onerror = function () {
+                img.onerror = function() {
                     console.warn(`No se pudo cargar la imagen para: ${categoria.vchcategoria}`);
                     iconContainer.innerHTML = '';
                     iconContainer.style.fontSize = '4rem';
@@ -115,7 +110,6 @@ async function cargarCategorias() {
 
                 iconContainer.appendChild(img);
 
-                // Título
                 const title = document.createElement('h3');
                 title.textContent = categoria.vchcategoria;
 
@@ -134,14 +128,11 @@ async function cargarCategorias() {
     }
 }
 
-// Función para cargar libros más pedidos
 async function cargarLibrosMasPedidos() {
     try {
         const response = await fetch('/api/libros/mas-pedidos');
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
 
@@ -154,7 +145,7 @@ async function cargarLibrosMasPedidos() {
                 bookCard.className = 'book-card';
                 bookCard.style.cursor = 'pointer';
 
-                bookCard.onclick = function () {
+                bookCard.onclick = function() {
                     window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
                 };
 
@@ -204,20 +195,15 @@ async function cargarLibrosMasPedidos() {
     }
 }
 
-// Función para configurar búsqueda en tiempo real
 function configurarBusquedaTiempoReal() {
-    const searchBox = document.getElementById('searchBox');
+    const searchBox     = document.getElementById('searchBox');
     const searchResults = document.getElementById('searchResults');
-    
-    // Si no existen estos elementos, no hacer nada
-    if (!searchBox || !searchResults) {
-        console.log('Elementos de búsqueda no encontrados en esta página');
-        return;
-    }
+
+    if (!searchBox || !searchResults) return;
 
     let searchTimeout;
 
-    searchBox.addEventListener('input', function (e) {
+    searchBox.addEventListener('input', function(e) {
         const query = e.target.value.trim();
 
         clearTimeout(searchTimeout);
@@ -237,86 +223,77 @@ function configurarBusquedaTiempoReal() {
         searchResults.classList.add('active');
 
         searchTimeout = setTimeout(async () => {
-            if (query.length > 0) {
-                try {
-                    const response = await fetch(`/api/libros/buscar?q=${encodeURIComponent(query)}`);
-                    const data = await response.json();
+            try {
+                const response = await fetch(`/api/libros/buscar?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
 
-                    if (data.success && data.data.length > 0) {
-                        searchResults.innerHTML = '';
-                        searchResults.classList.add('active');
+                if (data.success && data.data.length > 0) {
+                    searchResults.innerHTML = '';
+                    searchResults.classList.add('active');
 
-                        data.data.forEach(libro => {
-                            const resultItem = document.createElement('div');
-                            resultItem.className = 'search-result-item';
+                    data.data.forEach(libro => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
 
-                            let portadaHTML;
-                            if (libro.imagen) {
-                                portadaHTML = `<img src="${libro.imagen}" alt="${escapeHtml(libro.vchtitulo)}">`;
-                            } else {
-                                portadaHTML = `<div class="book-mini-cover-emoji"></div>`;
-                            }
+                        const portadaHTML = libro.imagen
+                            ? `<img src="${libro.imagen}" alt="${escapeHtml(libro.vchtitulo)}">`
+                            : `<div class="book-mini-cover-emoji"></div>`;
 
-                            const disponible = libro.ejemplares_disponibles > 0;
-                            const badgeClass = disponible ? 'available' : 'unavailable';
-                            const badgeIcon = disponible ? '✓' : '✗';
-                            const badgeText = disponible ? 'Disponible' : 'No disponible';
+                        const disponible  = libro.ejemplares_disponibles > 0;
+                        const badgeClass  = disponible ? 'available' : 'unavailable';
+                        const badgeIcon   = disponible ? '✓' : '✗';
+                        const badgeText   = disponible ? 'Disponible' : 'No disponible';
 
-                            resultItem.innerHTML = `
-                                <div class="book-mini-cover" style="${!libro.imagen && libro.color_fondo ? 'background: ' + libro.color_fondo : ''}">
-                                    ${portadaHTML}
-                                </div>
-                                <div class="book-info">
-                                    <div class="book-title">${escapeHtml(libro.vchtitulo)}</div>
-                                    <div class="book-author">Por: ${escapeHtml(libro.vchautor)}</div>
-                                    <span class="book-category">${escapeHtml(libro.vchcategoria || 'Sin categoría')}</span>
-                                </div>
-                                <div class="book-availability">
-                                    <span class="availability-badge ${badgeClass}">
-                                        ${badgeIcon} ${badgeText}
-                                    </span>
-                                    ${disponible ? `<small style="color: #666; font-size: 0.75rem;">${libro.ejemplares_disponibles} ejemplar(es)</small>` : ''}
-                                </div>
-                            `;
-
-                            resultItem.addEventListener('click', () => {
-                                window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
-                            });
-
-                            searchResults.appendChild(resultItem);
-                        });
-                    } else {
-                        searchResults.innerHTML = `
-                            <div class="search-no-results">
-                                <div class="search-no-results-icon">🔍</div>
-                                <p class="search-no-results-text">No se encontraron resultados para "${escapeHtml(query)}"</p>
+                        resultItem.innerHTML = `
+                            <div class="book-mini-cover" style="${!libro.imagen && libro.color_fondo ? 'background: ' + libro.color_fondo : ''}">
+                                ${portadaHTML}
+                            </div>
+                            <div class="book-info">
+                                <div class="book-title">${escapeHtml(libro.vchtitulo)}</div>
+                                <div class="book-author">Por: ${escapeHtml(libro.vchautor)}</div>
+                                <span class="book-category">${escapeHtml(libro.vchcategoria || 'Sin categoría')}</span>
+                            </div>
+                            <div class="book-availability">
+                                <span class="availability-badge ${badgeClass}">${badgeIcon} ${badgeText}</span>
+                                ${disponible ? `<small style="color: #666; font-size: 0.75rem;">${libro.ejemplares_disponibles} ejemplar(es)</small>` : ''}
                             </div>
                         `;
-                        searchResults.classList.add('active');
-                    }
-                } catch (error) {
-                    console.error('Error en la búsqueda:', error);
+
+                        resultItem.addEventListener('click', () => {
+                            window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+                        });
+
+                        searchResults.appendChild(resultItem);
+                    });
+                } else {
                     searchResults.innerHTML = `
                         <div class="search-no-results">
-                            <div class="search-no-results-icon"></div>
-                            <p class="search-no-results-text">Error al realizar la búsqueda</p>
+                            <div class="search-no-results-icon">🔍</div>
+                            <p class="search-no-results-text">No se encontraron resultados para "${escapeHtml(query)}"</p>
                         </div>
                     `;
                     searchResults.classList.add('active');
                 }
+            } catch (error) {
+                console.error('Error en la búsqueda:', error);
+                searchResults.innerHTML = `
+                    <div class="search-no-results">
+                        <div class="search-no-results-icon"></div>
+                        <p class="search-no-results-text">Error al realizar la búsqueda</p>
+                    </div>
+                `;
+                searchResults.classList.add('active');
             }
         }, 300);
     });
 
-    // Cerrar resultados al hacer clic fuera
-    document.addEventListener('click', function (e) {
+    document.addEventListener('click', function(e) {
         if (!searchBox.contains(e.target) && !searchResults.contains(e.target)) {
             searchResults.classList.remove('active');
         }
     });
 
-    // Cerrar con tecla Escape
-    searchBox.addEventListener('keydown', function (e) {
+    searchBox.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             searchBox.value = '';
             searchResults.classList.remove('active');
@@ -324,32 +301,17 @@ function configurarBusquedaTiempoReal() {
             searchBox.blur();
         }
     });
-
-    console.log('Búsqueda en tiempo real configurada');
 }
 
-// Función auxiliar para escapar HTML
 function escapeHtml(text) {
     if (!text) return '';
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-// INICIALIZACIÓN
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('main.js cargado');
-    
-    // Cargar datos de la página
+document.addEventListener('DOMContentLoaded', function() {
     cargarLibrosRecomendados();
     cargarCategorias();
     cargarLibrosMasPedidos();
-    
-    // Configurar búsqueda (solo si existen los elementos)
     configurarBusquedaTiempoReal();
 });

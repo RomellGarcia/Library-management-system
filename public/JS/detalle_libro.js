@@ -1,4 +1,5 @@
-// detalle-libro.js - Mostrar detalle del libro con navegación inteligente
+// detalle_libro.js - Mostrar detalle del libro con navegación inteligente
+// Página PÚBLICA — sin cambios de autenticación
 document.addEventListener('DOMContentLoaded', function() {
     crearBotonRegreso();
     cargarDetalleLibro();
@@ -14,7 +15,6 @@ function crearBotonRegreso() {
     let textoBoton = 'Volver';
     let urlDestino = '/HTML/index.html';
 
-    // Detectar de dónde viene el usuario
     if (referer.includes('categoria.html')) {
         const categoriaId = urlParams.get('categoria') || '';
         textoBoton = 'Volver a la categoría';
@@ -39,35 +39,19 @@ async function cargarDetalleLibro() {
     const urlParams = new URLSearchParams(window.location.search);
     const folio = urlParams.get('folio');
 
-    console.log('Folio recibido:', folio);
-    console.log('URL completa:', window.location.href);
-
     if (!folio) {
         mostrarError('No se especificó un libro');
         return;
     }
 
     try {
-        const urlAPI = `${window.location.origin}/api/libros/detalle?folio=${encodeURIComponent(folio)}`;
-        console.log('Llamando a:', urlAPI);
+        // ✅ Endpoint público — fetch normal sin credentials
+        // ✅ Se quitó 'Content-Type' en GET (innecesario y puede causar CORS)
+        const response = await fetch(`/api/libros/detalle?folio=${encodeURIComponent(folio)}`);
 
-        const response = await fetch(urlAPI, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        console.log('Estado de respuesta:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error del servidor:', errorText);
-            throw new Error('Libro no encontrado');
-        }
+        if (!response.ok) throw new Error('Libro no encontrado');
 
         const data = await response.json();
-        console.log('Datos recibidos:', data);
 
         if (data.success) {
             mostrarDetalle(data.data);
@@ -75,7 +59,7 @@ async function cargarDetalleLibro() {
             mostrarError(data.error || 'Error al cargar el libro');
         }
     } catch (error) {
-        console.error('Error completo:', error);
+        console.error('Error:', error);
         mostrarError(error.message);
     }
 }
@@ -187,7 +171,6 @@ function mostrarDetalle(libro) {
         </section>
     `;
 
-    // Actualizar título de la página
     document.title = `${libro.vchtitulo} - Biblioteca UTHH`;
 }
 

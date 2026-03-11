@@ -1,4 +1,5 @@
 // categoria.js - Mostrar libros de una categoría específica
+// Página PÚBLICA — sin cambios respecto al original
 let librosOriginales = [];
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -38,23 +39,17 @@ async function cargarCategoria() {
 function mostrarCategoria(datos) {
     const { categoria, libros } = datos;
 
-    // Guardar libros originales para la búsqueda
     librosOriginales = libros;
 
-    // Actualizar título de la página
     document.title = `${categoria.nombre} - Biblioteca UTHH`;
 
-    // Mostrar header de categoría
     const headerContainer = document.getElementById('categoriaHeader');
     headerContainer.innerHTML = `
         <h1>📚 ${escapeHtml(categoria.nombre)}</h1>
         ${categoria.descripcion ? `<p>${escapeHtml(categoria.descripcion)}</p>` : ''}
     `;
 
-    // Actualizar contador de resultados
     actualizarContador(libros.length);
-
-    // Mostrar libros
     mostrarLibros(libros);
 }
 
@@ -85,7 +80,6 @@ function crearTarjetaLibro(libro) {
     const totalEjemplares = libro.total_ejemplares || 0;
     const esActivo = libro.boolactivo;
 
-    // Determinar estado del libro
     let claseEstado = '';
     let textoEtiqueta = '';
     let claseEtiquetaExtra = '';
@@ -106,7 +100,6 @@ function crearTarjetaLibro(libro) {
         textoEtiqueta = `${ejemplaresDisponibles} disponible${ejemplaresDisponibles > 1 ? 's' : ''}`;
     }
 
-    // Crear elemento <a>
     const card = document.createElement('a');
     const urlParams = new URLSearchParams(window.location.search);
     const categoriaId = urlParams.get('id');
@@ -117,7 +110,6 @@ function crearTarjetaLibro(libro) {
     card.dataset.autor = libro.vchautor.toLowerCase();
     card.dataset.folio = libro.vchfolio;
 
-    // Contenedor de imagen
     const imagenContainer = document.createElement('div');
     imagenContainer.className = 'libro-imagen-container';
 
@@ -126,7 +118,6 @@ function crearTarjetaLibro(libro) {
         img.src = libro.imagen;
         img.alt = libro.vchtitulo;
         img.className = 'libro-imagen';
-        
         img.onerror = function() {
             this.style.display = 'none';
             const placeholder = document.createElement('div');
@@ -134,7 +125,6 @@ function crearTarjetaLibro(libro) {
             placeholder.textContent = '';
             imagenContainer.appendChild(placeholder);
         };
-        
         imagenContainer.appendChild(img);
     } else {
         const placeholder = document.createElement('div');
@@ -146,13 +136,11 @@ function crearTarjetaLibro(libro) {
         imagenContainer.appendChild(placeholder);
     }
 
-    // Etiqueta de disponibilidad
     const etiqueta = document.createElement('span');
     etiqueta.className = `libro-etiqueta ${claseEtiquetaExtra}`;
     etiqueta.textContent = textoEtiqueta;
     imagenContainer.appendChild(etiqueta);
 
-    // Información del libro
     const infoDiv = document.createElement('div');
     infoDiv.className = 'libro-info';
 
@@ -181,11 +169,9 @@ function crearTarjetaLibro(libro) {
         infoDiv.appendChild(anio);
     }
 
-    // Ensamblar tarjeta
     card.appendChild(imagenContainer);
     card.appendChild(infoDiv);
 
-    // Evento de clic para mostrar loading
     if (claseEstado !== 'libro-inactivo') {
         card.addEventListener('click', function(e) {
             document.getElementById('loadingOverlay').style.display = 'flex';

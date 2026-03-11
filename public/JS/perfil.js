@@ -1,8 +1,12 @@
 // perfil.js - Gestión de perfil de usuario
 
-let datosOriginales = {}; // Para cancelar cambios
+let datosOriginales = {};
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // ✅ Proteger página: cualquier usuario logueado (roles 1, 2 y 3)
+    const usuario = await protegerPagina([1, 2, 3]);
+    if (!usuario) return;
+
     cargarPerfil();
     configurarEventos();
 });
@@ -10,10 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // Cargar datos del perfil
 async function cargarPerfil() {
     try {
-        const response = await fetch(`${window.location.origin}/api/auth/perfil`, {
-            credentials: 'include'
-        });
-
+        // ✅ fetchConToken en lugar de fetch
+        const response = await fetchConToken('/api/auth/perfil');
         const data = await response.json();
 
         if (data.success) {
@@ -31,10 +33,8 @@ async function cargarPerfil() {
 
 // Mostrar datos en el formulario
 function mostrarDatosPerfil(usuario) {
-    // Guardar datos originales para poder cancelar
     datosOriginales = { ...usuario };
 
-    // Llenar formulario
     document.getElementById('matricula').value = usuario.intmatricula || '';
     document.getElementById('nombre').value = usuario.vchnombre || '';
     document.getElementById('apaterno').value = usuario.vchapaterno || '';
@@ -44,38 +44,19 @@ function mostrarDatosPerfil(usuario) {
     document.getElementById('calle').value = usuario.vchcalle || '';
     document.getElementById('colonia').value = usuario.vchcolonia || '';
 
-    // Ocultar loading y mostrar formulario
     document.getElementById('loading-perfil').style.display = 'none';
     document.getElementById('formulario-edicion').style.display = 'block';
 }
 
 // Configurar eventos
 function configurarEventos() {
-    // Botón editar
-    const btnEditar = document.getElementById('btn-editar');
-    if (btnEditar) {
-        btnEditar.addEventListener('click', habilitarEdicion);
-    }
-
-    // Botón cancelar
-    const btnCancelar = document.getElementById('btn-cancelar');
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', cancelarEdicion);
-    }
-
-    // Submit del formulario
-    const form = document.getElementById('formulario-edicion');
-    if (form) {
-        form.addEventListener('submit', guardarCambios);
-    }
+    document.getElementById('btn-editar')?.addEventListener('click', habilitarEdicion);
+    document.getElementById('btn-cancelar')?.addEventListener('click', cancelarEdicion);
+    document.getElementById('formulario-edicion')?.addEventListener('submit', guardarCambios);
 }
 
-// Habilitar edición
 function habilitarEdicion() {
-    const inputs = document.querySelectorAll('#formulario-edicion input:not([type="hidden"])');
-    
-    inputs.forEach(input => {
-        // No permitimos editar la matrícula
+    document.querySelectorAll('#formulario-edicion input:not([type="hidden"])').forEach(input => {
         if (input.id !== 'matricula') {
             input.removeAttribute('disabled');
             input.style.backgroundColor = '#fff';
@@ -83,15 +64,12 @@ function habilitarEdicion() {
         }
     });
 
-    // Mostrar/ocultar botones
     document.getElementById('btn-guardar').style.display = 'inline-block';
     document.getElementById('btn-cancelar').style.display = 'inline-block';
     document.getElementById('btn-editar').style.display = 'none';
 }
 
-// Cancelar edición
 function cancelarEdicion() {
-    // Restaurar valores originales
     document.getElementById('nombre').value = datosOriginales.vchnombre || '';
     document.getElementById('apaterno').value = datosOriginales.vchapaterno || '';
     document.getElementById('amaterno').value = datosOriginales.vchamaterno || '';
@@ -101,9 +79,7 @@ function cancelarEdicion() {
     document.getElementById('colonia').value = datosOriginales.vchcolonia || '';
     document.getElementById('password').value = '';
 
-    // Deshabilitar inputs
-    const inputs = document.querySelectorAll('#formulario-edicion input:not([type="hidden"])');
-    inputs.forEach(input => {
+    document.querySelectorAll('#formulario-edicion input:not([type="hidden"])').forEach(input => {
         if (input.id !== 'matricula') {
             input.setAttribute('disabled', 'disabled');
             input.style.backgroundColor = '';
@@ -111,7 +87,6 @@ function cancelarEdicion() {
         }
     });
 
-    // Mostrar/ocultar botones
     document.getElementById('btn-guardar').style.display = 'none';
     document.getElementById('btn-cancelar').style.display = 'none';
     document.getElementById('btn-editar').style.display = 'inline-block';
@@ -124,18 +99,13 @@ async function guardarCambios(e) {
     const nombre = document.getElementById('nombre').value.trim();
     const correo = document.getElementById('correo').value.trim();
 
-    // Validaciones
     if (!nombre || !correo) {
         alert('Por favor, complete los campos requeridos (Nombre y Correo)');
         return;
     }
 
-    // Confirmación
-    if (!confirm('¿Guardar los cambios realizados en tu perfil?')) {
-        return;
-    }
+    if (!confirm('¿Guardar los cambios realizados en tu perfil?')) return;
 
-    // Preparar datos
     const datos = {
         vchnombre: nombre,
         vchapaterno: document.getElementById('apaterno').value.trim(),
@@ -149,17 +119,13 @@ async function guardarCambios(e) {
 
     const btnGuardar = document.getElementById('btn-guardar');
     const textoOriginal = btnGuardar.innerHTML;
-
     btnGuardar.innerHTML = 'Guardando...';
     btnGuardar.disabled = true;
 
     try {
-        const response = await fetch(`${window.location.origin}/api/auth/perfil`, {
+        // ✅ fetchConToken en lugar de fetch
+        const response = await fetchConToken('/api/auth/perfil', {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include',
             body: JSON.stringify(datos)
         });
 
@@ -167,11 +133,15 @@ async function guardarCambios(e) {
 
         if (data.success) {
             alert(data.mensaje);
-            
-            // Recargar perfil para ver cambios
+
+            // ✅ Actualizar nombre en localStorage si cambió
+            const usuarioGuardado = obtenerUsuario();
+            if (usuarioGuardado) {
+                usuarioGuardado.nombre = nombre;
+                localStorage.setItem('usuario', JSON.stringify(usuarioGuardado));
+            }
+
             await cargarPerfil();
-            
-            // Deshabilitar edición
             cancelarEdicion();
         } else {
             alert('Error: ' + data.mensaje);
@@ -180,7 +150,7 @@ async function guardarCambios(e) {
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Ocurrió un error de conexión. Revisa la consola para más detalles.');
+        alert('Ocurrió un error de conexión.');
         btnGuardar.innerHTML = textoOriginal;
         btnGuardar.disabled = false;
     }

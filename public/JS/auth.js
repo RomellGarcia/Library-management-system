@@ -1,6 +1,5 @@
 // auth.js - Manejo del formulario de login
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar si ya hay sesión activa
     verificarSesionYRedirigir();
     
     const formularioLogin = document.getElementById('formularioLogin');
@@ -13,7 +12,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const password = document.getElementById('contrasenaLogin').value;
             const recordar = document.getElementById('recordarme').checked;
             
-            // Deshabilitar botón para evitar doble clic
             const btnSubmit = formularioLogin.querySelector('button[type="submit"]');
             const textoOriginal = btnSubmit.textContent;
             btnSubmit.disabled = true;
@@ -22,41 +20,28 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({
-                        matricula,
-                        password,
-                        recordar
-                    })
+                    body: JSON.stringify({ matricula, password, recordar })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Login exitoso
-                    console.log('Login exitoso:', data.usuario);
+                    // ✅ NUEVO: Guardar token y usuario en localStorage
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('usuario', JSON.stringify(data.usuario));
                     
-                    // Mostrar mensaje de bienvenida con alert
                     alert(`¡Bienvenido ${data.usuario.nombre}!`);
-                    
-                    // Redirigir
                     window.location.href = data.redirect;
                 } else {
-                    // Login fallido - Mostrar el mensaje específico del servidor
                     alert(data.message);
-                    
-                    // Rehabilitar botón
                     btnSubmit.disabled = false;
                     btnSubmit.textContent = textoOriginal;
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('Error de conexión. Por favor intenta de nuevo.');
-                
-                // Rehabilitar botón
                 btnSubmit.disabled = false;
                 btnSubmit.textContent = textoOriginal;
             }
@@ -66,6 +51,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Verificar si ya hay sesión activa y redirigir
 async function verificarSesionYRedirigir() {
+    // ✅ NUEVO: Primero revisar localStorage (más rápido)
+    const token = localStorage.getItem('token');
+    const usuario = localStorage.getItem('usuario');
+    if (token && usuario) {
+        window.location.href = '/HTML/index.html';
+        return;
+    }
+
+    // Si no hay token local, verificar con el servidor
     try {
         const response = await fetch('/api/auth/verificar', {
             method: 'GET',
@@ -75,8 +69,6 @@ async function verificarSesionYRedirigir() {
         const data = await response.json();
         
         if (data.logged_in) {
-            // Ya hay sesión activa, redirigir al index
-            console.log('Sesión activa detectada, redirigiendo...');
             window.location.href = '/HTML/index.html';
         }
     } catch (error) {
@@ -84,18 +76,16 @@ async function verificarSesionYRedirigir() {
     }
 }
 
-// Funcionalidad para mostrar/ocultar contraseña
+// Mostrar/ocultar contraseña
 function togglePassword() {
     const passwordInput = document.getElementById('contrasenaLogin');
     const eyeIcon = document.getElementById('eyeIcon');
     
     if (passwordInput.type === 'password') {
-        // Mostrar contraseña
         passwordInput.type = 'text';
         eyeIcon.src = '../images/iconos/invisible.png';
         eyeIcon.alt = 'Ocultar contraseña';
     } else {
-        // Ocultar contraseña
         passwordInput.type = 'password';
         eyeIcon.src = '../images/iconos/ojo.png';
         eyeIcon.alt = 'Mostrar contraseña';

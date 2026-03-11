@@ -1,3 +1,4 @@
+// footer.js - Sin cambios
 document.addEventListener('DOMContentLoaded', function() {
     const footerHTML = `
         <footer>

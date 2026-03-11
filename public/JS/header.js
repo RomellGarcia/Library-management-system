@@ -17,7 +17,6 @@
 });*/
 // header.js - Genera headers dinámicamente
 document.addEventListener("DOMContentLoaded", function() {
-    // Verificar si ya existe un header (para evitar duplicados)
     if (document.querySelector('.header-top')) {
         console.log('⚠️ Headers ya existen en el HTML, saltando generación dinámica');
         return;
@@ -53,8 +52,30 @@ document.addEventListener("DOMContentLoaded", function() {
         </header>
     `;
 
-    // Insertar al principio del body
     document.body.insertAdjacentElement('afterbegin', headerContainer);
-    
-    console.log('✅ Headers generados dinámicamente');
+
+    // ✅ Actualizar botón de sesión según localStorage
+    const token   = localStorage.getItem('token');
+    const usuario = localStorage.getItem('usuario');
+    const btnContainer = document.getElementById('session-button-container');
+
+    if (token && usuario && btnContainer) {
+        try {
+            const { nombre } = JSON.parse(usuario);
+            btnContainer.innerHTML = `
+                <span style="color: white; margin-right: 10px;">Hola, ${nombre}</span>
+                <button class="btn-logout-top" onclick="cerrarSesionHeader()">Cerrar Sesión</button>
+            `;
+        } catch (e) {
+            // Si el JSON está corrupto, dejar el botón de login por defecto
+        }
+    }
 });
+
+function cerrarSesionHeader() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+        window.location.href = '/HTML/iniciar_sesion.html';
+    });
+}

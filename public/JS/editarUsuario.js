@@ -1,5 +1,7 @@
-//Editar información de un usuario
+// editarUsuario.js - Editar información de un usuario
+
 document.addEventListener('DOMContentLoaded', function() {
+    // ✅ Solo administrador (rol 1)
     protegerPagina([1]).then(usuario => {
         if (!usuario) return;
         cargarDatosUsuario();
@@ -7,10 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Tablas permitidas
 const TABLAS_PERMITIDAS = ['tblusuarios', 'tbladministrador', 'tblempleados'];
 
-// OBTENER PARÁMETROS DE URL
 function obtenerParams() {
     const params    = new URLSearchParams(window.location.search);
     const matricula = parseInt(params.get('matricula')) || 0;
@@ -23,14 +23,15 @@ async function cargarDatosUsuario() {
     const { matricula, tabla } = obtenerParams();
 
     if (!TABLAS_PERMITIDAS.includes(tabla) || !matricula) {
-        window.location.href = '/HTML/ListadoUsuarios.html?error=parametros_invalidos';
+        window.location.href = '/HTML/gestion_usuarios.html?error=parametros_invalidos';
         return;
     }
 
     try {
+        // ✅ fetchConToken en ambas peticiones
         const [resUsuario, resRoles] = await Promise.all([
-            fetch(`/api/auth/usuarios/${matricula}?tabla=${tabla}`, { credentials: 'include' }),
-            fetch('/api/auth/roles', { credentials: 'include' }),
+            fetchConToken(`/api/auth/usuarios/${matricula}?tabla=${tabla}`),
+            fetchConToken('/api/auth/roles'),
         ]);
 
         if (!resUsuario.ok) throw new Error('Usuario no encontrado');
@@ -39,7 +40,7 @@ async function cargarDatosUsuario() {
         const dataRoles   = resRoles.ok ? await resRoles.json() : { data: [] };
 
         if (!dataUsuario.success) {
-            window.location.href = '/HTML/ListadoUsuarios.html?error=no_encontrado';
+            window.location.href = '/HTML/gestion_usuarios.html?error=no_encontrado';
             return;
         }
 
@@ -47,20 +48,19 @@ async function cargarDatosUsuario() {
 
     } catch (error) {
         console.error('Error al cargar usuario:', error);
-        window.location.href = '/HTML/ListadoUsuarios.html?error=consulta';
+        window.location.href = '/HTML/gestion_usuarios.html?error=consulta';
     }
 }
 
-// RENDERIZAR FORMULARIO CON LOS DATOS
+// RENDERIZAR FORMULARIO
 function renderizarFormulario(usuario, roles) {
     const { tabla } = obtenerParams();
 
-    // Título y badge
-    const tituloEl = document.getElementById('titulo-usuario');
-    const badgeEl  = document.getElementById('badge-tipo');
-
     const rolUsuario  = roles.find(r => r.intidrol == usuario.intidrol);
     const tipoUsuario = rolUsuario ? rolUsuario.vchrol : '';
+
+    const tituloEl = document.getElementById('titulo-usuario');
+    const badgeEl  = document.getElementById('badge-tipo');
 
     if (tituloEl) tituloEl.textContent = `Información de ${usuario.vchnombre} ${usuario.vchapaterno}`;
     if (badgeEl) {
@@ -68,25 +68,17 @@ function renderizarFormulario(usuario, roles) {
         badgeEl.className   = `badge-tipo badge-${tipoUsuario.toLowerCase()}`;
     }
 
-    // Campos ocultos
     document.getElementById('matricula_original').value = usuario.intmatricula;
     document.getElementById('tabla').value              = tabla;
+    document.getElementById('intmatricula').value       = usuario.intmatricula;
+    document.getElementById('vchnombre').value          = usuario.vchnombre    || '';
+    document.getElementById('vchapaterno').value        = usuario.vchapaterno  || '';
+    document.getElementById('vchamaterno').value        = usuario.vchamaterno  || '';
+    document.getElementById('vchtelefono').value        = usuario.vchtelefono  || '';
+    document.getElementById('vchcorreo').value          = usuario.vchcorreo    || '';
+    document.getElementById('vchcalle').value           = usuario.vchcalle     || '';
+    document.getElementById('vchcolonia').value         = usuario.vchcolonia   || '';
 
-    // Datos personales
-    document.getElementById('intmatricula').value = usuario.intmatricula;
-    document.getElementById('vchnombre').value    = usuario.vchnombre    || '';
-    document.getElementById('vchapaterno').value  = usuario.vchapaterno  || '';
-    document.getElementById('vchamaterno').value  = usuario.vchamaterno  || '';
-
-    // Contacto
-    document.getElementById('vchtelefono').value = usuario.vchtelefono || '';
-    document.getElementById('vchcorreo').value   = usuario.vchcorreo   || '';
-
-    // Dirección
-    document.getElementById('vchcalle').value   = usuario.vchcalle   || '';
-    document.getElementById('vchcolonia').value = usuario.vchcolonia || '';
-
-    // Select de roles
     const selectRol = document.getElementById('intidrol');
     selectRol.innerHTML = '';
     roles.forEach(rol => {
@@ -98,8 +90,7 @@ function renderizarFormulario(usuario, roles) {
     });
 }
 
-// CONFIGURAR FORMULARIO Y VALIDACIONES
-
+// CONFIGURAR FORMULARIO
 function configurarFormulario() {
     const form = document.getElementById('form-edicion');
     if (!form) return;
@@ -143,27 +134,24 @@ async function guardarCambios() {
     };
 
     try {
-        const response = await fetch('/api/auth/usuarios/actualizar', {
+        // ✅ fetchConToken
+        const response = await fetchConToken('/api/auth/usuarios/actualizar', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(datos),
+            body: JSON.stringify(datos)
         });
 
         const data = await response.json();
 
         if (data.success) {
-            window.location.href = '/HTML/ListadoUsuarios.html?success=1&mensaje=' +
+            window.location.href = '/HTML/gestion_usuarios.html?success=1&mensaje=' +
                 encodeURIComponent('Usuario actualizado correctamente');
         } else {
             alert('Error: ' + (data.error || 'No se pudo guardar los cambios'));
         }
-
     } catch (error) {
         console.error('Error al guardar cambios:', error);
         alert('No se pudo conectar con el servidor.');
     }
 }
 
-// Exportar
 window.guardarCambios = guardarCambios;

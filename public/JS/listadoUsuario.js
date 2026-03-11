@@ -1,3 +1,5 @@
+// listadoUsuario.js - Gestión de usuarios
+
 document.addEventListener('DOMContentLoaded', function() {
     protegerPagina([1, 2]).then(usuario => {
         if (!usuario) return;
@@ -12,10 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // ─────────────────────────────────────────
 async function cargarUsuarios() {
     try {
+        // ✅ fetchConToken en las 3 peticiones
         const [resUsuarios, resAdmins, resEmpleados] = await Promise.all([
-            fetch('/api/auth/usuarios',        { credentials: 'include' }),
-            fetch('/api/auth/administradores', { credentials: 'include' }),
-            fetch('/api/auth/empleados',        { credentials: 'include' }),
+            fetchConToken('/api/auth/usuarios'),
+            fetchConToken('/api/auth/administradores'),
+            fetchConToken('/api/auth/empleados'),
         ]);
 
         const dataUsuarios  = resUsuarios.ok  ? await resUsuarios.json()  : { data: [] };
@@ -98,11 +101,8 @@ function renderizarTabla(usuarios) {
 // FILTROS Y BÚSQUEDA EN TIEMPO REAL
 // ─────────────────────────────────────────
 function configurarFiltros() {
-    const inputBusqueda = document.getElementById('busqueda');
-    const selectFiltro  = document.getElementById('filtro');
-
-    if (inputBusqueda) inputBusqueda.addEventListener('input', filtrarUsuarios);
-    if (selectFiltro)  selectFiltro.addEventListener('change', filtrarUsuarios);
+    document.getElementById('busqueda')?.addEventListener('input', filtrarUsuarios);
+    document.getElementById('filtro')?.addEventListener('change', filtrarUsuarios);
 }
 
 function filtrarUsuarios() {
@@ -128,8 +128,8 @@ function filtrarUsuarios() {
 
         const coincideFiltro =
             filtro === 'todos' ||
-            (filtro === 'usuarios'        && fila.dataset.tipo === 'usuario')        ||
-            (filtro === 'administradores' && fila.dataset.tipo === 'administrador')  ||
+            (filtro === 'usuarios'        && fila.dataset.tipo === 'usuario')       ||
+            (filtro === 'administradores' && fila.dataset.tipo === 'administrador') ||
             (filtro === 'empleados'       && fila.dataset.tipo === 'empleado');
 
         const mostrar = coincideBusqueda && coincideFiltro;
@@ -143,7 +143,7 @@ function filtrarUsuarios() {
 }
 
 // ─────────────────────────────────────────
-// ELIMINAR USUARIO (delegación de eventos)
+// ELIMINAR USUARIO
 // ─────────────────────────────────────────
 function configurarEliminar() {
     const tbody = document.getElementById('tbody-usuarios');
@@ -160,10 +160,11 @@ async function eliminarUsuario(matricula, tabla, nombre) {
     if (!confirm(`¿Estás seguro de eliminar a ${nombre}?`)) return;
 
     try {
-        const response = await fetch(`/api/auth/usuarios/${matricula}?tabla=${tabla}`, {
-            method: 'DELETE',
-            credentials: 'include',
-        });
+        // ✅ fetchConToken con método DELETE
+        const response = await fetchConToken(
+            `/api/auth/usuarios/${matricula}?tabla=${tabla}`,
+            { method: 'DELETE' }
+        );
 
         const data = await response.json();
 
@@ -173,7 +174,6 @@ async function eliminarUsuario(matricula, tabla, nombre) {
         } else {
             alert('Error: ' + (data.error || 'No se pudo eliminar el usuario'));
         }
-
     } catch (error) {
         console.error('Error al eliminar usuario:', error);
         alert('No se pudo conectar con el servidor.');
@@ -195,7 +195,6 @@ function escapeHtml(text) {
     return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
-// Exportar
 window.cargarUsuarios  = cargarUsuarios;
 window.filtrarUsuarios = filtrarUsuarios;
 window.eliminarUsuario = eliminarUsuario;
