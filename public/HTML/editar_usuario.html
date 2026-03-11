@@ -1,144 +1,146 @@
 <!DOCTYPE html>
 <html lang="es">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Editar Usuario - Biblioteca UTHH</title>
-        <link rel="stylesheet" href="../styles.css">
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
 
-    <body>
-        <main class="container">
+<body>
+    <main class="container">
 
-            <a href="/HTML/ListadoUsuarios.html" class="boton-volver-detalle">
-                <span>←</span>
-                <span>Volver al listado</span>
-            </a>
+        <a href="/HTML/ListadoUsuarios.html" class="boton-volver-detalle">
+            <span>←</span>
+            <span>Volver al listado</span>
+        </a>
 
-            <section class="form-section">
+        <section class="form-section">
 
-                <div class="form-header" id="form-header">
-                    <h2 id="titulo-usuario">Cargando usuario...</h2>
-                    <span id="badge-tipo" class="badge-tipo"></span>
+            <div class="form-header" id="form-header">
+                <h2 id="titulo-usuario">Cargando usuario...</h2>
+                <span id="badge-tipo" class="badge-tipo"></span>
+            </div>
+
+            <form id="form-edicion" class="form-edicion">
+
+                <!-- Campos ocultos -->
+                <input type="hidden" id="matricula_original" name="matricula_original">
+                <input type="hidden" id="tabla" name="tabla">
+
+                <!-- Datos Personales -->
+                <fieldset>
+                    <legend>Datos Personales</legend>
+                    <div class="form-grid">
+
+                        <div class="campo-formulario">
+                            <label for="intmatricula">Matrícula:</label>
+                            <input type="number" id="intmatricula" name="intmatricula" required>
+                        </div>
+
+                        <div class="campo-formulario">
+                            <label for="intidrol">Rol:</label>
+                            <select id="intidrol" name="intidrol" required>
+                                <!-- Se llena dinámicamente -->
+                            </select>
+                        </div>
+
+                        <div class="campo-formulario">
+                            <label for="vchnombre">Nombre:</label>
+                            <input type="text" id="vchnombre" name="vchnombre" required>
+                        </div>
+
+                        <div class="campo-formulario">
+                            <label for="vchapaterno">Apellido Paterno:</label>
+                            <input type="text" id="vchapaterno" name="vchapaterno" required>
+                        </div>
+
+                        <div class="campo-formulario">
+                            <label for="vchamaterno">Apellido Materno:</label>
+                            <input type="text" id="vchamaterno" name="vchamaterno" required>
+                        </div>
+
+                    </div>
+                </fieldset>
+
+                <!-- Datos de Contacto -->
+                <fieldset>
+                    <legend>📞 Datos de Contacto</legend>
+                    <div class="form-grid">
+
+                        <div class="campo-formulario">
+                            <label for="vchtelefono">Teléfono:</label>
+                            <input type="tel" id="vchtelefono" name="vchtelefono" required>
+                        </div>
+
+                        <div class="campo-formulario campo-full">
+                            <label for="vchcorreo">Correo Electrónico:</label>
+                            <input type="email" id="vchcorreo" name="vchcorreo" required>
+                        </div>
+
+                    </div>
+                </fieldset>
+
+                <!-- Dirección -->
+                <fieldset>
+                    <legend>Dirección</legend>
+                    <div class="form-grid">
+
+                        <div class="campo-formulario">
+                            <label for="vchcalle">Calle:</label>
+                            <input type="text" id="vchcalle" name="vchcalle" required>
+                        </div>
+
+                        <div class="campo-formulario">
+                            <label for="vchcolonia">Colonia:</label>
+                            <input type="text" id="vchcolonia" name="vchcolonia" required>
+                        </div>
+
+                    </div>
+                </fieldset>
+
+                <!-- Contraseña -->
+                <fieldset>
+                    <legend>Contraseña</legend>
+                    <div class="alert alert-info">
+                        La contraseña actual está encriptada. Deja los campos vacíos si no deseas cambiarla.
+                    </div>
+                    <div class="form-grid">
+
+                        <div class="campo-formulario">
+                            <label for="password_nueva">Nueva Contraseña:</label>
+                            <input type="password" id="password_nueva" name="password_nueva"
+                                placeholder="Dejar vacío para no cambiar">
+                        </div>
+
+                        <div class="campo-formulario">
+                            <label for="password_confirmar">Confirmar Contraseña:</label>
+                            <input type="password" id="password_confirmar" name="password_confirmar"
+                                placeholder="Confirmar nueva contraseña">
+                        </div>
+
+                    </div>
+                </fieldset>
+
+                <div class="botones-formulario">
+                    <button type="submit" class="btn btn-guardar">Guardar Cambios</button>
+                    <a href="/HTML/ListadoUsuarios.html" class="btn btn-cancelar">Cancelar</a>
                 </div>
 
-                <form id="form-edicion" class="form-edicion">
+            </form>
+        </section>
 
-                    <!-- Campos ocultos -->
-                    <input type="hidden" id="matricula_original" name="matricula_original">
-                    <input type="hidden" id="tabla" name="tabla">
+    </main>
 
-                    <!-- Datos Personales -->
-                    <fieldset>
-                        <legend>Datos Personales</legend>
-                        <div class="form-grid">
+    <script src="../JS/config.js"></script>
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/editarUsuario.js"></script>
 
-                            <div class="campo-formulario">
-                                <label for="intmatricula">Matrícula:</label>
-                                <input type="number" id="intmatricula" name="intmatricula" required>
-                            </div>
+</body>
 
-                            <div class="campo-formulario">
-                                <label for="intidrol">Rol:</label>
-                                <select id="intidrol" name="intidrol" required>
-                                    <!-- Se llena dinámicamente -->
-                                </select>
-                            </div>
-
-                            <div class="campo-formulario">
-                                <label for="vchnombre">Nombre:</label>
-                                <input type="text" id="vchnombre" name="vchnombre" required>
-                            </div>
-
-                            <div class="campo-formulario">
-                                <label for="vchapaterno">Apellido Paterno:</label>
-                                <input type="text" id="vchapaterno" name="vchapaterno" required>
-                            </div>
-
-                            <div class="campo-formulario">
-                                <label for="vchamaterno">Apellido Materno:</label>
-                                <input type="text" id="vchamaterno" name="vchamaterno" required>
-                            </div>
-
-                        </div>
-                    </fieldset>
-
-                    <!-- Datos de Contacto -->
-                    <fieldset>
-                        <legend>📞 Datos de Contacto</legend>
-                        <div class="form-grid">
-
-                            <div class="campo-formulario">
-                                <label for="vchtelefono">Teléfono:</label>
-                                <input type="tel" id="vchtelefono" name="vchtelefono" required>
-                            </div>
-
-                            <div class="campo-formulario campo-full">
-                                <label for="vchcorreo">Correo Electrónico:</label>
-                                <input type="email" id="vchcorreo" name="vchcorreo" required>
-                            </div>
-
-                        </div>
-                    </fieldset>
-
-                    <!-- Dirección -->
-                    <fieldset>
-                        <legend>Dirección</legend>
-                        <div class="form-grid">
-
-                            <div class="campo-formulario">
-                                <label for="vchcalle">Calle:</label>
-                                <input type="text" id="vchcalle" name="vchcalle" required>
-                            </div>
-
-                            <div class="campo-formulario">
-                                <label for="vchcolonia">Colonia:</label>
-                                <input type="text" id="vchcolonia" name="vchcolonia" required>
-                            </div>
-
-                        </div>
-                    </fieldset>
-
-                    <!-- Contraseña -->
-                    <fieldset>
-                        <legend>Contraseña</legend>
-                        <div class="alert alert-info">
-                            La contraseña actual está encriptada. Deja los campos vacíos si no deseas cambiarla.
-                        </div>
-                        <div class="form-grid">
-
-                            <div class="campo-formulario">
-                                <label for="password_nueva">Nueva Contraseña:</label>
-                                <input type="password" id="password_nueva" name="password_nueva"
-                                    placeholder="Dejar vacío para no cambiar">
-                            </div>
-
-                            <div class="campo-formulario">
-                                <label for="password_confirmar">Confirmar Contraseña:</label>
-                                <input type="password" id="password_confirmar" name="password_confirmar"
-                                    placeholder="Confirmar nueva contraseña">
-                            </div>
-
-                        </div>
-                    </fieldset>
-
-                    <div class="botones-formulario">
-                        <button type="submit" class="btn btn-guardar">Guardar Cambios</button>
-                        <a href="/HTML/ListadoUsuarios.html" class="btn btn-cancelar">Cancelar</a>
-                    </div>
-
-                </form>
-            </section>
-
-        </main>
-
-
-        <script src="../JS/header.js"></script>
-        <script src="../JS/footer.js"></script>
-        <script src="../JS/session_handler.js"></script>
-        <script src="../JS/protect_route.js"></script>
-        <script src="../JS/editarUsuario.js"></script>
-
-    </body>
 </html>

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Devolución de Préstamo - Biblioteca UTHH</title>
     <link rel="stylesheet" href="../styles.css">
 </head>
+
 <body>
     <main class="container-devolucion">
         <a href="/HTML/gestion_prestamos.html" class="boton-volver-detalle" style="margin-bottom: 20px;">
@@ -100,8 +102,8 @@
                 <!-- Formulario de Devolución -->
                 <div class="form-group">
                     <label for="intmatricula_empleado">Matrícula del Empleado que Recibe *</label>
-                    <input type="text" id="intmatricula_empleado" name="intmatricula_empleado" 
-                           placeholder="Ej: 20000001" required pattern="[0-9]+" title="Solo números">
+                    <input type="text" id="intmatricula_empleado" name="intmatricula_empleado"
+                        placeholder="Ej: 20000001" required pattern="[0-9]+" title="Solo números">
                     <small style="color: #718096; margin-top: 5px; display: block;">
                         Ingrese la matrícula del empleado que procesa la devolución
                     </small>
@@ -124,14 +126,14 @@
 
                 <div class="form-group">
                     <label for="vchsancion">Observaciones / Motivo de Sanción</label>
-                    <textarea id="vchsancion" name="vchsancion" rows="3" 
-                              placeholder="Opcional: Describe observaciones o el motivo de la sanción..."></textarea>
+                    <textarea id="vchsancion" name="vchsancion" rows="3"
+                        placeholder="Opcional: Describe observaciones o el motivo de la sanción..."></textarea>
                 </div>
 
                 <div class="form-group">
                     <label for="flmontosancion">Monto de la Sanción ($)</label>
-                    <input type="number" id="flmontosancion" name="flmontosancion" 
-                           step="0.01" min="0" placeholder="0.00" value="0.00">
+                    <input type="number" id="flmontosancion" name="flmontosancion" step="0.01" min="0"
+                        placeholder="0.00" value="0.00">
                 </div>
 
                 <div class="form-group">
@@ -139,7 +141,8 @@
                         <input type="checkbox" id="boolsancion" name="boolsancion" value="1">
                         <label for="boolsancion">
                             <strong>Sanción Pagada/Cumplida</strong><br>
-                            <small style="color: #718096;">Marca esta casilla si el usuario ya pagó o cumplió la sanción</small>
+                            <small style="color: #718096;">Marca esta casilla si el usuario ya pagó o cumplió la
+                                sanción</small>
                         </label>
                     </div>
                 </div>
@@ -155,6 +158,8 @@
     </main>
 
     <!-- SCRIPTS -->
+    <script src="../JS/config.js"></script>
+    <script src="../JS/utils.js"></script>
     <script src="../JS/header.js"></script>
     <script src="../JS/footer.js"></script>
     <script src="../JS/session_handler.js"></script>
@@ -163,9 +168,10 @@
 
     <script>
         // Proteger esta página - Solo admin (1) y empleado (2)
-        document.addEventListener('DOMContentLoaded', async function() {
+        document.addEventListener('DOMContentLoaded', async function () {
             await protegerPagina([1, 2]);
         });
     </script>
 </body>
+
 </html>

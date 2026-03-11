@@ -1,11 +1,15 @@
 // utils.js - Funciones globales reutilizables
 
-// Fetch con token automático para endpoints protegidos
+// utils.js - Utilidades globales
+
+// ─────────────────────────────────────────
+// FETCH CON TOKEN
+// ─────────────────────────────────────────
 function fetchConToken(url, opciones = {}) {
     const token = localStorage.getItem('token');
-    return fetch(url, {
+
+    return fetch(CONFIG.BASE_URL + url, {
         ...opciones,
-        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
@@ -14,19 +18,23 @@ function fetchConToken(url, opciones = {}) {
     });
 }
 
-// Obtener usuario desde localStorage
+// ─────────────────────────────────────────
+// OBTENER USUARIO DEL LOCALSTORAGE
+// ─────────────────────────────────────────
 function obtenerUsuario() {
-    const data = localStorage.getItem('usuario');
-    return data ? JSON.parse(data) : null;
+    try {
+        const datos = localStorage.getItem('usuario');
+        return datos ? JSON.parse(datos) : null;
+    } catch (e) {
+        return null;
+    }
 }
 
-// Escapar HTML para evitar XSS
+// ─────────────────────────────────────────
+// ESCAPE HTML
+// ─────────────────────────────────────────
 function escapeHtml(text) {
     if (!text) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return String(text).replace(/[&<>"']/g, m => map[m]);
 }
-
-window.fetchConToken = fetchConToken;
-window.obtenerUsuario = obtenerUsuario;
-window.escapeHtml = escapeHtml;
