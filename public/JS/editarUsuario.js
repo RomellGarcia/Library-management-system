@@ -1,7 +1,6 @@
 // editarUsuario.js - Editar información de un usuario
 
 document.addEventListener('DOMContentLoaded', function() {
-    // ✅ Solo administrador (rol 1)
     protegerPagina([1]).then(usuario => {
         if (!usuario) return;
         cargarDatosUsuario();
@@ -28,7 +27,7 @@ async function cargarDatosUsuario() {
     }
 
     try {
-        // ✅ fetchConToken en ambas peticiones
+        // fetchConToken en ambas peticiones
         const [resUsuario, resRoles] = await Promise.all([
             fetchConToken(`/api/auth/usuarios/${matricula}?tabla=${tabla}`),
             fetchConToken('/api/auth/roles'),
@@ -98,6 +97,13 @@ function configurarFormulario() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
+        // --- INICIO DE LA ALERTA DE CONFIRMACIÓN ---
+        const confirmado = confirm("¿Estás seguro de que deseas guardar los cambios realizados?");
+        if (!confirmado) {
+            return; // Si el usuario presiona "Cancelar", no hacemos nada
+        }
+        // --- FIN DE LA ALERTA ---
+
         const passwordNueva     = document.getElementById('password_nueva').value;
         const passwordConfirmar = document.getElementById('password_confirmar').value;
 
@@ -134,7 +140,7 @@ async function guardarCambios() {
     };
 
     try {
-        // ✅ fetchConToken
+        // fetchConToken
         const response = await fetchConToken('/api/auth/usuarios/actualizar', {
             method: 'POST',
             body: JSON.stringify(datos)
