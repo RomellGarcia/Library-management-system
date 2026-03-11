@@ -3,7 +3,7 @@
 let prestamosOriginales = [];
 let estadisticasActuales = {};
 
-document.addEventListener('DOMContentLoaded', async function() {
+document.addEventListener('DOMContentLoaded', async function () {
     // ✅ Proteger página: solo admin (1) y empleado (2)
     const usuario = await protegerPagina([1, 2]);
     if (!usuario) return;
@@ -22,7 +22,7 @@ function configurarEventos() {
     }
 
     if (selectFiltro) {
-        selectFiltro.addEventListener('change', function() {
+        selectFiltro.addEventListener('change', function () {
             cargarPrestamos(this.value);
         });
     }
@@ -31,9 +31,7 @@ function configurarEventos() {
 // Cargar préstamos desde el servidor
 async function cargarPrestamos(filtro = 'todos', busqueda = '') {
     try {
-        const url = `/api/prestamos?filtro=${filtro}&busqueda=${encodeURIComponent(busqueda)}`;
-        
-        // ✅ fetchConToken en lugar de fetch
+        const url = CONFIG.BASE_URL + `/api/prestamos?filtro=${filtro}&busqueda=${encodeURIComponent(busqueda)}`;
         const response = await fetchConToken(url);
 
         if (!response.ok) {
@@ -65,7 +63,7 @@ async function cargarPrestamos(filtro = 'todos', busqueda = '') {
 // Mostrar estadísticas
 function mostrarEstadisticas(stats) {
     const container = document.getElementById('estadisticas-prestamos');
-    
+
     container.innerHTML = `
         <article class="tarjeta-estadistica activos">
             <h3>${stats.activos}</h3>
@@ -258,10 +256,10 @@ function filtrarPrestamosLocal() {
 
     const prestamosFiltrados = prestamosOriginales.filter(prestamo => {
         return (prestamo.vchticket || '').toLowerCase().includes(textoBusqueda) ||
-               (prestamo.nombre_usuario || '').toLowerCase().includes(textoBusqueda) ||
-               String(prestamo.intmatricula_usuario || '').toLowerCase().includes(textoBusqueda) ||
-               (prestamo.titulo_libro || '').toLowerCase().includes(textoBusqueda) ||
-               (prestamo.autor_libro || '').toLowerCase().includes(textoBusqueda);
+            (prestamo.nombre_usuario || '').toLowerCase().includes(textoBusqueda) ||
+            String(prestamo.intmatricula_usuario || '').toLowerCase().includes(textoBusqueda) ||
+            (prestamo.titulo_libro || '').toLowerCase().includes(textoBusqueda) ||
+            (prestamo.autor_libro || '').toLowerCase().includes(textoBusqueda);
     });
 
     mostrarPrestamos(prestamosFiltrados);
@@ -321,7 +319,7 @@ function cerrarModal() {
     document.getElementById('modal-info').style.display = 'none';
 }
 
-document.getElementById('modal-info')?.addEventListener('click', function(e) {
+document.getElementById('modal-info')?.addEventListener('click', function (e) {
     if (e.target === this) cerrarModal();
 });
 
@@ -331,7 +329,7 @@ async function marcarSancionCumplida(idDevolucion) {
 
     try {
         // ✅ fetchConToken en lugar de fetch
-        const response = await fetchConToken('/api/prestamos/sancion', {
+        const response = await fetchConToken(CONFIG.BASE_URL + '/api/prestamos/sancion', {
             method: 'POST',
             body: JSON.stringify({ intiddevolucion: idDevolucion })
         });
@@ -382,13 +380,13 @@ function mostrarError(mensaje) {
 function formatearFecha(fecha) {
     if (!fecha) return 'N/A';
     const date = new Date(fecha);
-    return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`;
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 }
 
 function formatearFechaHora(fecha) {
     if (!fecha) return 'N/A';
     const date = new Date(fecha);
-    return `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 window.verInfoDevolucion = verInfoDevolucion;

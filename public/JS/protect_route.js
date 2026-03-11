@@ -1,8 +1,9 @@
 // protect_route.js - Proteger páginas que requieren autenticación
 async function protegerPagina(rolesPermitidos = []) {
-    // ✅ NUEVO: Verificar token en localStorage primero (instantáneo)
     const token = localStorage.getItem('token');
     const usuarioGuardado = localStorage.getItem('usuario');
+    console.log('token:', token);
+    console.log('usuario:', usuarioGuardado);
 
     if (!token || !usuarioGuardado) {
         // No hay sesión local, verificar con el servidor por si acaso
