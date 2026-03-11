@@ -24,7 +24,7 @@ async function protegerPagina(rolesPermitidos = []) {
 // Fallback: verificar sesión con el servidor
 async function verificarConServidor(rolesPermitidos = []) {
     try {
-        const response = await fetch('/api/auth/verificar', {
+        const response = await fetch(CONFIG.BASE_URL + '/api/auth/verificar', {
             method: 'GET',
             credentials: 'include'
         });

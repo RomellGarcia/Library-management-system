@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 async function verificarSesion() {
     try {
-        // ✅ NUEVO: Primero intentar desde localStorage (más rápido, sin petición)
         const token = localStorage.getItem('token');
         const usuarioGuardado = localStorage.getItem('usuario');
 
@@ -69,9 +68,7 @@ function actualizarMenu(usuario) {
     switch (parseInt(usuario.idrol)) {
         case 1: // Administrador
             menuItems = [
-                { href: '/HTML/index.html', texto: 'Inicio' },
                 { href: '/HTML/perfil.html', texto: 'Perfil' },
-                { href: '/HTML/catalogo.html', texto: 'Catálogo' },
                 { href: '/HTML/gestion_usuarios.html', texto: 'Gestionar Usuarios' },
                 { href: '/HTML/registrar_usuarios.html', texto: 'Registrar Usuarios' },
                 { href: '/HTML/gestionar_libros.html', texto: 'Gestionar Libros' },
@@ -84,9 +81,7 @@ function actualizarMenu(usuario) {
 
         case 2: // Empleado
             menuItems = [
-                { href: '/HTML/index.html', texto: 'Inicio' },
                 { href: '/HTML/perfil.html', texto: 'Perfil' },
-                { href: '/HTML/catalogo.html', texto: 'Catálogo' },
                 { href: '/HTML/gestion_usuarios.html', texto: 'Gestionar Usuarios' },
                 { href: '/HTML/gestionar_libros.html', texto: 'Gestionar Libros' },
                 { href: '/HTML/registrar_libros.html', texto: 'Registrar Libros' },
@@ -117,7 +112,6 @@ function actualizarMenu(usuario) {
     ).join('');
 }
 
-// ✅ ACTUALIZADO: Limpia localStorage además de cerrar sesión en servidor
 async function cerrarSesion() {
     if (!confirm('¿Estás seguro de que deseas cerrar sesión?')) return;
 
