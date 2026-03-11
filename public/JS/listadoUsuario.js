@@ -20,35 +20,65 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function cargarUsuarios() {
     try {
-        // fetchConToken en las 3 peticiones
-        const [resUsuarios, resAdmins, resEmpleados] = await Promise.all([
-            fetchConToken('/api/auth/usuarios'),
-            fetchConToken('/api/auth/administradores'),
-            fetchConToken('/api/auth/empleados'),
-        ]);
+        // Assuming you fetch all users (combined or per-table). Adjust endpoint if needed.
+        const resUsuarios = await fetchConToken('/api/auth/usuarios/todos'); // Or separate fetches for each TABLAS_PERMITIDAS
+        const resRoles = await fetchConToken('/api/auth/roles');
 
-        const dataUsuarios = resUsuarios.ok ? await resUsuarios.json() : { data: [] };
-        const dataAdmins = resAdmins.ok ? await resAdmins.json() : { data: [] };
-        const dataEmpleados = resEmpleados.ok ? await resEmpleados.json() : { data: [] };
+        if (!resUsuarios.ok || !resRoles.ok) throw new Error('Error fetching data');
 
-        const todos = [
-            ...(dataUsuarios.data || []),
-            ...(dataAdmins.data || []),
-            ...(dataEmpleados.data || []),
-        ];
+        const dataUsuarios = await resUsuarios.json();
+        const dataRoles = await resRoles.json();
 
-        renderizarTabla(todos);
+        renderizarTabla(dataUsuarios.data || [], dataRoles.data || []);
+
+        const usuarios = dataUsuarios.data || []; // Array of all users
+        const roles = dataRoles.data || []; // Array of roles
+
+        const tablaBody = document.querySelector('#tabla-usuarios tbody'); // Adjust selector to your table
+        tablaBody.innerHTML = ''; // Clear existing rows
+
+        usuarios.forEach(usuario => {
+            const rolUsuario = roles.find(r => r.intidrol == usuario.intidrol);
+            const tipoUsuario = rolUsuario ? rolUsuario.vchrol.toUpperCase() : 'DESCONOCIDO'; // Use vchrol here!
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${usuario.intmatricula}</td>
+                    <td>${usuario.vchnombre} ${usuario.vchapaterno} ${usuario.vchamaterno || ''}</td>
+                    <td>${usuario.vchcorreo}</td>
+                    <td>${usuario.vchtelefono}</td>
+                    <td>${usuario.vchcalle}, ${usuario.vchcolonia}</td>
+                    <td><span class="badge badge-$$   {tipoUsuario.toLowerCase()}">   $${tipoUsuario}</span></td> // Dynamic based on vchrol
+                    <td>
+                        <button onclick="editar($$   {usuario.intmatricula}, '   $${usuario.tabla || 'tblusuarios'}')">Editar</button> // Pass tabla if needed
+                        <button onclick="eliminar($$   {usuario.intmatricula}, '   $${usuario.tabla || 'tblusuarios'}')">Eliminar</button>
+                    </td>
+                `;
+            tablaBody.appendChild(row);
+        });
 
     } catch (error) {
         console.error('Error al cargar usuarios:', error);
-        mostrarError('No se pudo conectar con el servidor');
+        // Show error message
     }
 }
 
+// Call this on page load and after any success redirect
+document.addEventListener('DOMContentLoaded', () => {
+    // ... other init
+    cargarUsuarios();
+});
+
+// If you have a success param in URL, force reload or show message
+const params = new URLSearchParams(window.location.search);
+if (params.get('success') === '1') {
+    alert(decodeURIComponent(params.get('mensaje') || 'Éxito'));
+    cargarUsuarios(); // Redundant if already on load, but ensures fresh data
+}
 // ─────────────────────────────────────────
 // RENDERIZAR TABLA
 // ─────────────────────────────────────────
-function renderizarTabla(usuarios) {
+function renderizarTabla(usuarios, roles) {
     const tbody = document.getElementById('tbody-usuarios');
     const tabla = document.getElementById('tabla-usuarios');
     const noResult = document.getElementById('no-resultados');
@@ -66,34 +96,34 @@ function renderizarTabla(usuarios) {
     }
 
     usuarios.forEach(u => {
-        const nombreCompleto = `${u.vchnombre} ${u.vchapaterno} ${u.vchamaterno}`.trim();
-        const tipo = (u.tipo_usuario || '').toLowerCase();
-
-        const fila = document.createElement('tr');
+        // BUSCA EL NOMBRE DEL ROL BASADO EN EL ID
+        const rolEncontrado = roles.find(r => r.intidrol == u.intidrol);
+        const nombreTipo = rolEncontrado ? rolEncontrado.vchrol : 'Usuario';
+        const tipoClase = nombreTipo.toLowerCase();
         fila.dataset.matricula = u.intmatricula;
         fila.dataset.nombre = nombreCompleto.toLowerCase();
         fila.dataset.correo = (u.vchcorreo || '').toLowerCase();
         fila.dataset.telefono = (u.vchtelefono || '').toLowerCase();
-        fila.dataset.tipo = tipo;
+        fila.dataset.tipo = tipoClase;
 
         fila.innerHTML = `
-            <td><strong>${escapeHtml(String(u.intmatricula))}</strong></td>
-            <td>${escapeHtml(nombreCompleto)}</td>
-            <td>${escapeHtml(u.vchcorreo || '')}</td>
-            <td>${escapeHtml(u.vchtelefono || '')}</td>
-            <td>${escapeHtml((u.vchcalle || '') + ', ' + (u.vchcolonia || ''))}</td>
-            <td><span class="badge-tipo badge-${tipo}">${escapeHtml(u.tipo_usuario || '')}</span></td>
-            <td class="acciones">
-                <a href="/HTML/editar_usuario.html?matricula=${u.intmatricula}&tabla=${u.tabla_origen}"
-                   class="btn-accion btn-editar">Editar</a>
-                <button class="btn-accion btn-eliminar"
-                        data-matricula="${u.intmatricula}"
-                        data-tabla="${escapeHtml(u.tabla_origen || '')}"
-                        data-nombre="${escapeHtml(nombreCompleto)}">
-                    Eliminar
-                </button>
-            </td>
-        `;
+                <td><strong>${escapeHtml(String(u.intmatricula))}</strong></td>
+                <td>${escapeHtml(nombreCompleto)}</td>
+                <td>${escapeHtml(u.vchcorreo || '')}</td>
+                <td>${escapeHtml(u.vchtelefono || '')}</td>
+                <td>${escapeHtml((u.vchcalle || '') + ', ' + (u.vchcolonia || ''))}</td>
+                <td><span class="badge-tipo badge-${tipoClase}">${escapeHtml(nombreTipo)}</span></td>
+                <td class="acciones">
+                    <a href="/HTML/editar_usuario.html?matricula=${u.intmatricula}&tabla=${u.tabla_origen}"
+                    class="btn-accion btn-editar">Editar</a>
+                    <button class="btn-accion btn-eliminar"
+                            data-matricula="${u.intmatricula}"
+                            data-tabla="${escapeHtml(u.tabla_origen || '')}"
+                            data-nombre="${escapeHtml(nombreCompleto)}">
+                        Eliminar
+                    </button>
+                </td>
+            `;
 
         tbody.appendChild(fila);
     });
