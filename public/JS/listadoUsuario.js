@@ -19,53 +19,23 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 async function cargarUsuarios() {
-    try {
-        // Assuming you fetch all users (combined or per-table). Adjust endpoint if needed.
-        const resUsuarios = await fetchConToken('/api/auth/usuarios/todos'); // Or separate fetches for each TABLAS_PERMITIDAS
-        const resRoles = await fetchConToken('/api/auth/roles');
+   try {
+        const resUsuarios = await fetchConToken('/api/auth/usuarios/todos');
+        const data = await resUsuarios.json();
+        
+        if (!resUsuarios.ok) {
+            throw new Error(data.error || 'Error al obtener datos');
+        }
 
-        if (!resUsuarios.ok || !resRoles.ok) throw new Error('Error fetching data');
-
-        const dataUsuarios = await resUsuarios.json();
-        const dataRoles = await resRoles.json();
-
-        renderizarTabla(dataUsuarios.data || [], dataRoles.data || []);
-
-        const usuarios = dataUsuarios.data || []; // Array of all users
-        const roles = dataRoles.data || []; // Array of roles
-
-        const tablaBody = document.querySelector('#tabla-usuarios tbody'); // Adjust selector to your table
-        tablaBody.innerHTML = ''; // Clear existing rows
-
-        usuarios.forEach(usuario => {
-            const rolUsuario = roles.find(r => r.intidrol == usuario.intidrol);
-            const tipoUsuario = rolUsuario ? rolUsuario.vchrol.toUpperCase() : 'DESCONOCIDO'; // Use vchrol here!
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                    <td>${usuario.intmatricula}</td>
-                    <td>${usuario.vchnombre} ${usuario.vchapaterno} ${usuario.vchamaterno || ''}</td>
-                    <td>${usuario.vchcorreo}</td>
-                    <td>${usuario.vchtelefono}</td>
-                    <td>${usuario.vchcalle}, ${usuario.vchcolonia}</td>
-                    <td><span class="badge badge-$$   {tipoUsuario.toLowerCase()}">   $${tipoUsuario}</span></td> // Dynamic based on vchrol
-                    <td>
-                        <button onclick="editar($$   {usuario.intmatricula}, '   $${usuario.tabla || 'tblusuarios'}')">Editar</button> // Pass tabla if needed
-                        <button onclick="eliminar($$   {usuario.intmatricula}, '   $${usuario.tabla || 'tblusuarios'}')">Eliminar</button>
-                    </td>
-                `;
-            tablaBody.appendChild(row);
-        });
-
+        renderizarTabla(data.data || [], data.roles || []);
     } catch (error) {
-        console.error('Error al cargar usuarios:', error);
-        // Show error message
+       console.error('Error capturado en cargarUsuarios:', error);
+        mostrarError('No se pudieron cargar los datos.');
     }
 }
 
-// Call this on page load and after any success redirect
+
 document.addEventListener('DOMContentLoaded', () => {
-    // ... other init
     cargarUsuarios();
 });
 
@@ -88,19 +58,24 @@ function renderizarTabla(usuarios, roles) {
 
     tbody.innerHTML = '';
 
-    if (usuarios.length === 0) {
+    // Manejo de caso vacío
+    if (!usuarios || usuarios.length === 0) {
         tabla.style.display = 'none';
         noResult.style.display = 'block';
         contador.textContent = '0 resultado(s)';
         return;
     }
 
+    // ÚNICO BUCLE PARA RENDERIZAR
     usuarios.forEach(u => {
-        // BUSCA EL NOMBRE DEL ROL BASADO EN EL ID
+        const nombreCompleto = `${u.vchnombre || ''} ${u.vchapaterno || ''} ${u.vchamaterno || ''}`.trim();
         const fila = document.createElement('tr');
-        const rolEncontrado = roles.find(r => r.intidrol == u.intidrol);
+        
+        // Busca el rol (Asegúrate de que 'roles' contenga datos, si no, usa un valor por defecto)
+        const rolEncontrado = (roles && roles.length > 0) ? roles.find(r => r.intidrol == u.intidrol) : null;
         const nombreTipo = rolEncontrado ? rolEncontrado.vchrol : 'Usuario';
-        const tipoClase = nombreTipo.toLowerCase();
+        const tipoClase = nombreTipo.toLowerCase().trim();
+
         fila.dataset.matricula = u.intmatricula;
         fila.dataset.nombre = nombreCompleto.toLowerCase();
         fila.dataset.correo = (u.vchcorreo || '').toLowerCase();
@@ -108,24 +83,22 @@ function renderizarTabla(usuarios, roles) {
         fila.dataset.tipo = tipoClase;
 
         fila.innerHTML = `
-                <td><strong>${escapeHtml(String(u.intmatricula))}</strong></td>
-                <td>${escapeHtml(nombreCompleto)}</td>
-                <td>${escapeHtml(u.vchcorreo || '')}</td>
-                <td>${escapeHtml(u.vchtelefono || '')}</td>
-                <td>${escapeHtml((u.vchcalle || '') + ', ' + (u.vchcolonia || ''))}</td>
-                <td><span class="badge-tipo badge-${tipoClase}">${escapeHtml(nombreTipo)}</span></td>
-                <td class="acciones">
-                    <a href="/HTML/editar_usuario.html?matricula=${u.intmatricula}&tabla=${u.tabla_origen}"
-                    class="btn-accion btn-editar">Editar</a>
-                    <button class="btn-accion btn-eliminar"
-                            data-matricula="${u.intmatricula}"
-                            data-tabla="${escapeHtml(u.tabla_origen || '')}"
-                            data-nombre="${escapeHtml(nombreCompleto)}">
-                        Eliminar
-                    </button>
-                </td>
-            `;
-
+            <td><strong>${escapeHtml(String(u.intmatricula))}</strong></td>
+            <td>${escapeHtml(nombreCompleto)}</td>
+            <td>${escapeHtml(u.vchcorreo || '')}</td>
+            <td>${escapeHtml(u.vchtelefono || '')}</td>
+            <td>${escapeHtml((u.vchcalle || '') + ', ' + (u.vchcolonia || ''))}</td>
+            <td><span class="badge-tipo badge-${tipoClase}">${escapeHtml(nombreTipo)}</span></td>
+            <td class="acciones">
+                <a href="/HTML/editar_usuario.html?matricula=${u.intmatricula}&tabla=${u.tabla_origen}" class="btn-accion btn-editar">Editar</a>
+                <button class="btn-accion btn-eliminar"
+                        data-matricula="${u.intmatricula}"
+                        data-tabla="${escapeHtml(u.tabla_origen || '')}"
+                        data-nombre="${escapeHtml(nombreCompleto)}">
+                    Eliminar
+                </button>
+            </td>
+        `;
         tbody.appendChild(fila);
     });
 
