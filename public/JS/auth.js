@@ -78,17 +78,16 @@ async function verificarSesionYRedirigir() {
 }
 
 // Mostrar/ocultar contraseña
-function togglePassword() {
-    const passwordInput = document.getElementById('contrasenaLogin');
-    const eyeIcon = document.getElementById('eyeIcon');
+function togglePassword(inputId, iconId) {
+    // Si no se pasan argumentos (como en tu login viejo), usa los por defecto
+    const input = document.getElementById(inputId || 'contrasenaLogin');
+    const icon = document.getElementById(iconId || 'eyeIcon');
 
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeIcon.src = '../images/iconos/invisible.png';
-        eyeIcon.alt = 'Ocultar contraseña';
+    if (input.type === "password") {
+        input.type = "text";
+        icon.src = "../images/iconos/ojo-abierto.png"; // Cambia la ruta si tienes otro icono
     } else {
-        passwordInput.type = 'password';
-        eyeIcon.src = '../images/iconos/ojo.png';
-        eyeIcon.alt = 'Mostrar contraseña';
+        input.type = "password";
+        icon.src = "../images/iconos/ojo.png";
     }
 }

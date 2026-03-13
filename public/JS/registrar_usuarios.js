@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const confirmarPassword = document.getElementById('confirmar-password');
     const password = document.getElementById('vchpassword');
 
-    // Validar que las contraseñas coincidan
+    // Validar que las contraseñas coincidan en tiempo real
     confirmarPassword.addEventListener('input', function () {
         if (password.value !== confirmarPassword.value) {
             confirmarPassword.setCustomValidity('Las contraseñas no coinciden');
@@ -39,12 +39,20 @@ document.addEventListener('DOMContentLoaded', async function () {
             return;
         }
 
+        // Validar formato de correo — VA AQUÍ, dentro del submit
+        const correo = document.getElementById('vchcorreo').value.trim();
+        const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!regexCorreo.test(correo)) {
+            alert('El formato del correo no es válido');
+            return;
+        }
+
         const datos = {
             vchnombre: document.getElementById('vchnombre').value.trim(),
             vchapaterno: document.getElementById('vchapaterno').value.trim(),
             vchamaterno: document.getElementById('vchamaterno').value.trim(),
             vchtelefono: telefono,
-            vchcorreo: document.getElementById('vchcorreo').value.trim(),
+            vchcorreo: correo,
             vchcalle: document.getElementById('vchcalle').value.trim(),
             vchcolonia: document.getElementById('vchcolonia').value.trim(),
             intidrol: document.getElementById('intidrol').value,
@@ -82,11 +90,23 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 });
 
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.alt = 'Ocultar contraseña';
+    } else {
+        input.type = 'password';
+        icon.alt = 'Mostrar contraseña';
+    }
+}
+window.togglePassword = togglePassword;
+
 function ocultarMensajeExito() {
-    document.getElementById('mensaje-exito').style.display = 'none';
-    document.getElementById('formulario-registro').style.display = 'block';
+    document.getElementById('mensaje-exito').style.display = 'block';
+    document.getElementById('formulario-registro').style.display = 'none';
     document.querySelector('.contenedor-perfil').style.minHeight = 'auto';
     document.getElementById('formulario-registro').reset();
 }
-
 window.ocultarMensajeExito = ocultarMensajeExito;

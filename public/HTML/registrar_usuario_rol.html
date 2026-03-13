@@ -13,38 +13,46 @@
         <section class="tarjeta-datos">
             <h2>Registro de Usuario</h2>
 
-            <div id="mensaje-exito" style="display: none; background: #c6f6d5; border: 1px solid #38a169; border-radius: 8px; padding: 20px; margin-bottom: 20px; text-align: center;">
+            <div id="mensaje-exito"
+                style="display: none; background: #c6f6d5; border: 1px solid #38a169; border-radius: 8px; padding: 20px; margin-bottom: 20px; text-align: center;">
                 <h3 style="color: #276749;">¡Registro Exitoso!</h3>
                 <p>El usuario ha sido creado correctamente.</p>
-                <p>Matrícula asignada: <strong id="matricula-asignada" style="font-size: 1.2rem; color: #A02142;"></strong></p>
-                <button type="button" class="boton-accion estilo-guardar" onclick="ocultarMensajeExito()">Volver al registro</button>
+                <p>Matrícula asignada: <strong id="matricula-asignada"
+                        style="font-size: 1.2rem; color: #A02142;"></strong></p>
+                <button type="button" class="boton-accion estilo-guardar" onclick="ocultarMensajeExito()">Volver al
+                    registro</button>
             </div>
 
             <form id="formulario-registro" autocomplete="off" style="display: block;">
                 <div class="grupo-campos">
                     <div class="campo-dato">
                         <label for="vchnombre">Nombre: *</label>
-                        <input type="text" id="vchnombre" name="vchnombre" placeholder="Nombre(s)" required autocomplete="off">
+                        <input type="text" id="vchnombre" name="vchnombre" placeholder="Nombre(s)" required
+                            autocomplete="off">
                     </div>
 
                     <div class="campo-dato">
                         <label for="vchapaterno">Apellido Paterno: *</label>
-                        <input type="text" id="vchapaterno" name="vchapaterno" placeholder="Apellido paterno" required autocomplete="off">
+                        <input type="text" id="vchapaterno" name="vchapaterno" placeholder="Apellido paterno" required
+                            autocomplete="off">
                     </div>
 
                     <div class="campo-dato">
                         <label for="vchamaterno">Apellido Materno:</label>
-                        <input type="text" id="vchamaterno" name="vchamaterno" placeholder="Apellido materno" autocomplete="off">
+                        <input type="text" id="vchamaterno" name="vchamaterno" placeholder="Apellido materno"
+                            autocomplete="off">
                     </div>
 
                     <div class="campo-dato">
                         <label for="vchtelefono">Teléfono: *</label>
-                        <input type="tel" id="vchtelefono" name="vchtelefono" placeholder="10 dígitos" maxlength="10" required autocomplete="off">
+                        <input type="tel" id="vchtelefono" name="vchtelefono" placeholder="10 dígitos" maxlength="10"
+                            required autocomplete="off">
                     </div>
 
                     <div class="campo-dato">
                         <label for="vchcorreo">Correo: *</label>
-                        <input type="email" id="vchcorreo" name="vchcorreo" placeholder="correo@ejemplo.com" required autocomplete="off">
+                        <input type="email" id="vchcorreo" name="vchcorreo" placeholder="correo@ejemplo.com" required
+                            autocomplete="off">
                     </div>
 
                     <div class="campo-dato">
@@ -69,12 +77,24 @@
 
                     <div class="campo-dato">
                         <label for="vchpassword">Contraseña: *</label>
-                        <input type="password" id="vchpassword" name="vchpassword" placeholder="Mínimo 8 caracteres" minlength="8" required autocomplete="new-password">
+                        <div class="input-password-container">
+                            <input type="password" id="vchpassword" ...>
+                            <button type="button" class="toggle-password-btn"
+                                onclick="togglePassword('vchpassword', 'eyeIcon1')">
+                                <img src="../images/iconos/ojo.png" alt="Mostrar" id="eyeIcon1">
+                            </button>
+                        </div>
                     </div>
 
                     <div class="campo-dato">
                         <label for="confirmar-password">Confirmar Contraseña: *</label>
-                        <input type="password" id="confirmar-password" placeholder="Repetir contraseña" minlength="8" required autocomplete="new-password">
+                        <div class="input-password-container">
+                            <input type="password" id="confirmar-password" ...>
+                            <button type="button" class="toggle-password-btn"
+                                onclick="togglePassword('confirmar-password', 'eyeIcon2')">
+                                <img src="../images/iconos/ojo.png" alt="Mostrar" id="eyeIcon2">
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -87,8 +107,8 @@
     </main>
 
     <!-- SCRIPTS -->
-    <script src="../JS/config.js"></script>
     <script src="../JS/utils.js"></script>
+    <script src="../JS/config.js"></script>
     <script src="../JS/header.js"></script>
     <script src="../JS/footer.js"></script>
     <script src="../JS/session_handler.js"></script>
