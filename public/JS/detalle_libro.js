@@ -43,8 +43,11 @@ async function cargarDetalleLibro() {
         return;
     }
 
-    try {
-       const response = await fetch(`/api/libros/detalle?folio=${encodeURIComponent(folio)}`);
+   try {
+    const response = await fetch(`http://localhost:4000/api/libros/detalle?folio=${encodeURIComponent(folio)}`, {
+    credentials: 'include'
+});
+
 
         if (!response.ok) throw new Error('Libro no encontrado');
 
