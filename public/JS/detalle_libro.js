@@ -1,5 +1,4 @@
-// detalle_libro.js - Mostrar detalle del libro con navegación inteligente
-// Página PÚBLICA — sin cambios de autenticación
+// detalle_libro.js - Mostrar detalle del libro
 document.addEventListener('DOMContentLoaded', function() {
     crearBotonRegreso();
     cargarDetalleLibro();
@@ -45,9 +44,7 @@ async function cargarDetalleLibro() {
     }
 
     try {
-        // ✅ Endpoint público — fetch normal sin credentials
-        // ✅ Se quitó 'Content-Type' en GET (innecesario y puede causar CORS)
-        const response = await fetch(`/api/libros/detalle?folio=${encodeURIComponent(folio)}`);
+       const response = await fetch(`/api/libros/detalle?folio=${encodeURIComponent(folio)}`);
 
         if (!response.ok) throw new Error('Libro no encontrado');
 
