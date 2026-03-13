@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 function ocultarMensajeExito() {
     document.getElementById('mensaje-exito').style.display = 'none';
     document.getElementById('formulario-registro').style.display = 'block';
+    document.querySelector('.contenedor-perfil').style.minHeight = 'auto';
     document.getElementById('formulario-registro').reset();
 }
 
