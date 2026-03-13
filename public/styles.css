@@ -2904,6 +2904,15 @@ footer {
     transform: scale(1.01);
 }
 
+.correo-texto {
+    margin-right: 10px;
+}
+.telefono-texto {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+
 /* ============================================
    BADGES DE USUARIOS
    ============================================*/
