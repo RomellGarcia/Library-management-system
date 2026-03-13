@@ -1,7 +1,4 @@
-// utils.js - Funciones globales reutilizables
-
-// utils.js - Utilidades globales
-
+// utils.js - Funciones globales
 // ─────────────────────────────────────────
 // FETCH CON TOKEN
 // ─────────────────────────────────────────
@@ -42,15 +39,21 @@ function escapeHtml(text) {
 
 // Mostrar/ocultar contraseña
 function togglePassword(inputId, iconId) {
-    // Si no se pasan argumentos (como en tu login viejo), usa los por defecto
-    const input = document.getElementById(inputId || 'contrasenaLogin');
-    const icon = document.getElementById(iconId || 'eyeIcon');
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
 
-    if (input.type === "password") {
-        input.type = "text";
-        icon.src = "../images/iconos/invisible.png";
+    // Verificamos que ambos existan para evitar errores de null
+    if (input && icon) {
+        if (input.type === "password") {
+            input.type = "text";
+            // Cambiamos el icono a "ocultar"
+            icon.src = "../images/iconos/invisible.png";
+        } else {
+            input.type = "password";
+            // Cambiamos el icono a "ver"
+            icon.src = "../images/iconos/ojo.png";
+        }
     } else {
-        input.type = "password";
-        icon.src = "../images/iconos/ojo.png";
+        console.error("Error: No se encontró el elemento con ID: " + inputId + " o " + iconId);
     }
 }
