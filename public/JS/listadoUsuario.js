@@ -97,6 +97,7 @@ function renderizarTabla(usuarios, roles) {
 
     usuarios.forEach(u => {
         // BUSCA EL NOMBRE DEL ROL BASADO EN EL ID
+        const fila = document.createElement('tr');
         const rolEncontrado = roles.find(r => r.intidrol == u.intidrol);
         const nombreTipo = rolEncontrado ? rolEncontrado.vchrol : 'Usuario';
         const tipoClase = nombreTipo.toLowerCase();
