@@ -38,3 +38,19 @@ function escapeHtml(text) {
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
     return String(text).replace(/[&<>"']/g, m => map[m]);
 }
+
+
+// Mostrar/ocultar contraseña
+function togglePassword(inputId, iconId) {
+    // Si no se pasan argumentos (como en tu login viejo), usa los por defecto
+    const input = document.getElementById(inputId || 'contrasenaLogin');
+    const icon = document.getElementById(iconId || 'eyeIcon');
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.src = "../images/iconos/invisible.png";
+    } else {
+        input.type = "password";
+        icon.src = "../images/iconos/ojo.png";
+    }
+}

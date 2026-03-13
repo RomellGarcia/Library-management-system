@@ -76,18 +76,3 @@ async function verificarSesionYRedirigir() {
         console.error('Error al verificar sesión:', error);
     }
 }
-
-// Mostrar/ocultar contraseña
-function togglePassword(inputId, iconId) {
-    // Si no se pasan argumentos (como en tu login viejo), usa los por defecto
-    const input = document.getElementById(inputId || 'contrasenaLogin');
-    const icon = document.getElementById(iconId || 'eyeIcon');
-
-    if (input.type === "password") {
-        input.type = "text";
-        icon.src = "../images/iconos/ojo-abierto.png"; // Cambia la ruta si tienes otro icono
-    } else {
-        input.type = "password";
-        icon.src = "../images/iconos/ojo.png";
-    }
-}

@@ -709,7 +709,6 @@ footer {
     padding-right: 45px;
 }
 
-
 .toggle-password-btn {
     position: absolute;
     right: 10px;
@@ -727,12 +726,6 @@ footer {
 .toggle-password-btn:hover {
     opacity: 1;
     transform: scale(1.1);
-}
-
-.toggle-password-btn:focus {
-    outline: 2px solid #BC955B;
-    outline-offset: 2px;
-    border-radius: 4px;
 }
 
 .toggle-password-btn img {
