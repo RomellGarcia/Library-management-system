@@ -18,7 +18,7 @@ function fetchConToken(url, opciones = {}) {
 // JS/utils.js
 function obtenerRuta(path) {
     const isGitHub = window.location.hostname.includes('github.io');
-    const repoName = '/Api_Biblioteca_uthh';
+    const repoName = '/Library-management-system';
     
     // Limpiamos el path: quitamos "/" duplicados y espacios
     let cleanPath = path.trim();
