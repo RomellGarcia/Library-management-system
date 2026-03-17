@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     localStorage.setItem('usuario', JSON.stringify(data.usuario));
 
                     alert(`¡Bienvenido ${data.usuario.nombre}!`);
-                    window.location.href = data.redirect;
+                     window.location.href = obtenerRuta(data.redirect);
                 } else {
                     alert(data.message);
                     btnSubmit.disabled = false;
