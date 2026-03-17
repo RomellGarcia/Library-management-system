@@ -90,7 +90,7 @@ function renderizarTabla(usuarios, roles) {
             <td>${escapeHtml((u.vchcalle || '') + ', ' + (u.vchcolonia || ''))}</td>
             <td><span class="badge-tipo badge-${tipoClase}">${escapeHtml(nombreTipo)}</span></td>
             <td class="acciones">
-                <a href="/HTML/editar_usuario.html?matricula=${u.intmatricula}&tabla=${u.tabla_origen}" class="btn-accion btn-editar">Editar</a>
+               <a href="${obtenerRuta('/HTML/editar_usuario.html?matricula=' + u.intmatricula + '&tabla=' + u.tabla_origen)}" class="btn-accion btn-editar">Editar</a>
                 <button class="btn-accion btn-eliminar"
                         data-matricula="${u.intmatricula}"
                         data-tabla="${escapeHtml(u.tabla_origen || '')}"

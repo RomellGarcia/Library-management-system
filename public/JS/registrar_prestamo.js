@@ -323,7 +323,6 @@ async function registrarPrestamo(e) {
     btnSubmit.innerHTML = '<span>⏳</span> Registrando...';
 
     try {
-        // ✅ fetchConToken
         const response = await fetchConToken('/api/prestamos/registrar', {
             method: 'POST',
             body: JSON.stringify(datos)
@@ -333,7 +332,7 @@ async function registrarPrestamo(e) {
 
         if (data.success) {
             mostrarAlerta(`✓ Préstamo registrado exitosamente\n\nTicket: ${data.ticket}`, 'success');
-            setTimeout(() => window.location.href = '/HTML/gestion_prestamos.html', 2000);
+            setTimeout(() => window.location.href = obtenerRuta('/HTML/gestion_prestamos.html'), 2000);
         } else {
             mostrarAlerta('Error: ' + data.mensaje, 'error');
             btnSubmit.disabled = false;

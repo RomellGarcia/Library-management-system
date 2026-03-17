@@ -108,7 +108,7 @@ function actualizarMenu(usuario) {
     }
 
     menuContainer.innerHTML = menuItems.map(item =>
-        `<a href="${item.href}">${item.texto}</a>`
+        `<a href="${obtenerRuta(item.href)}">${item.texto}</a>`
     ).join('');
 }
 
@@ -125,7 +125,7 @@ async function cerrarSesion() {
             credentials: 'include'
         });
         const data = await response.json();
-        window.location.href = data.redirect || '/HTML/iniciar_sesion.html';
+         window.location.href = obtenerRuta(data.redirect || '/HTML/iniciar_sesion.html');
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
         // Aunque falle el servidor, redirigir igual (el localStorage ya está limpio)
