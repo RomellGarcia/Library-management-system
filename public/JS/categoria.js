@@ -2,11 +2,10 @@
 // Página PÚBLICA — sin cambios respecto al original
 let librosOriginales = [];
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     cargarCategoria();
     configurarBuscador();
 });
-
 async function cargarCategoria() {
     const urlParams = new URLSearchParams(window.location.search);
     const categoriaId = urlParams.get('id');
@@ -17,13 +16,16 @@ async function cargarCategoria() {
     }
 
     try {
-        const response = await fetch(`${window.location.origin}/api/libros/categoria/${categoriaId}`);
-        
+        // CAMBIA ESTA LÍNEA:
+        // Usa CONFIG.BASE_URL en lugar de window.location.origin
+        const response = await fetch(`${CONFIG.BASE_URL}/api/libros/categoria/${categoriaId}`);
+
         if (!response.ok) {
             throw new Error('Categoría no encontrada');
         }
 
         const data = await response.json();
+        // ... el resto sigue igual
 
         if (data.success) {
             mostrarCategoria(data.data);
@@ -103,8 +105,8 @@ function crearTarjetaLibro(libro) {
     const card = document.createElement('a');
     const urlParams = new URLSearchParams(window.location.search);
     const categoriaId = urlParams.get('id');
-    
-    card.href = `/HTML/detalle-libro.html?folio=${encodeURIComponent(libro.vchfolio)}&categoria=${categoriaId}`;
+
+    card.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}&categoria=${categoriaId}`;
     card.className = `libro-card ${claseEstado}`;
     card.dataset.titulo = libro.vchtitulo.toLowerCase();
     card.dataset.autor = libro.vchautor.toLowerCase();
@@ -118,7 +120,7 @@ function crearTarjetaLibro(libro) {
         img.src = libro.imagen;
         img.alt = libro.vchtitulo;
         img.className = 'libro-imagen';
-        img.onerror = function() {
+        img.onerror = function () {
             this.style.display = 'none';
             const placeholder = document.createElement('div');
             placeholder.className = 'libro-imagen-placeholder';
@@ -173,7 +175,7 @@ function crearTarjetaLibro(libro) {
     card.appendChild(infoDiv);
 
     if (claseEstado !== 'libro-inactivo') {
-        card.addEventListener('click', function(e) {
+        card.addEventListener('click', function (e) {
             document.getElementById('loadingOverlay').style.display = 'flex';
         });
     }
@@ -183,11 +185,11 @@ function crearTarjetaLibro(libro) {
 
 function configurarBuscador() {
     const searchBox = document.getElementById('buscarEnCategoria');
-    
+
     if (searchBox) {
-        searchBox.addEventListener('input', function(e) {
+        searchBox.addEventListener('input', function (e) {
             const termino = e.target.value.toLowerCase().trim();
-            
+
             if (termino === '') {
                 mostrarLibros(librosOriginales);
                 actualizarContador(librosOriginales.length);

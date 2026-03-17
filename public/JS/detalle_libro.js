@@ -14,10 +14,10 @@ function crearBotonRegreso() {
     let textoBoton = 'Volver';
     let urlDestino = '/HTML/index.html';
 
-    if (referer.includes('categoria.html')) {
+    if (referer.includes('libros_categoria.html')) {
         const categoriaId = urlParams.get('categoria') || '';
         textoBoton = 'Volver a la categoría';
-        urlDestino = `/HTML/categoria.html?id=${categoriaId}`;
+        urlDestino = `/HTML/libros_categoria.html?id=${categoriaId}`;
     } else if (referer.includes('catalogo.html')) {
         textoBoton = 'Volver al catálogo';
         urlDestino = '/HTML/catalogo.html';
@@ -33,7 +33,6 @@ function crearBotonRegreso() {
         </a>
     `;
 }
-
 async function cargarDetalleLibro() {
     const urlParams = new URLSearchParams(window.location.search);
     const folio = urlParams.get('folio');
@@ -43,11 +42,11 @@ async function cargarDetalleLibro() {
         return;
     }
 
-   try {
-    const response = await fetch(`http://localhost:4000/api/libros/detalle?folio=${encodeURIComponent(folio)}`, {
-    credentials: 'include'
-});
-
+    try {
+        // USAMOS CONFIG.BASE_URL en lugar de localhost
+        const response = await fetch(`${CONFIG.BASE_URL}/api/libros/detalle?folio=${encodeURIComponent(folio)}`, {
+            credentials: 'include'
+        });
 
         if (!response.ok) throw new Error('Libro no encontrado');
 
