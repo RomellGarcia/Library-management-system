@@ -12,18 +12,18 @@ function crearBotonRegreso() {
     const referer = document.referrer;
     
     let textoBoton = 'Volver';
-    let urlDestino = 'index.html';
+    let urlDestino = obtenerRuta('/HTML/index.html');
 
     if (referer.includes('libros_categoria.html')) {
         const categoriaId = urlParams.get('categoria') || '';
         textoBoton = 'Volver a la categoría';
-       urlDestino = `libros_categoria.html?id=${categoriaId}`;
+        urlDestino = obtenerRuta(`/HTML/libros_categoria.html?id=${categoriaId}`);
     } else if (referer.includes('catalogo.html')) {
         textoBoton = 'Volver al catálogo';
-       urlDestino = 'catalogo.html';
+        urlDestino = obtenerRuta('/HTML/catalogo.html');
     } else {
         textoBoton = 'Volver al inicio';
-       urlDestino = 'index.html';
+        urlDestino = obtenerRuta('/HTML/index.html');
     }
 
     container.innerHTML = `

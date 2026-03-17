@@ -20,23 +20,16 @@ function obtenerRuta(path) {
     const isGitHub = window.location.hostname.includes('github.io');
     const repoName = '/Library-management-system';
     
-    // Limpiamos el path: quitamos "/" duplicados y espacios
     let cleanPath = path.trim();
     if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
 
     if (isGitHub) {
-        // Si ya incluye el nombre del repo (por error o re-ejecución), no lo dupliques
         if (cleanPath.startsWith(repoName)) return cleanPath;
-        
-        // IMPORTANTE: Si tus archivos están dentro de "public" en el repo:
-        // return repoName + '/public' + cleanPath; 
-        
-        return repoName + cleanPath;
+        return repoName + '/public' + cleanPath;
     }
     
     return cleanPath;
 }
-
 
 // ─────────────────────────────────────────
 // OBTENER USUARIO DEL LOCALSTORAGE
