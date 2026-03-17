@@ -79,7 +79,7 @@ function crearTarjetaLibro(libro) {
     }
 
     const card = document.createElement('a');
-    card.href = `../HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+    card.href = obtenerRuta(`/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`);
     card.className = `libro-card ${claseEstado}`;
     card.dataset.folio = libro.vchfolio;
 

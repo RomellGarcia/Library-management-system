@@ -106,7 +106,7 @@ function crearTarjetaLibro(libro) {
     const urlParams = new URLSearchParams(window.location.search);
     const categoriaId = urlParams.get('id');
 
-    card.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}&categoria=${categoriaId}`;
+    card.href = obtenerRuta(`/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}&categoria=${categoriaId}`);
     card.className = `libro-card ${claseEstado}`;
     card.dataset.titulo = libro.vchtitulo.toLowerCase();
     card.dataset.autor = libro.vchautor.toLowerCase();
@@ -222,7 +222,7 @@ function mostrarError(mensaje) {
             <div class="sin-libros-icono"></div>
             <h2>${escapeHtml(mensaje)}</h2>
             <p class="sin-libros-texto">La categoría que buscas no existe o ha sido eliminada.</p>
-            <button onclick="window.location.href='/HTML/index.html'" 
+           <button onclick="window.location.href=obtenerRuta('/HTML/index.html')"
                     style="margin-top: 20px; padding: 12px 24px; background: #BC955B; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem;">
                 Volver al Inicio
             </button>
