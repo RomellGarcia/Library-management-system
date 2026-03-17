@@ -1,6 +1,6 @@
 function obtenerRuta(path) {
     const isGitHub = window.location.hostname.includes('github.io');
-    const repoName = '/Api_Biblioteca_uthh';
+    const repoName = '/Library-management-system';
     const cleanPath = path.startsWith('/') ? path : '/' + path;
     return isGitHub ? (repoName + cleanPath) : cleanPath;
 }
