@@ -179,7 +179,7 @@ function mostrarError(mensaje) {
         <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
             <div style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;">⚠️</div>
             <h2 style="color: #666; margin-bottom: 20px;">${escapeHtml(mensaje)}</h2>
-            <button onclick="window.location.href='/HTML/index.html'" 
+            <button onclick="window.location.href=obtenerRuta('/HTML/index.html')"
                     style="padding: 12px 24px; background: #BC955B; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem;">
                 Volver al Inicio
             </button>
