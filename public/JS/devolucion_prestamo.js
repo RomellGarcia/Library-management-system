@@ -3,7 +3,7 @@
 let prestamoActual = null;
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // ✅ Proteger página: solo admin (1) y empleado (2)
+    // Proteger página: solo admin (1) y empleado (2)
     const usuario = await protegerPagina([1, 2]);
     if (!usuario) return;
 
@@ -12,17 +12,16 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     if (!ticketParam) {
         alert('No se proporcionó un ticket de préstamo. Por favor accede desde la lista de préstamos.');
-        window.location.href = '/HTML/gestion_prestamos.html';
+        window.location.href = obtenerRuta('/HTML/gestion_prestamos.html');
         return;
     }
 
-    cargarEmpleadoActual(); // ✅ Lee desde localStorage
+    cargarEmpleadoActual();
     cargarPrestamo(ticketParam);
     establecerFechaActual();
     configurarEventos();
 });
 
-// ✅ Cargar empleado desde localStorage (sin fetch al servidor)
 function cargarEmpleadoActual() {
     const usuario = obtenerUsuario();
     if (!usuario) return;
@@ -204,7 +203,7 @@ async function procesarDevolucion(e) {
                 mensaje += `\n\nSanción aplicada: $${data.data.monto_sancion}`;
             }
             alert(mensaje);
-            window.location.href = '/HTML/gestion_prestamos.html';
+            window.location.href = obtenerRuta('/HTML/gestion_prestamos.html');
         } else {
             alert('Error: ' + data.mensaje);
             btnSubmit.innerHTML = textoOriginal;

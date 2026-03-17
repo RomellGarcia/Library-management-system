@@ -22,7 +22,7 @@ async function cargarDatosUsuario() {
     const { matricula, tabla } = obtenerParams();
 
     if (!TABLAS_PERMITIDAS.includes(tabla) || !matricula) {
-        window.location.href = '/HTML/gestion_usuarios.html?error=parametros_invalidos';
+        window.location.href = obtenerRuta('/HTML/gestion_usuarios.html?error=parametros_invalidos');
         return;
     }
 
@@ -39,7 +39,7 @@ async function cargarDatosUsuario() {
         const dataRoles   = resRoles.ok ? await resRoles.json() : { data: [] };
 
         if (!dataUsuario.success) {
-            window.location.href = '/HTML/gestion_usuarios.html?error=no_encontrado';
+            window.location.href = obtenerRuta('/HTML/gestion_usuarios.html?error=no_encontrado');
             return;
         }
 
@@ -47,7 +47,7 @@ async function cargarDatosUsuario() {
 
     } catch (error) {
         console.error('Error al cargar usuario:', error);
-        window.location.href = '/HTML/gestion_usuarios.html?error=consulta';
+        window.location.href = obtenerRuta('/HTML/gestion_usuarios.html?error=consulta');
     }
 }
 
@@ -149,7 +149,7 @@ async function guardarCambios() {
         const data = await response.json();
 
         if (data.success) {
-            window.location.href = '/HTML/gestion_usuarios.html?success=1&mensaje=' +
+            window.location.href = obtenerRuta('/HTML/gestion_usuarios.html?success=1&mensaje=') +
                 encodeURIComponent('Usuario actualizado correctamente');
         } else {
             alert('Error: ' + (data.error || 'No se pudo guardar los cambios'));

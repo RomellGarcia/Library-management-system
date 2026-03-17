@@ -129,7 +129,7 @@ async function cerrarSesion() {
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
         // Aunque falle el servidor, redirigir igual (el localStorage ya está limpio)
-        window.location.href = '/HTML/iniciar_sesion.html';
+        window.location.href = obtenerRuta('/HTML/iniciar_sesion.html');
     }
 }
 

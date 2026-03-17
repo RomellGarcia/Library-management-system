@@ -52,11 +52,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Verificar si ya hay sesión activa y redirigir
 async function verificarSesionYRedirigir() {
-    // ✅ NUEVO: Primero revisar localStorage (más rápido)
     const token = localStorage.getItem('token');
     const usuario = localStorage.getItem('usuario');
     if (token && usuario) {
-        window.location.href = '/HTML/index.html';
+        window.location.href = obtenerRuta('/HTML/index.html');
         return;
     }
 
@@ -70,7 +69,7 @@ async function verificarSesionYRedirigir() {
         const data = await response.json();
 
         if (data.logged_in) {
-            window.location.href = '/HTML/index.html';
+            window.location.href = obtenerRuta('/HTML/index.html'); 
         }
     } catch (error) {
         console.error('Error al verificar sesión:', error);

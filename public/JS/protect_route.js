@@ -15,7 +15,7 @@ async function protegerPagina(rolesPermitidos = []) {
     // Verificar rol si se especificaron roles permitidos
     if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(parseInt(usuario.idrol))) {
         alert('No tienes permisos para acceder a esta página');
-        window.location.href = '/HTML/index.html';
+        window.location.href = obtenerRuta('/HTML/index.html');
         return false;
     }
 
@@ -33,20 +33,20 @@ async function verificarConServidor(rolesPermitidos = []) {
         const data = await response.json();
         
         if (!data.logged_in) {
-            window.location.href = '/HTML/iniciar_sesion.html';
+            window.location.href = obtenerRuta('/HTML/iniciar_sesion.html');
             return false;
         }
         
         if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(parseInt(data.usuario.idrol))) {
             alert('No tienes permisos para acceder a esta página');
-            window.location.href = '/HTML/index.html';
+            window.location.href = obtenerRuta('/HTML/index.html');
             return false;
         }
         
         return data.usuario;
     } catch (error) {
         console.error('Error al proteger página:', error);
-        window.location.href = '/HTML/iniciar_sesion.html';
+        window.location.href = obtenerRuta('/HTML/iniciar_sesion.html');
         return false;
     }
 }

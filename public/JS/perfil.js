@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Cargar datos del perfil
 async function cargarPerfil() {
     try {
-        // ✅ fetchConToken en lugar de fetch
         const response = await fetchConToken('/api/auth/perfil');
         const data = await response.json();
 
@@ -22,12 +21,12 @@ async function cargarPerfil() {
             mostrarDatosPerfil(data.usuario);
         } else {
             alert('Error al cargar perfil: ' + data.error);
-            window.location.href = '/HTML/index.html';
+            window.location.href = obtenerRuta('/HTML/index.html');
         }
     } catch (error) {
         console.error('Error:', error);
         alert('Error de conexión al cargar perfil');
-        window.location.href = '/HTML/index.html';
+        window.location.href = obtenerRuta('/HTML/index.html');
     }
 }
 

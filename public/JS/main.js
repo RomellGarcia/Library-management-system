@@ -28,7 +28,7 @@ async function cargarLibrosRecomendados() {
                 bookCard.style.cursor = 'pointer';
 
                 bookCard.onclick = function () {
-                    window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+                    window.location.href = obtenerRuta(`/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`);
                 };
 
                 const coverDiv = document.createElement('div');
@@ -143,7 +143,7 @@ async function cargarLibrosMasPedidos() {
                 bookCard.style.cursor = 'pointer';
 
                 bookCard.onclick = function () {
-                    window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+                    window.location.href = obtenerRuta(`/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`);
                 };
 
                 const coverDiv = document.createElement('div');
@@ -257,7 +257,7 @@ function configurarBusquedaTiempoReal() {
                         `;
 
                         resultItem.addEventListener('click', () => {
-                            window.location.href = `/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`;
+                            window.location.href = obtenerRuta(`/HTML/detalle_libro.html?folio=${encodeURIComponent(libro.vchfolio)}`);
                         });
 
                         searchResults.appendChild(resultItem);
