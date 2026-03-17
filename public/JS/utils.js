@@ -15,6 +15,25 @@ function fetchConToken(url, opciones = {}) {
     });
 }
 
+
+// JS/utils.js
+
+/**
+ * Ajusta las rutas dependiendo de si el entorno es Local o GitHub Pages
+ * @param {string} path - La ruta que empieza con /
+ * @returns {string} - La ruta corregida
+ */
+function obtenerRuta(path) {
+    const isGitHub = window.location.hostname.includes('github.io');
+    const repoName = '/Api_Biblioteca_uthh';
+    
+    // Estandarizar: asegurar que empiece con /
+    const cleanPath = path.startsWith('/') ? path : '/' + path;
+    
+    // Si es GitHub, concatenamos el nombre del repo
+    return isGitHub ? (repoName + cleanPath) : cleanPath;
+}
+
 // ─────────────────────────────────────────
 // OBTENER USUARIO DEL LOCALSTORAGE
 // ─────────────────────────────────────────
