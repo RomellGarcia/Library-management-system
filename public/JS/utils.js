@@ -15,25 +15,29 @@ function fetchConToken(url, opciones = {}) {
     });
 }
 
-
 // JS/utils.js
-
-/**
- * Ajusta las rutas dependiendo de si el entorno es Local o GitHub Pages
- * @param {string} path - La ruta que empieza con /
- * @returns {string} - La ruta corregida
- */
 function obtenerRuta(path) {
     const isGitHub = window.location.hostname.includes('github.io');
-    // ASEGÚRATE DE QUE ESTE NOMBRE SEA EL MISMO DE TU REPO
-    const repoName = '/Api_Biblioteca_uthh'; 
+    const repoName = '/Api_Biblioteca_uthh';
     
-    // Si la ruta ya incluye el repoName (para evitar duplicarlos), no lo agregamos
-    if (isGitHub && path.includes(repoName)) return path;
+    // Limpiamos el path: quitamos "/" duplicados y espacios
+    let cleanPath = path.trim();
+    if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
 
-    const cleanPath = path.startsWith('/') ? path : '/' + path;
-    return isGitHub ? (repoName + cleanPath) : cleanPath;
+    if (isGitHub) {
+        // Si ya incluye el nombre del repo (por error o re-ejecución), no lo dupliques
+        if (cleanPath.startsWith(repoName)) return cleanPath;
+        
+        // IMPORTANTE: Si tus archivos están dentro de "public" en el repo:
+        // return repoName + '/public' + cleanPath; 
+        
+        return repoName + cleanPath;
+    }
+    
+    return cleanPath;
 }
+
+
 // ─────────────────────────────────────────
 // OBTENER USUARIO DEL LOCALSTORAGE
 // ─────────────────────────────────────────
