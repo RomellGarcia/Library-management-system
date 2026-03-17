@@ -1,3 +1,10 @@
+function obtenerRuta(path) {
+    const isGitHub = window.location.hostname.includes('github.io');
+    const repoName = '/Api_Biblioteca_uthh';
+    const cleanPath = path.startsWith('/') ? path : '/' + path;
+    return isGitHub ? (repoName + cleanPath) : cleanPath;
+}
+
 async function cargarLibrosRecomendados() {
     try {
         const response = await fetch(CONFIG.BASE_URL + '/api/libros/recomendados/aleatorios');
@@ -63,11 +70,9 @@ async function cargarLibrosRecomendados() {
             `<p style="text-align: center; color: red;">Error: ${error.message}</p>`;
     }
 }
-
 async function cargarCategorias() {
     try {
         const response = await fetch(CONFIG.BASE_URL + '/api/libros/categorias');
-
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
@@ -76,29 +81,23 @@ async function cargarCategorias() {
             const container = document.getElementById('categoriasGrid');
             container.innerHTML = '';
 
-            if (data.data.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1 / -1;">No hay categorías disponibles</p>';
-                return;
-            }
-
             data.data.forEach(categoria => {
                 const categoryCard = document.createElement('article');
                 categoryCard.className = 'category-card';
                 categoryCard.style.cursor = 'pointer';
-
                 categoryCard.onclick = function () {
-                    window.location.href = obtenerRuta(`/HTML/libros_categoria.html?id=${categoria.intidcategoria}`);
+                    const destino = `/HTML/libros_categoria.html?id=${categoria.intidcategoria}`;
+                    window.location.href = obtenerRuta(destino);
                 };
 
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'category-icon';
 
                 const img = document.createElement('img');
-                if (categoria.icono) {
-                    img.src = categoria.icono; // Aquí va el Base64 directo
+                if (categoria.icono && categoria.icono.startsWith('data:image')) {
+                    img.src = categoria.icono; 
                 } else {
-                    // Si la categoría no tiene imagen en la BD
-                    img.src = 'ruta/a/tu/imagen_por_defecto.png';
+                    img.src = obtenerRuta('/images/categorias/Ciencias.png'); 
                 }
 
                 img.alt = categoria.vchcategoria;
@@ -107,9 +106,7 @@ async function cargarCategorias() {
                 img.style.objectFit = 'contain';
 
                 img.onerror = function () {
-                    console.warn(`No se pudo cargar la imagen para: ${categoria.vchcategoria}`);
-                    iconContainer.innerHTML = '';
-                    iconContainer.style.fontSize = '4rem';
+                    this.src = obtenerRuta('/images/categorias/Ciencias.png');
                 };
 
                 iconContainer.appendChild(img);
@@ -122,13 +119,9 @@ async function cargarCategorias() {
 
                 container.appendChild(categoryCard);
             });
-        } else {
-            console.error('Error al cargar categorías:', data.error);
         }
     } catch (error) {
-        console.error('Error de conexión:', error);
-        document.getElementById('categoriasGrid').innerHTML =
-            `<p style="text-align: center; color: red; grid-column: 1 / -1;">Error: ${error.message}</p>`;
+        console.error('Error:', error);
     }
 }
 
