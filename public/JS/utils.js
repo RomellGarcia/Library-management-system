@@ -25,15 +25,15 @@ function fetchConToken(url, opciones = {}) {
  */
 function obtenerRuta(path) {
     const isGitHub = window.location.hostname.includes('github.io');
-    const repoName = '/Api_Biblioteca_uthh';
+    // ASEGÚRATE DE QUE ESTE NOMBRE SEA EL MISMO DE TU REPO
+    const repoName = '/Api_Biblioteca_uthh'; 
     
-    // Estandarizar: asegurar que empiece con /
+    // Si la ruta ya incluye el repoName (para evitar duplicarlos), no lo agregamos
+    if (isGitHub && path.includes(repoName)) return path;
+
     const cleanPath = path.startsWith('/') ? path : '/' + path;
-    
-    // Si es GitHub, concatenamos el nombre del repo
     return isGitHub ? (repoName + cleanPath) : cleanPath;
 }
-
 // ─────────────────────────────────────────
 // OBTENER USUARIO DEL LOCALSTORAGE
 // ─────────────────────────────────────────
