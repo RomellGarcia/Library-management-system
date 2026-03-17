@@ -94,7 +94,13 @@ async function cargarCategorias() {
                 iconContainer.className = 'category-icon';
 
                 const img = document.createElement('img');
-                img.src = obtenerRuta('/' + categoria.icono);
+                if (categoria.icono) {
+                    img.src = categoria.icono; // Aquí va el Base64 directo
+                } else {
+                    // Si la categoría no tiene imagen en la BD
+                    img.src = 'ruta/a/tu/imagen_por_defecto.png';
+                }
+
                 img.alt = categoria.vchcategoria;
                 img.style.width = '80px';
                 img.style.height = '80px';
