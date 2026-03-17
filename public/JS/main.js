@@ -1,6 +1,13 @@
+// JS/main.js
+
+/**
+ * Función centralizada para manejar rutas.
+ * Resuelve el problema de la subcarpeta en GitHub Pages sin romper el Localhost.
+ */
 function obtenerRuta(path) {
     const isGitHub = window.location.hostname.includes('github.io');
     // Si estamos en GitHub, añadimos el nombre del repositorio al inicio.
+    // Importante: Asegúrate de que el path que pases empiece con /
     return isGitHub ? `/Api_Biblioteca_uthh${path}` : path;
 }
 
@@ -70,6 +77,7 @@ async function cargarLibrosRecomendados() {
             `<p style="text-align: center; color: red;">Error: ${error.message}</p>`;
     }
 }
+
 async function cargarCategorias() {
     try {
         const response = await fetch(CONFIG.BASE_URL + '/api/libros/categorias');
