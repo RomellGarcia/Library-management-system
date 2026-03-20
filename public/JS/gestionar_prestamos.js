@@ -205,13 +205,14 @@ function crearFilaPrestamo(prestamo) {
     divAcciones.className = 'acciones-btn';
 
     if (prestamo.booldevuelto == 1) {
+        // ── Botón Ver Info ──────────────────────────────────────────────────
         const btnInfo = document.createElement('button');
         btnInfo.type = 'button';
         btnInfo.className = 'btn-accion btn-info';
         btnInfo.innerHTML = '📋 Ver Info';
         btnInfo.onclick = () => verInfoDevolucion(prestamo);
         divAcciones.appendChild(btnInfo);
-
+ 
         if (prestamo.flmontosancion > 0 && prestamo.boolsancion == 0) {
             const btnSancion = document.createElement('button');
             btnSancion.type = 'button';
@@ -227,13 +228,31 @@ function crearFilaPrestamo(prestamo) {
             divAcciones.appendChild(spanPagada);
         }
     } else {
+        // ── Botón Devolución ────────────────────────────────────────────────
         const linkDevolucion = document.createElement('a');
         linkDevolucion.href = `/HTML/devolucion_prestamo.html?ticket=${encodeURIComponent(prestamo.vchticket)}`;
         linkDevolucion.className = 'btn-accion btn-devolver';
         linkDevolucion.innerHTML = 'Devolución';
         divAcciones.appendChild(linkDevolucion);
     }
-
+ 
+    // ── Botón Descargar Ticket (aparece en todos los préstamos) ────────────
+    const btnPDF = document.createElement('button');
+    btnPDF.type = 'button';
+    btnPDF.className = 'btn-accion btn-pdf';
+    btnPDF.innerHTML = '📄 Descargar Ticket';
+    btnPDF.onclick = () => generarComprobantePDF({
+        ticket:          prestamo.vchticket,
+        nombreAlumno:    prestamo.nombre_usuario,
+        matricula:       String(prestamo.intmatricula_usuario),
+        nombreLibro:     prestamo.titulo_libro,
+        autor:           prestamo.autor_libro,
+        fechaPrestamo:   prestamo.fecha_prestamo,
+        fechaDevolucion: prestamo.fecha_devolucion,
+        nombreEmpleado:  prestamo.nombre_recibio || 'No registrado'
+    });
+    divAcciones.appendChild(btnPDF);
+ 
     tdAcciones.appendChild(divAcciones);
     tr.append(tdTicket, tdUsuario, tdLibro, tdFechaPrestamo, tdFechaDevolucion, tdDias, tdEstado, tdAcciones);
     return tr;
@@ -308,23 +327,6 @@ function verInfoDevolucion(prestamo) {
 
     document.getElementById('modal-info').style.display = 'flex';
 }
-
-// ── Botón Descargar Ticket (va en ambos bloques: devuelto y no devuelto) ──
-const btnPDF = document.createElement('button');
-btnPDF.type = 'button';
-btnPDF.className = 'btn-accion btn-pdf';
-btnPDF.innerHTML = 'Descargar Ticket';
-btnPDF.onclick = () => generarComprobantePDF({
-    ticket:          prestamo.vchticket,
-    nombreAlumno:    prestamo.nombre_usuario,
-    matricula:       prestamo.intmatricula_usuario,
-    nombreLibro:     prestamo.titulo_libro,
-    autor:           prestamo.autor_libro,
-    fechaPrestamo:   prestamo.fecha_prestamo,
-    fechaDevolucion: prestamo.fecha_devolucion,
-    nombreEmpleado:  prestamo.nombre_recibio || 'No registrado'
-});
-divAcciones.appendChild(btnPDF);
 
 function cerrarModal() {
     document.getElementById('modal-info').style.display = 'none';
