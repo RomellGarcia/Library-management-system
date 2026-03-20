@@ -1,3 +1,5 @@
+// gestionar_prestamos.js - Gestión de préstamos de la biblioteca
+
 let prestamosOriginales = [];
 let estadisticasActuales = {};
 
@@ -33,7 +35,7 @@ async function cargarPrestamos(filtro = 'todos', busqueda = '') {
         const response = await fetchConToken(url);
 
         if (!response.ok) {
-            throw new Error('Error al cargar préstamos');
+            throw new Error('Error al cargar préstamos');  // ← quita el bloque del 401
         }
 
         const data = await response.json();
@@ -203,7 +205,6 @@ function crearFilaPrestamo(prestamo) {
     divAcciones.className = 'acciones-btn';
 
     if (prestamo.booldevuelto == 1) {
-        // ── Botón Ver Info ──────────────────────────────────────────────────
         const btnInfo = document.createElement('button');
         btnInfo.type = 'button';
         btnInfo.className = 'btn-accion btn-info';
@@ -226,30 +227,12 @@ function crearFilaPrestamo(prestamo) {
             divAcciones.appendChild(spanPagada);
         }
     } else {
-        // ── Botón Devolución ────────────────────────────────────────────────
         const linkDevolucion = document.createElement('a');
         linkDevolucion.href = `/HTML/devolucion_prestamo.html?ticket=${encodeURIComponent(prestamo.vchticket)}`;
         linkDevolucion.className = 'btn-accion btn-devolver';
         linkDevolucion.innerHTML = 'Devolución';
         divAcciones.appendChild(linkDevolucion);
     }
-
-    // ── Botón Descargar Ticket (aparece en todos los préstamos) ────────────
-    const btnPDF = document.createElement('button');
-    btnPDF.type = 'button';
-    btnPDF.className = 'btn-accion btn-pdf';
-    btnPDF.innerHTML = '📄 Descargar Ticket';
-    btnPDF.onclick = () => generarComprobantePDF({
-        ticket:          prestamo.vchticket,
-        nombreAlumno:    prestamo.nombre_usuario,
-        matricula:       String(prestamo.intmatricula_usuario),
-        nombreLibro:     prestamo.titulo_libro,
-        autor:           prestamo.autor_libro,
-        fechaPrestamo:   prestamo.fecha_prestamo,
-        fechaDevolucion: prestamo.fecha_devolucion,
-        nombreEmpleado:  prestamo.nombre_recibio || 'No registrado'
-    });
-    divAcciones.appendChild(btnPDF);
 
     tdAcciones.appendChild(divAcciones);
     tr.append(tdTicket, tdUsuario, tdLibro, tdFechaPrestamo, tdFechaDevolucion, tdDias, tdEstado, tdAcciones);
@@ -326,6 +309,23 @@ function verInfoDevolucion(prestamo) {
     document.getElementById('modal-info').style.display = 'flex';
 }
 
+// ── Botón Descargar Ticket (va en ambos bloques: devuelto y no devuelto) ──
+const btnPDF = document.createElement('button');
+btnPDF.type = 'button';
+btnPDF.className = 'btn-accion btn-pdf';
+btnPDF.innerHTML = 'Descargar Ticket';
+btnPDF.onclick = () => generarComprobantePDF({
+    ticket:          prestamo.vchticket,
+    nombreAlumno:    prestamo.nombre_usuario,
+    matricula:       prestamo.intmatricula_usuario,
+    nombreLibro:     prestamo.titulo_libro,
+    autor:           prestamo.autor_libro,
+    fechaPrestamo:   prestamo.fecha_prestamo,
+    fechaDevolucion: prestamo.fecha_devolucion,
+    nombreEmpleado:  prestamo.nombre_recibio || 'No registrado'
+});
+divAcciones.appendChild(btnPDF);
+
 function cerrarModal() {
     document.getElementById('modal-info').style.display = 'none';
 }
@@ -339,6 +339,7 @@ async function marcarSancionCumplida(idDevolucion) {
     if (!confirm('¿Confirmar que la sanción ha sido pagada?')) return;
 
     try {
+        // fetchConToken en lugar de fetch
         const response = await fetchConToken('/api/prestamos/sancion', {
             method: 'POST',
             body: JSON.stringify({ intiddevolucion: idDevolucion })
