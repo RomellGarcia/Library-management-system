@@ -6,8 +6,6 @@ const EMAILJS_CONFIG = {
     DOMINIO_PERMITIDO: '@uthh.edu.mx'
 };
 
-// Inicializar EmailJS
-emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
 
 // Referencias al DOM
 let messageTextarea;
@@ -16,7 +14,9 @@ let formMessage;
 let notification;
 let contactForm;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Inicializar EmailJS
+    emailjs.init({ publicKey: EMAILJS_CONFIG.PUBLIC_KEY });
     messageTextarea = document.getElementById('message');
     charCount = document.querySelector('.uthh-char-count');
     formMessage = document.getElementById('formMessage');
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     contactForm = document.getElementById('contactForm');
 
     if (messageTextarea && charCount) {
-        messageTextarea.addEventListener('input', function() {
+        messageTextarea.addEventListener('input', function () {
             charCount.textContent = `${this.value.length}/500`;
         });
     }
@@ -51,8 +51,8 @@ function validarCorreoInstitucional(email) {
 async function manejarEnvioFormulario(e) {
     e.preventDefault();
 
-    const nombre  = document.getElementById('name').value.trim();
-    const email   = document.getElementById('email').value.trim();
+    const nombre = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
     const mensaje = document.getElementById('message').value.trim();
 
     if (!nombre || !email || !mensaje) {
@@ -82,10 +82,11 @@ async function manejarEnvioFormulario(e) {
     };
 
     try {
-        const response = await emailjs.send(
+        await emailjs.send(
             EMAILJS_CONFIG.SERVICE_ID,
             EMAILJS_CONFIG.TEMPLATE_ID,
-            templateParams
+            templateParams,
+            { publicKey: EMAILJS_CONFIG.PUBLIC_KEY }
         );
 
         mostrarNotificacion('¡Mensaje enviado correctamente a la biblioteca!', 'success');
@@ -99,7 +100,7 @@ async function manejarEnvioFormulario(e) {
         console.error('Error al enviar email:', error);
         mostrarNotificacion('Error al enviar. Verifica tu conexión.', 'error');
         formMessage.style.color = '#dc3545';
-        formMessage.innerHTML = '✗ Error al enviar';
+        formMessage.innerHTML = 'Error al enviar';
 
     } finally {
         submitBtn.disabled = false;

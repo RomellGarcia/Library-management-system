@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Ejemplares - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .form-section,
+        .list-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 28px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, .12);
+            margin-bottom: 24px;
+        }
+
+        .form-section h3,
+        .list-section h3 {
+            color: #A02142;
+            font-size: 18px;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .form-ejemplar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media(max-width:600px) {
+            .form-ejemplar {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-ejemplar label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .form-ejemplar input,
+        .form-ejemplar select {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1.5px solid #ccc;
+            border-radius: 7px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color .2s;
+        }
+
+        .form-ejemplar input:focus,
+        .form-ejemplar select:focus {
+            outline: none;
+            border-color: #BC955B;
+        }
+
+        .campo-full {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .campo-full input[type=checkbox] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .btn-submit {
+            background: #A02142;
+            color: #fff;
+            padding: 11px 26px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .btn-submit:hover {
+            background: #8a1c38;
+        }
+
+        .secondary-button {
+            display: inline-block;
+            background: #718096;
+            color: #fff;
+            padding: 11px 22px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .secondary-button:hover {
+            background: #4a5568;
+        }
+
+        .botones-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            grid-column: 1/-1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #A02142, #A02142);
+            color: #fff;
+        }
+
+        th,
+        td {
+            padding: 11px 13px;
+            border-bottom: 1px solid #ecf0f1;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .edit-btn {
+            background: #3498db;
+            color: #fff;
+            padding: 5px 11px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .edit-btn:hover {
+            background: #2980b9;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: #fff;
+            padding: 5px 11px;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .badge-disponible {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-no-disponible {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        #msgResultado {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+            display: none;
+            grid-column: 1/-1;
+        }
+
+        #msgResultado.ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        #msgResultado.err {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .titulo-libro-info {
+            background: linear-gradient(135deg, #f7f0e6, #fdf6ec);
+            border-left: 4px solid #BC955B;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .titulo-libro-info h2 {
+            color: #A02142;
+            font-size: 20px;
+            margin: 0 0 4px;
+        }
+
+        .titulo-libro-info p {
+            color: #718096;
+            font-size: 14px;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body class="pagina-sesion">
+
+    <script src="../JS/config.js"></script>
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/header.js"></script>
+
+    <main class="contenedor-perfil" style="padding: 30px 20px;">
+        <a id="btnVolverLibros" href="#" class="boton-volver-detalle">
+            <span>←</span>
+            <span>Volver a Libros</span>
+        </a>
+        <script>document.getElementById('btnVolverLibros').href = obtenerRuta('/HTML/listado_libros.html');</script>
+
+        <!-- Info del libro padre -->
+        <div class="titulo-libro-info">
+            <h2 id="tituloLibro">Cargando...</h2>
+            <p id="folioLibro"></p>
+        </div>
+
+        <!-- Formulario añadir / editar ejemplar -->
+        <div class="form-section">
+            <h3 id="tituloFormEjemplar">Añadir Nuevo Ejemplar</h3>
+            <form id="formEjemplar" novalidate>
+                <input type="hidden" id="vchfolio" name="vchfolio">
+                <input type="hidden" id="intidejemplar" name="intidejemplar">
+
+                <div class="form-ejemplar">
+                    <!-- Código de Barras -->
+                    <div>
+                        <label for="vchcodigobarras">Código de Barras <span style="color:#e53e3e">*</span></label>
+                        <input type="text" id="vchcodigobarras" name="vchcodigobarras" maxlength="50" required>
+                    </div>
+                    <!-- Edición -->
+                    <div>
+                        <label for="vchedicion">Edición <span style="color:#e53e3e">*</span></label>
+                        <input type="text" id="vchedicion" name="vchedicion" maxlength="50" required>
+                    </div>
+                    <!-- Estado -->
+                    <div>
+                        <label for="intidestado">Estado <span style="color:#e53e3e">*</span></label>
+                        <select id="intidestado" name="intidestado" required>
+                            <option value="">-- Seleccione estado --</option>
+                        </select>
+                    </div>
+                    <!-- Ubicación -->
+                    <div>
+                        <label for="intidubicacion">Ubicación <span style="color:#e53e3e">*</span></label>
+                        <select id="intidubicacion" name="intidubicacion" required>
+                            <option value="">-- Seleccione ubicación --</option>
+                        </select>
+                    </div>
+                    <!-- Disponible -->
+                    <div class="campo-full">
+                        <input type="checkbox" id="booldisponible" name="booldisponible" checked>
+                        <label for="booldisponible" style="margin:0; cursor:pointer;">¿Disponible?</label>
+                    </div>
+
+                    <div id="msgResultado"></div>
+
+                    <div class="botones-row">
+                        <button type="submit" class="btn-submit" id="btnGuardar">Añadir Ejemplar</button>
+                        <button type="button" class="secondary-button" id="btnCancelarEdicion" style="display:none;"
+                            onclick="cancelarEdicion()">Cancelar Edición</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de ejemplares -->
+        <div class="list-section">
+            <h3>Lista de Ejemplares</h3>
+            <div class="tabla-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cód. Barras</th>
+                            <th>Edición</th>
+                            <th>Estado</th>
+                            <th>Ubicación</th>
+                            <th>Disponible</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaEjemplares">
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:30px; color:#718096;">Cargando
+                                ejemplares...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/ejemplares.js"></script>
+    <script src="../JS/session_handler.js"></script>
+</body>
+
+</html>
