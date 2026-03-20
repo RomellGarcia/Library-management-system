@@ -4523,6 +4523,20 @@ footer {
     }
 }
 
+.btn-pdf {
+    background-color: #A02142;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-pdf:hover {
+    background-color: #BC955B;
+}
+
 /* ============================================
    VOLVER DEL QE
    ============================================ 

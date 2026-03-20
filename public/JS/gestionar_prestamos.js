@@ -309,6 +309,23 @@ function verInfoDevolucion(prestamo) {
     document.getElementById('modal-info').style.display = 'flex';
 }
 
+// ── Botón Descargar Ticket (va en ambos bloques: devuelto y no devuelto) ──
+const btnPDF = document.createElement('button');
+btnPDF.type = 'button';
+btnPDF.className = 'btn-accion btn-pdf';
+btnPDF.innerHTML = 'Descargar Ticket';
+btnPDF.onclick = () => generarComprobantePDF({
+    ticket:          prestamo.vchticket,
+    nombreAlumno:    prestamo.nombre_usuario,
+    matricula:       prestamo.intmatricula_usuario,
+    nombreLibro:     prestamo.titulo_libro,
+    autor:           prestamo.autor_libro,
+    fechaPrestamo:   prestamo.fecha_prestamo,
+    fechaDevolucion: prestamo.fecha_devolucion,
+    nombreEmpleado:  prestamo.nombre_recibio || 'No registrado'
+});
+divAcciones.appendChild(btnPDF);
+
 function cerrarModal() {
     document.getElementById('modal-info').style.display = 'none';
 }
