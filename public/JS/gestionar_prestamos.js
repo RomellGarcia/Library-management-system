@@ -35,7 +35,7 @@ async function cargarPrestamos(filtro = 'todos', busqueda = '') {
         const response = await fetchConToken(url);
 
         if (!response.ok) {
-            throw new Error('Error al cargar préstamos');  // ← quita el bloque del 401
+            throw new Error('Error al cargar préstamos');
         }
 
         const data = await response.json();
@@ -212,7 +212,7 @@ function crearFilaPrestamo(prestamo) {
         btnInfo.innerHTML = '📋 Ver Info';
         btnInfo.onclick = () => verInfoDevolucion(prestamo);
         divAcciones.appendChild(btnInfo);
- 
+
         if (prestamo.flmontosancion > 0 && prestamo.boolsancion == 0) {
             const btnSancion = document.createElement('button');
             btnSancion.type = 'button';
@@ -235,7 +235,7 @@ function crearFilaPrestamo(prestamo) {
         linkDevolucion.innerHTML = 'Devolución';
         divAcciones.appendChild(linkDevolucion);
     }
- 
+
     // ── Botón Descargar Ticket (aparece en todos los préstamos) ────────────
     const btnPDF = document.createElement('button');
     btnPDF.type = 'button';
@@ -252,7 +252,7 @@ function crearFilaPrestamo(prestamo) {
         nombreEmpleado:  prestamo.nombre_recibio || 'No registrado'
     });
     divAcciones.appendChild(btnPDF);
- 
+
     tdAcciones.appendChild(divAcciones);
     tr.append(tdTicket, tdUsuario, tdLibro, tdFechaPrestamo, tdFechaDevolucion, tdDias, tdEstado, tdAcciones);
     return tr;
@@ -341,7 +341,6 @@ async function marcarSancionCumplida(idDevolucion) {
     if (!confirm('¿Confirmar que la sanción ha sido pagada?')) return;
 
     try {
-        // fetchConToken en lugar de fetch
         const response = await fetchConToken('/api/prestamos/sancion', {
             method: 'POST',
             body: JSON.stringify({ intiddevolucion: idDevolucion })
@@ -390,17 +389,7 @@ function mostrarError(mensaje) {
     `;
 }
 
-function formatearFecha(fecha) {
-    if (!fecha) return 'N/A';
-    const date = new Date(fecha);
-    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
-}
-
-function formatearFechaHora(fecha) {
-    if (!fecha) return 'N/A';
-    const date = new Date(fecha);
-    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
+// formatearFecha y formatearFechaHora vienen de utils.js
 
 window.verInfoDevolucion = verInfoDevolucion;
 window.cerrarModal = cerrarModal;
