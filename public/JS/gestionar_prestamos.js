@@ -389,7 +389,12 @@ function mostrarError(mensaje) {
     `;
 }
 
-// formatearFecha y formatearFechaHora vienen de utils.js
+// formatearFecha viene de utils.js
+function formatearFechaHora(fecha) {
+    if (!fecha) return 'N/A';
+    const date = new Date(fecha);
+    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
 
 window.verInfoDevolucion = verInfoDevolucion;
 window.cerrarModal = cerrarModal;
