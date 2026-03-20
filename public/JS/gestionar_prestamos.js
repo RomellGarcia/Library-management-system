@@ -4,7 +4,7 @@ let prestamosOriginales = [];
 let estadisticasActuales = {};
 
 document.addEventListener('DOMContentLoaded', async function () {
-    // ✅ Proteger página: solo admin (1) y empleado (2)
+    // Proteger página: solo admin (1) y empleado (2)
     const usuario = await protegerPagina([1, 2]);
     if (!usuario) return;
 
@@ -205,7 +205,7 @@ function crearFilaPrestamo(prestamo) {
     divAcciones.className = 'acciones-btn';
 
     if (prestamo.booldevuelto == 1) {
-        // ── Botón Ver Info ──────────────────────────────────────────────────
+        //Botón Ver Info 
         const btnInfo = document.createElement('button');
         btnInfo.type = 'button';
         btnInfo.className = 'btn-accion btn-info';
@@ -228,7 +228,7 @@ function crearFilaPrestamo(prestamo) {
             divAcciones.appendChild(spanPagada);
         }
     } else {
-        // ── Botón Devolución ────────────────────────────────────────────────
+        //Botón Devolución
         const linkDevolucion = document.createElement('a');
         linkDevolucion.href = `/HTML/devolucion_prestamo.html?ticket=${encodeURIComponent(prestamo.vchticket)}`;
         linkDevolucion.className = 'btn-accion btn-devolver';
@@ -236,7 +236,7 @@ function crearFilaPrestamo(prestamo) {
         divAcciones.appendChild(linkDevolucion);
     }
 
-    // ── Botón Descargar Ticket (aparece en todos los préstamos) ────────────
+    //Botón Descargar Ticket (aparece en todos los préstamos)
     const btnPDF = document.createElement('button');
     btnPDF.type = 'button';
     btnPDF.className = 'btn-accion btn-pdf';
