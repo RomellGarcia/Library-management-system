@@ -1,8 +1,3 @@
-// registrar_libro.js
-// Maneja el formulario de registro / edición de libros.
-// Modo edición: detecta ?folio= en la URL y precarga los datos.
-// Imagen: se envía como URL (Cloudinary ya la procesa en la API).
-
 document.addEventListener('DOMContentLoaded', async () => {
     const usuario = await protegerPagina([1, 2]);
     if (!usuario) return;
@@ -37,15 +32,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function cargarCategorias() {
     try {
-        const res  = await fetch(CONFIG.BASE_URL + '/api/libros/categorias');
+        const token = localStorage.getItem('token');
+        // Usamos la URL correcta según tu backend
+        const res = await fetch(`${CONFIG.BASE_URL}/api/libros/categorias`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        // Si la respuesta no es 200 OK, lanzamos error para ver qué pasó
+        if (!res.ok) {
+            const textoError = await res.text();
+            console.error("Respuesta del servidor no es JSON:", textoError);
+            return;
+        }
+
         const data = await res.json();
-        if (!data.success) return;
+        
+        // Ajustamos según la estructura que envíe tu API (data.data o data directamente)
+        const listaCategorias = data.data || data; 
 
         const select = document.getElementById('intidcategoria');
-        data.data.forEach(cat => {
+        select.innerHTML = '<option value="">-- Seleccione una categoría --</option>'; // Limpiar
+
+        listaCategorias.forEach(cat => {
             const opt = document.createElement('option');
-            opt.value       = cat.intidcategoria;
-            opt.textContent = cat.vchcategoria;
+            // Asegúrate de que estos nombres (intidcategoria, vchcategoria) sean los que manda tu API
+            opt.value = cat.intidcategoria;
+            opt.textContent = cat.vchcategoria || cat.vchnombre; 
             select.appendChild(opt);
         });
     } catch (e) {
