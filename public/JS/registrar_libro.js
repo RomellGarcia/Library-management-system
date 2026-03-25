@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cargarCategorias();
 
     const params = new URLSearchParams(window.location.search);
-    const folio  = params.get('folio');
+    const folio = params.get('folio');
 
     if (folio) {
         await modoEdicion(folio);
@@ -51,7 +51,7 @@ async function cargarCategorias() {
             opt.textContent = cat.vchcategoria || cat.vchnombre || 'Sin nombre';
             select.appendChild(opt);
         });
-        
+
         console.log("Categorías cargadas correctamente");
     } catch (e) {
         console.error('Error cargando categorías:', e);
@@ -60,10 +60,10 @@ async function cargarCategorias() {
 
 async function modoEdicion(folio) {
     document.getElementById('tituloFormulario').textContent = 'Editar Libro';
-    document.getElementById('btnGuardar').textContent       = 'Actualizar Libro';
+    document.getElementById('btnGuardar').textContent = 'Actualizar Libro';
 
     try {
-        const res  = await fetch(`${CONFIG.BASE_URL}/api/libros/detalle?folio=${encodeURIComponent(folio)}`);
+        const res = await fetch(`${CONFIG.BASE_URL}/api/libros/detalle?folio=${encodeURIComponent(folio)}`);
         const data = await res.json();
         if (!data.success || !data.data) throw new Error('Libro no encontrado');
 
@@ -71,13 +71,13 @@ async function modoEdicion(folio) {
 
         // Rellenar campos
         const camp = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
-        camp('vchfolio',       libro.vchfolio);
-        camp('vchtitulo',      libro.vchtitulo);
-        camp('vchautor',       libro.vchautor);
-        camp('vcheditorial',   libro.vcheditorial);
-        camp('intanio',        libro.intanio);
-        camp('vchisbn',        libro.vchisbn);
-        camp('vchsinopsis',    libro.vchsinopsis);
+        camp('vchfolio', libro.vchfolio);
+        camp('vchtitulo', libro.vchtitulo);
+        camp('vchautor', libro.vchautor);
+        camp('vcheditorial', libro.vcheditorial);
+        camp('intanio', libro.intanio);
+        camp('vchisbn', libro.vchisbn);
+        camp('vchsinopsis', libro.vchsinopsis);
         camp('intidcategoria', libro.intidcategoria);
 
         // Folio no editable
@@ -91,7 +91,7 @@ async function modoEdicion(folio) {
 
         // Imagen no obligatoria en edición
         document.getElementById('asteriscoImagen').style.display = 'none';
-        document.getElementById('ayudaImagen').style.display     = 'block';
+        document.getElementById('ayudaImagen').style.display = 'block';
         document.getElementById('imagen').removeAttribute('required');
 
     } catch (error) {
@@ -104,22 +104,42 @@ async function manejarEnvio(e) {
     e.preventDefault();
 
     const btn = document.getElementById('btnGuardar');
-    btn.disabled   = true;
+    btn.disabled = true;
     btn.textContent = 'Guardando...';
     ocultarMensaje();
 
-    const folio    = document.getElementById('vchfolio').value.trim();
+    const folio = document.getElementById('vchfolio').value.trim();
     const isEditar = document.getElementById('vchfolio').readOnly;
+    // ... dentro de manejarEnvio(e) ...
+    const titulo = document.getElementById('vchtitulo').value.trim();
+    const autor = document.getElementById('vchautor').value.trim();
+    const anio = document.getElementById('intanio').value;
+    const categoria = document.getElementById('intidcategoria').value;
+    
+    if (!titulo || !autor || !categoria) {
+        mostrarMensaje('El título, autor y categoría son obligatorios.', 'err');
+        btn.disabled = false;
+        btn.textContent = isEditar ? 'Actualizar Libro' : 'Añadir Libro';
+        return;
+    }
+
+    const añoActual = new Date().getFullYear();
+    if (anio && (isNaN(anio) || anio < 1000 || anio > añoActual)) {
+        mostrarMensaje(`Por favor ingresa un año válido (entre 1000 y ${añoActual}).`, 'err');
+        btn.disabled = false;
+        btn.textContent = isEditar ? 'Actualizar Libro' : 'Añadir Libro';
+        return;
+    }
 
     // Construir FormData para poder enviar archivo
     const formData = new FormData();
-    formData.append('vchfolio',       folio);
-    formData.append('vchtitulo',      document.getElementById('vchtitulo').value.trim());
-    formData.append('vchautor',       document.getElementById('vchautor').value.trim());
-    formData.append('vcheditorial',   document.getElementById('vcheditorial').value.trim());
-    formData.append('intanio',        document.getElementById('intanio').value);
-    formData.append('vchisbn',        document.getElementById('vchisbn').value.trim());
-    formData.append('vchsinopsis',    document.getElementById('vchsinopsis').value.trim());
+    formData.append('vchfolio', folio);
+    formData.append('vchtitulo', document.getElementById('vchtitulo').value.trim());
+    formData.append('vchautor', document.getElementById('vchautor').value.trim());
+    formData.append('vcheditorial', document.getElementById('vcheditorial').value.trim());
+    formData.append('intanio', document.getElementById('intanio').value);
+    formData.append('vchisbn', document.getElementById('vchisbn').value.trim());
+    formData.append('vchsinopsis', document.getElementById('vchsinopsis').value.trim());
     formData.append('intidcategoria', document.getElementById('intidcategoria').value);
 
     const archivoImagen = document.getElementById('imagen').files[0];
@@ -127,17 +147,17 @@ async function manejarEnvio(e) {
         formData.append('imagen', archivoImagen);
     } else if (!isEditar) {
         mostrarMensaje('Debes seleccionar una imagen para el libro.', 'err');
-        btn.disabled    = false;
+        btn.disabled = false;
         btn.textContent = 'Añadir Libro';
         return;
     }
 
     try {
-        const token  = localStorage.getItem('token');
+        const token = localStorage.getItem('token');
         const method = isEditar ? 'PUT' : 'POST';
         const url = isEditar
-    ? `${CONFIG.BASE_URL}/api/libros/actualizar/${encodeURIComponent(folio)}` 
-    : `${CONFIG.BASE_URL}/api/libros/registrar`;
+            ? `${CONFIG.BASE_URL}/api/libros/actualizar/${encodeURIComponent(folio)}`
+            : `${CONFIG.BASE_URL}/api/libros/registrar`;
 
         const res = await fetch(url, {
             method,
@@ -162,15 +182,15 @@ async function manejarEnvio(e) {
     } catch (error) {
         console.error('Error:', error);
         mostrarMensaje('Error al guardar: ' + error.message, 'err');
-        btn.disabled    = false;
+        btn.disabled = false;
         btn.textContent = isEditar ? 'Actualizar Libro' : 'Añadir Libro';
     }
 }
 
 function mostrarMensaje(texto, tipo) {
     const el = document.getElementById('msgResultado');
-    el.textContent  = texto;
-    el.className    = tipo;
+    el.textContent = texto;
+    el.className = tipo;
     el.style.display = 'block';
 }
 
