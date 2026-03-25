@@ -1,6 +1,7 @@
+// mis_prestamos.js
+
 const formatearFecha = (fechaStr) => {
     if (!fechaStr) return '---';
-    // Intentamos manejar ambos formatos: 'fecha_prestamo' o 'fechaprestamo'
     const fecha = new Date(fechaStr);
     if (isNaN(fecha.getTime())) return '---';
     return fecha.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -17,7 +18,6 @@ const calcularDiasRestantes = (fechaDevolucion) => {
 
 const obtenerEstado = (prestamo) => {
     if (prestamo.booldevuelto == 1) return 'devuelto';
-    // Verificamos el nombre del campo que venga de la BD
     const fechaFin = prestamo.fecha_devolucion || prestamo.fechadevolucion;
     const dias = calcularDiasRestantes(fechaFin);
     if (dias < 0) return 'vencido';
@@ -33,15 +33,43 @@ const etiquetaEstado = (estado) => {
     return etiquetas[estado] ?? 'Activo';
 };
 
-// Función para el botón de pagar (puedes vincularla a una pasarela o aviso)
+// --- ESTA ES LA FUNCIÓN QUE FALTABA ---
+const obtenerPrestamos = async (matricula) => {
+    const API_URL = "https://api-biblioteca-uthh.vercel.app"; 
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        throw new Error("No hay token de sesión disponible.");
+    }
+
+    const respuesta = await fetch(`${API_URL}/api/prestamos/misprestamos/${matricula}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+    });
+
+    if (respuesta.status === 403) {
+        throw new Error("No tienes permiso para ver estos préstamos.");
+    }
+
+    if (!respuesta.ok) {
+        throw new Error(`Error API: ${respuesta.status}`);
+    }
+
+    return await respuesta.json();
+};
+
+// Función para el botón de pagar
 window.pagarSancionAlm = (ticket, monto) => {
     alert(`Redirigiendo al pago del ticket ${ticket} por un monto de $${monto}.`);
-    // Aquí podrías abrir un modal o redireccionar a Stripe/PayPal
+    // Aquí puedes integrar tu lógica de pago real más adelante
 };
 
 const renderPrestamo = (prestamo) => {
     const estado = obtenerEstado(prestamo);
-    // Ajuste de nombres de campos según tu modelo de BD
     const fPrestamo = prestamo.fecha_prestamo || prestamo.fechaprestamo;
     const fDevolucion = prestamo.fecha_devolucion || prestamo.fechadevolucion;
     const fReal = prestamo.fechareal_devolucion || prestamo.fechareal;
@@ -57,17 +85,17 @@ const renderPrestamo = (prestamo) => {
         infoDias = `<span class="dias-restantes ${clase}">${texto}</span>`;
     }
 
-    // Lógica para el botón de sanción
-    // Se muestra si tiene monto de sanción y boolsancion es 0 (no pagado)
     const monto = parseFloat(prestamo.flmontosancion || 0);
     const pagado = parseInt(prestamo.boolsancion || 0);
     let btnSancion = "";
     
     if (monto > 0 && pagado === 0) {
         btnSancion = `
-            <div class="sancion-container">
-                <span class="monto-deuda">Deuda: $${monto.toFixed(2)}</span>
-                <button class="btn-pagar" onclick="pagarSancionAlm('${prestamo.vchticket}', ${monto})">
+            <div class="sancion-container" style="margin-top:10px; border-top:1px dashed #ccc; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span class="monto-deuda" style="color:#e74c3c; font-weight:bold;">Sanción: $${monto.toFixed(2)}</span>
+                <button class="btn-pagar" 
+                        style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;"
+                        onclick="pagarSancionAlm('${prestamo.vchticket}', ${monto})">
                     Pagar Sanción
                 </button>
             </div>`;
@@ -92,10 +120,7 @@ const renderPrestamo = (prestamo) => {
         </article>`;
 };
 
-// ... (resto de la función obtenerPrestamos e init se mantienen igual)
-
 const init = async () => {
-    // Intentamos obtener la matrícula del objeto 'usuario' en localStorage
     const usuarioStored = localStorage.getItem('usuario');
     let matricula = null;
 
@@ -108,13 +133,12 @@ const init = async () => {
         }
     }
 
-    // Si no funcionó, intentamos buscar la matrícula directa
     if (!matricula) {
         matricula = localStorage.getItem('usuario_matricula');
     }
     
     if (!matricula) {
-        console.error("No se encontró matrícula en el almacenamiento.");
+        console.error("No se encontró matrícula.");
         return;
     }
 
@@ -133,7 +157,6 @@ const init = async () => {
             if (parseFloat(p.flmontosancion) > 0 && parseInt(p.boolsancion) === 0) stats.sanciones++;
         });
 
-        // Actualizar estadísticas en el HTML
         if(document.getElementById('stat-activos')) document.getElementById('stat-activos').textContent = stats.activos;
         if(document.getElementById('stat-devueltos')) document.getElementById('stat-devueltos').textContent = stats.devueltos;
         if(document.getElementById('stat-vencidos')) document.getElementById('stat-vencidos').textContent = stats.vencidos;
