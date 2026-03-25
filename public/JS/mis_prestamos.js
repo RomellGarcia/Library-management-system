@@ -87,17 +87,30 @@ const renderPrestamo = (prestamo) => {
 
 // 5. INICIALIZACIÓN
 const init = async () => {
+    // 1. Intentamos obtener el usuario de la función global
     const usuario = await window.verificarSesion();
-
-    const matricula = usuario ? usuario.matricula : null;
     
-    const idRol = localStorage.getItem('usuario_idrol');
+    // 2. Intentamos extraer la matrícula de tres lugares posibles para no fallar:
+    //    - Del objeto devuelto (usuario.matricula)
+    //    - Directamente del localStorage (usuario_matricula)
+    //    - O del objeto de sesión guardado como string
+    let matricula = null;
 
+    if (usuario && usuario.matricula) {
+        matricula = usuario.matricula;
+    } else {
+        // Plan B: Si la función no nos dio el objeto limpio, lo buscamos nosotros
+        matricula = localStorage.getItem('usuario_matricula');
+    }
+
+    // 3. Verificación de seguridad
     if (!matricula) {
-        console.error("No se encontró la matrícula en el objeto de sesión");
+        console.error("No se pudo recuperar la matrícula de ninguna fuente.");
+        // Opcional: window.location.href = 'iniciarsesion.html';
         return;
     }
 
+    const idRol = localStorage.getItem('usuario_idrol');
     if (idRol && parseInt(idRol) !== 3) {
         window.location.href = 'index.html';
         return;
@@ -105,9 +118,12 @@ const init = async () => {
 
     const lista = document.getElementById('lista-prestamos');
     try {
+        console.log("Solicitando préstamos para la matrícula:", matricula);
+        
         const data = await obtenerPrestamos(matricula);
         const prestamos = Array.isArray(data) ? data : [];
 
+        // Lógica de estadísticas
         const stats = { activos: 0, devueltos: 0, vencidos: 0, sanciones: 0 };
         prestamos.forEach(p => {
             const e = obtenerEstado(p);
@@ -118,18 +134,23 @@ const init = async () => {
             if (parseFloat(p.flmontosancion) > 0 && p.boolsancion == 0) stats.sanciones++;
         });
 
+        // Renderizado de las cajas de números
         if(document.getElementById('stat-activos')) document.getElementById('stat-activos').textContent = stats.activos;
         if(document.getElementById('stat-devueltos')) document.getElementById('stat-devueltos').textContent = stats.devueltos;
         if(document.getElementById('stat-vencidos')) document.getElementById('stat-vencidos').textContent = stats.vencidos;
         if(document.getElementById('stat-sanciones')) document.getElementById('stat-sanciones').textContent = stats.sanciones;
 
+        // Renderizado de la lista
         lista.innerHTML = prestamos.length 
             ? prestamos.map(renderPrestamo).join('') 
-            : '<div class="sin-prestamos"><h3>No tienes préstamos registrados</h3></div>';
+            : `<div class="sin-prestamos">
+                    <h3>No tienes préstamos registrados</h3>
+                    <p>Los libros que solicites aparecerán aquí.</p>
+               </div>`;
 
     } catch (e) {
         console.error("Error al cargar préstamos:", e);
-        if(lista) lista.innerHTML = '<div class="error">No se pudieron cargar tus préstamos.</div>';
+        if(lista) lista.innerHTML = '<div class="error">Hubo un problema al conectar con el servidor.</div>';
     }
 };
 
