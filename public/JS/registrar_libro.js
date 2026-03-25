@@ -147,12 +147,7 @@ async function manejarEnvio(e) {
     formData.append('intidcategoria', categoria);
 
     // Lógica de imagen: Si hay archivo nuevo se envía, si no y es edición, enviamos la URL actual
-    if (archivoImagen) {
-        formData.append('imagen', archivoImagen);
-    } else if (isEditar) {
-        const imagenActual = document.getElementById('imagenActual').src;
-        formData.append('vchimagen', imagenActual);
-    }
+   // Reemplaza toda la sección de "Lógica de imagen" y el try/catch en manejarEnvio:
 
     try {
         const token = localStorage.getItem('token');
@@ -161,13 +156,51 @@ async function manejarEnvio(e) {
             ? `${CONFIG.BASE_URL}/api/libros/actualizar/${encodeURIComponent(folio)}`
             : `${CONFIG.BASE_URL}/api/libros/registrar`;
 
-        const res = await fetch(url, {
-            method,
-            headers: { 'Authorization': `Bearer ${token}` },
-            body: formData
-        });
+        let opciones;
 
-        // Leemos la respuesta como texto primero para evitar el error de JSON.parse
+        if (archivoImagen) {
+            // Con archivo: usar FormData (multipart)
+            const formData = new FormData();
+            formData.append('vchfolio', folio);
+            formData.append('vchtitulo', titulo);
+            formData.append('vchautor', autor);
+            formData.append('vcheditorial', document.getElementById('vcheditorial').value.trim());
+            formData.append('intanio', anio);
+            formData.append('vchisbn', document.getElementById('vchisbn').value.trim());
+            formData.append('vchsinopsis', document.getElementById('vchsinopsis').value.trim());
+            formData.append('intidcategoria', categoria);
+            formData.append('imagen', archivoImagen);
+
+            opciones = {
+                method,
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            };
+        } else {
+            // Sin archivo: usar JSON
+            const imagenActual = document.getElementById('imagenActual')?.src || null;
+            opciones = {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    vchfolio: folio,
+                    vchtitulo: titulo,
+                    vchautor: autor,
+                    vcheditorial: document.getElementById('vcheditorial').value.trim(),
+                    intanio: anio,
+                    vchisbn: document.getElementById('vchisbn').value.trim(),
+                    vchsinopsis: document.getElementById('vchsinopsis').value.trim(),
+                    intidcategoria: categoria,
+                    vchimagen: imagenActual
+                })
+            };
+        }
+
+        const res = await fetch(url, opciones);
+
         const text = await res.text();
         let data;
         try {
@@ -180,7 +213,6 @@ async function manejarEnvio(e) {
             alert(isEditar ? '¡Éxito! Libro actualizado.' : '¡Éxito! Libro registrado en la Biblioteca UTHH.');
             window.location.href = obtenerRuta('/HTML/listado_libros.html');
         } else {
-            // Aquí data ya no es un [object Object], es el error real
             throw new Error(data.error || 'Error en el servidor');
         }
     } catch (error) {
