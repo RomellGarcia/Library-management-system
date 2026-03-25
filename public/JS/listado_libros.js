@@ -114,30 +114,36 @@ function cambiarPagina(delta) {
 }
 
 async function confirmarEliminar(folio, titulo) {
-    if (!confirm(`¿Eliminar el libro "${titulo}" y TODOS sus ejemplares?\nEsta acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Eliminar el libro "${titulo}"?\nEsta acción no se puede deshacer.`)) return;
 
     try {
-        const res = await fetchConToken(`/api/libros/${encodeURIComponent(folio)}`, { method: 'DELETE' });
-        const data = await res.json();
+        // Asegúrate de que la URL incluya /eliminar/
+        const res = await fetchConToken(`/api/libros/eliminar/${encodeURIComponent(folio)}`, { 
+            method: 'DELETE' 
+        });
 
-        if (data.success) {
-            // Quitar del array local y re-renderizar
-            todosLosLibros  = todosLosLibros.filter(l => l.vchfolio !== folio);
-            librosFiltrados = librosFiltrados.filter(l => l.vchfolio !== folio);
-            if ((paginaActual - 1) * LIBROS_POR_PAGINA >= librosFiltrados.length && paginaActual > 1) {
-                paginaActual--;
+        // Verificamos si la respuesta es realmente JSON antes de transformarla
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const data = await res.json();
+            if (data.success) {
+                alert('Libro eliminado correctamente.');
+                location.reload(); 
+            } else {
+                alert('Error del servidor: ' + (data.error || 'No se pudo eliminar'));
             }
-            renderTabla();
-            alert('Libro eliminado correctamente.');
         } else {
-            throw new Error(data.error || data.message || 'Error al eliminar');
+            // Si no es JSON, capturamos el error de texto para saber qué pasó
+            const textoError = await res.text();
+            console.error("Error no-JSON del servidor:", textoError);
+            alert('El servidor respondió con un error técnico. Revisa la consola.');
         }
+
     } catch (error) {
         console.error('Error:', error);
-        alert('Error al eliminar el libro: ' + error.message);
+        alert('Error de conexión: ' + error.message);
     }
 }
 
-// Exponer cambiarPagina al onclick del HTML
 window.cambiarPagina   = cambiarPagina;
 window.confirmarEliminar = confirmarEliminar;
