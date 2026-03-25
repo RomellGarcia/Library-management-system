@@ -4538,6 +4538,307 @@ footer {
 }
 
 /* ============================================
+   MIS PRESTAMOS
+   ============================================ */
+/* =============================================
+   MIS PRÉSTAMOS - Biblioteca UTHH
+   ============================================= */
+
+.container-mis-prestamos {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+/* Título de página */
+.titulo-pagina {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.titulo-pagina h1 {
+    color: #2d3748;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.titulo-pagina p {
+    color: #718096;
+}
+
+/* Estadísticas */
+.estadisticas-usuario {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.tarjeta-stat {
+    padding: 20px;
+    border-radius: 12px;
+    color: white;
+    text-align: center;
+}
+
+.tarjeta-stat.activos {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+
+.tarjeta-stat.devueltos {
+    background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+}
+
+.tarjeta-stat.vencidos {
+    background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+}
+
+.tarjeta-stat.sanciones {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+}
+
+.tarjeta-stat h3 {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.tarjeta-stat p {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+/* Alerta de sanciones */
+.alerta-sancion {
+    background: #fed7d7;
+    border-left: 4px solid #c53030;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    color: #742a2a;
+}
+
+.alerta-sancion strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Card contenedor */
+.card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+}
+
+.card-header {
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.card-header h2 {
+    color: #2d3748;
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+/* Ítem de préstamo */
+.prestamo-item {
+    background: #f7fafc;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid #A02142;
+    transition: transform 0.2s ease;
+}
+
+.prestamo-item:hover {
+    transform: translateX(5px);
+}
+
+.prestamo-item.devuelto {
+    border-left-color: #718096;
+    opacity: 0.8;
+}
+
+.prestamo-item.vencido {
+    border-left-color: #e53e3e;
+    background: #fff5f5;
+}
+
+.prestamo-item.proximo {
+    border-left-color: #ed8936;
+    background: #fffaf0;
+}
+
+/* Encabezado del préstamo */
+.prestamo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.prestamo-ticket {
+    font-weight: 700;
+    color: #A02142;
+    font-size: 1.1rem;
+}
+
+.prestamo-estado {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.estado-activo  { background: #c6f6d5; color: #22543d; }
+.estado-devuelto { background: #e2e8f0; color: #4a5568; }
+.estado-vencido  { background: #fed7d7; color: #742a2a; }
+.estado-proximo  { background: #feebc8; color: #7c2d12; }
+
+/* Datos del libro */
+.prestamo-libro {
+    margin-bottom: 15px;
+}
+
+.libro-titulo {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 5px;
+}
+
+.libro-autor {
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.libro-codigo {
+    font-size: 0.8rem;
+    color: #a0aec0;
+    margin-top: 5px;
+}
+
+/* Fechas */
+.prestamo-fechas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.fecha-item {
+    text-align: center;
+}
+
+.fecha-item label {
+    display: block;
+    font-size: 0.75rem;
+    color: #718096;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+}
+
+.fecha-item span {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.dias-restantes {
+    font-size: 1.1rem;
+}
+
+.dias-restantes.positivo { color: #38a169; }
+.dias-restantes.negativo { color: #e53e3e; }
+
+/* Sanciones */
+.sancion-info {
+    margin-top: 15px;
+    padding: 12px;
+    background: #fff5f5;
+    border-radius: 8px;
+    border: 1px solid #feb2b2;
+}
+
+.sancion-info .monto {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #c53030;
+}
+
+.sancion-info .estado-sancion {
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+.sancion-info .estado-sancion.pagada   { color: #38a169; }
+.sancion-info .estado-sancion.pendiente { color: #c53030; }
+
+.sancion-info .motivo-sancion {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-top: 5px;
+}
+
+/* Sin préstamos */
+.sin-prestamos {
+    text-align: center;
+    padding: 50px 20px;
+    color: #718096;
+}
+
+.sin-prestamos h3 {
+    color: #4a5568;
+    margin-bottom: 10px;
+}
+
+/* Filtros */
+.filtros-usuario {
+    margin-bottom: 20px;
+}
+
+.filtros-usuario label {
+    display: block;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.filtros-usuario select {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filtros-usuario select:focus {
+    outline: none;
+    border-color: #A02142;
+    box-shadow: 0 0 0 3px rgba(160, 33, 66, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .prestamo-header {
+        flex-direction: column;
+    }
+
+    .estadisticas-usuario {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================================
    VOLVER DEL QE
    ============================================ 
 .boton-volver-qr {

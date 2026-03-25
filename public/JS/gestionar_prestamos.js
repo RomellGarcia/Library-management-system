@@ -240,7 +240,7 @@ function crearFilaPrestamo(prestamo) {
     const btnPDF = document.createElement('button');
     btnPDF.type = 'button';
     btnPDF.className = 'btn-accion btn-pdf';
-    btnPDF.innerHTML = '📄 Descargar Ticket';
+    btnPDF.innerHTML = 'Descargar Ticket';
     btnPDF.onclick = () => generarComprobantePDF({
         ticket:          prestamo.vchticket,
         nombreAlumno:    prestamo.nombre_usuario,

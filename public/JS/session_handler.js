@@ -96,7 +96,7 @@ function actualizarMenu(usuario) {
                 { href: '/HTML/index.html', texto: 'Inicio' },
                 { href: '/HTML/perfil.html', texto: 'Perfil' },
                 { href: '/HTML/catalogo.html', texto: 'Catálogo' },
-                { href: '/HTML/misprestamos.html', texto: 'Mis Préstamos' },
+                { href: '/HTML/mis_prestamos.html', texto: 'Mis Préstamos' },
                 { href: '/HTML/contacto.html', texto: 'Contacto' },
                 { href: '/HTML/visualizar_ar.html', texto: 'Visualizar AR' }
             ];

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Préstamos - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mis-prestamos.css">
+</head>
+
+<body>
+
+    <main class="container-mis-prestamos">
+        <a href="index.html" class="boton-volver-detalle">
+            <span>&lt;</span>
+            <span>Volver al inicio</span>
+        </a>
+
+        <div class="titulo-pagina">
+            <h1>Mis Préstamos</h1>
+            <p>Historial de libros que has solicitado en préstamo</p>
+        </div>
+
+        <!-- Mensaje de error -->
+        <div id="mensaje-error" class="alert alert-error" style="display: none;"></div>
+
+        <!-- Estadísticas del usuario -->
+        <section class="estadisticas-usuario">
+            <div class="tarjeta-stat activos">
+                <h3 id="stat-activos">0</h3>
+                <p>Activos</p>
+            </div>
+            <div class="tarjeta-stat devueltos">
+                <h3 id="stat-devueltos">0</h3>
+                <p>Devueltos</p>
+            </div>
+            <div class="tarjeta-stat vencidos">
+                <h3 id="stat-vencidos">0</h3>
+                <p>Vencidos</p>
+            </div>
+            <div class="tarjeta-stat sanciones">
+                <h3 id="stat-sanciones">0</h3>
+                <p>Sanciones</p>
+            </div>
+        </section>
+
+        <!-- Alerta de sanciones -->
+        <div id="alerta-sancion" class="alerta-sancion" style="display: none;"></div>
+
+        <!-- Filtros -->
+        <div class="filtros-usuario">
+            <label for="filtro-estado">Filtrar por estado:</label>
+            <select id="filtro-estado">
+                <option value="todos">Todos los préstamos</option>
+                <option value="activo">Solo Activos</option>
+                <option value="devuelto">Solo Devueltos</option>
+                <option value="vencido">Solo Vencidos</option>
+            </select>
+        </div>
+
+        <!-- Lista de préstamos -->
+        <section class="card">
+            <div class="card-header">
+                <h2>Historial de Préstamos</h2>
+            </div>
+            <div id="lista-prestamos">
+                <!-- Renderizado dinámicamente por mis-prestamos.js -->
+                <div class="sin-prestamos" id="loading-state">
+                    <p>Cargando préstamos...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+     <!-- SCRIPTS -->
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/config.js"></script>
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/perfil.js"></script>
+</body>
+
+</html>
