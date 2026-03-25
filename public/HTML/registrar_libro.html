@@ -214,18 +214,19 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const btnCancel = document.getElementById('btnCancelar');
-            const btnVolver = document.getElementById('btnVolverLibros');
-            
-            // Verificamos que obtenerRuta exista (viene de utils.js)
-            if (typeof obtenerRuta === 'function') {
-                const rutaDestino = obtenerRuta('/HTML/listado_libros.html');
-                if (btnCancel) btnCancel.href = rutaDestino;
-                if (btnVolver) btnVolver.href = rutaDestino;
+    document.addEventListener('DOMContentLoaded', () => {
+        const asignarRuta = (id, path) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.href = typeof obtenerRuta === 'function' ? obtenerRuta(path) : path;
             }
-        });
-    </script>
+        };
+
+        asignarRuta('btnCancelar', '/HTML/listado_libros.html');
+        asignarRuta('btnVolver', '/HTML/listado_libros.html');
+        asignarRuta('btnVolverLibros', '/HTML/listado_libros.html');
+    });
+</script>
 </body>
 
 </html>
