@@ -34,9 +34,11 @@ async function cargarCategorias() {
     try {
         const res = await fetch(`${CONFIG.BASE_URL}/api/libros/categorias`);
         if (!res.ok) {
-            throw new Error(`Error en el servidor: ${res.status}`);
+            // Esto nos dirá qué dice el error 500
+            const errorData = await res.json();
+            console.error("Detalle del error 500:", errorData);
+            throw new Error(`Error ${res.status}: ${errorData.error || 'Error interno'}`);
         }
-
         const data = await res.json();
         if (!data.success || !data.data) return;
 

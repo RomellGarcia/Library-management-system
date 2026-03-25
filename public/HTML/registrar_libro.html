@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Libro - Biblioteca UTHH</title>
     <link rel="stylesheet" href="../styles.css">
+    <script src="../JS/header.js"></script>
+    <script src="../JS/config.js"></script>
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/registrar_libro.js"></script>
     <style>
         .form-libro {
             display: flex;
@@ -128,11 +135,6 @@
     </style>
 </head>
 
-<head>
-    <script src="../JS/config.js"></script>
-    <script src="../JS/utils.js"></script>
-    <script src="../JS/session_handler.js"></script>
-</head>
 
 <body class="pagina-sesion">
     <main class="contenedor-perfil" style="padding: 30px 20px;">
@@ -211,10 +213,19 @@
         </section>
     </main>
 
-    <script src="../JS/header.js"></script>
-    <script src="../JS/footer.js"></script>
-    <script src="../JS/protect_route.js"></script>
-    <script src="../JS/registrar_libro.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnCancel = document.getElementById('btnCancelar');
+            const btnVolver = document.getElementById('btnVolverLibros');
+            
+            // Verificamos que obtenerRuta exista (viene de utils.js)
+            if (typeof obtenerRuta === 'function') {
+                const rutaDestino = obtenerRuta('/HTML/listado_libros.html');
+                if (btnCancel) btnCancel.href = rutaDestino;
+                if (btnVolver) btnVolver.href = rutaDestino;
+            }
+        });
+    </script>
 </body>
 
 </html>
