@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+
+    <!-- header.html -->
+<header class="header-top">
+    <div class="logo-container">
+        <div class="logo"></div>
+        <h1 style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">Biblioteca UTHH</h1>
+    </div>
+</header>
+
+    <main class="contenedor-autenticacion">
+        <div class="tarjeta-autenticacion tarjeta-registro">
+            <div class="encabezado-tarjeta">
+                <h1>Biblioteca UTHH</h1>
+                <p>Crear Nueva Cuenta</p>
+            </div>
+
+            <form class="formulario-autenticacion" id="formularioRegistro">
+                <h2>Registro de Usuario</h2>
+
+                <div class="grupo-input">
+                    <label for="nombre">Nombre(s)</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Romell" required>
+                </div>
+
+                <div class="grupo-doble">
+                    <div class="grupo-input">
+                        <label for="apellidoPaterno">Apellido Paterno</label>
+                        <input type="text" id="apellidoPaterno" name="apellido_paterno" placeholder="García" required>
+                    </div>
+
+                    <div class="grupo-input">
+                        <label for="apellidoMaterno">Apellido Materno</label>
+                        <input type="text" id="apellidoMaterno" name="apellido_materno" placeholder="Reyes" required>
+                    </div>
+                </div>
+
+                <div class="grupo-input">
+                    <label for="correoRegistro">Correo Electrónico</label>
+                    <input type="email" id="correoRegistro" name="correo" placeholder="ejemplo@uthh.edu.mx" required>
+                </div>
+
+                <div class="grupo-input">
+                    <label for="telefono">Teléfono</label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="7711069389" pattern="[0-9]{10}"
+                        title="Ingresa 10 dígitos" required>
+                </div>
+
+                <div class="grupo-input">
+                    <label for="calle">Calle</label>
+                    <input type="text" id="calle" name="calle" placeholder="Paseo de nogal">
+                </div>
+
+                <div class="grupo-input">
+                    <label for="colonia">Colonia</label>
+                    <input type="text" id="colonia" name="colonia" placeholder="Jacarandas">
+                </div>
+
+                <div class="grupo-input">
+                    <label for="contrasenaRegistro">Contraseña</label>
+                    <input type="password" id="contrasenaRegistro" name="password" placeholder="Mínimo 8 caracteres"
+                        required minlength="8">
+                </div>
+
+                <div class="grupo-input">
+                    <label for="confirmarContrasena">Confirmar Contraseña</label>
+                    <input type="password" id="confirmarContrasena" name="confirmar_password"
+                        placeholder="Repite tu contraseña" required minlength="8">
+                </div>
+
+                <div class="opciones-formulario">
+                    <label class="checkbox-recordar">
+                        <input type="checkbox" id="aceptarTerminos" name="terminos" required>
+                        <span>Acepto los <a href="#" class="enlace-terminos">términos y condiciones</a></span>
+                    </label>
+                </div>
+
+                <button type="submit" class="boton-principal">
+                    Crear Cuenta
+                </button>
+                <br><br>
+                <button type="button" class="boton-principal" onclick="window.location.href='index.html'">
+                    Volver al inicio
+                </button>
+
+                <div class="separador">
+                    <span>o</span>
+                </div>
+
+                <p class="texto-registro">
+                    ¿Ya tienes una cuenta?
+                    <a href="iniciarsesion.html" class="enlace-registro">Inicia sesión aquí</a>
+                </p>
+            </form>
+        </div>
+    </main>
+
+   
+    <!-- SCRIPTS -->
+    <script src="../JS/config.js"></script>
+    <script src="../JS/registro.js"></script>
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/session_handler.js"></script>
+</body>
+
+</html>
