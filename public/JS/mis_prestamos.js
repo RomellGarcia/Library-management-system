@@ -1,17 +1,5 @@
-if (typeof window.verificarSesion === 'undefined') {
-    window.verificarSesion = () => {
-        const matricula = localStorage.getItem('usuario_matricula');
-        const idRol = localStorage.getItem('usuario_idrol');
+// mis_prestamos.js
 
-        if (!matricula || !idRol) {
-            window.location.href = 'iniciarsesion.html';
-            return null;
-        }
-        return matricula;
-    };
-}
-
-// 2. LÓGICA DE LA PÁGINA (Funciones auxiliares)
 const formatearFecha = (fechaStr) => {
     if (!fechaStr) return '---';
     const fecha = new Date(fechaStr + 'T00:00:00');
@@ -41,9 +29,9 @@ const etiquetaEstado = (estado) => {
     return etiquetas[estado] ?? 'Activo';
 };
 
-// 3. OBTENCIÓN DE DATOS
 const obtenerPrestamos = async (matricula) => {
-    const API_URL = typeof getApiUrl === 'function' ? getApiUrl() : 'http://localhost:3000';
+    // Usamos CONFIG.BASE_URL si existe (ya que session_handler lo usa)
+    const API_URL = typeof CONFIG !== 'undefined' ? CONFIG.BASE_URL : 'http://localhost:3000';
     const token = localStorage.getItem('token');
 
     const respuesta = await fetch(`${API_URL}/api/prestamos/misprestamos/${matricula}`, {
@@ -57,73 +45,62 @@ const obtenerPrestamos = async (matricula) => {
     return await respuesta.json();
 };
 
-// 4. RENDERIZADO
 const renderPrestamo = (prestamo) => {
-    const estado = prestamo.estado ?? obtenerEstado(prestamo);
+    const estado = obtenerEstado(prestamo);
     const dias = calcularDiasRestantes(prestamo.fecha_devolucion);
-
-    let diasTexto = dias > 0 ? `${dias} días restantes` : dias === 0 ? 'Vence hoy' : `${Math.abs(dias)} días de retraso`;
-    let estadoHtml = prestamo.booldevuelto == 1 
-        ? `<span>Devuelto el ${formatearFecha(prestamo.fechareal_devolucion)}</span>`
-        : `<span class="dias-restantes ${dias >= 0 ? 'positivo' : 'negativo'}">${diasTexto}</span>`;
+    
+    let infoDias = "";
+    if (prestamo.booldevuelto == 1) {
+        infoDias = `<span>Devuelto el ${formatearFecha(prestamo.fechareal_devolucion)}</span>`;
+    } else {
+        const clase = dias >= 0 ? 'positivo' : 'negativo';
+        const texto = dias > 0 ? `${dias} días restantes` : dias === 0 ? 'Vence hoy' : `${Math.abs(dias)} días de retraso`;
+        infoDias = `<span class="dias-restantes ${clase}">${texto}</span>`;
+    }
 
     return `
         <article class="prestamo-item ${estado}" data-estado="${estado}">
             <div class="prestamo-header">
-                <span class="prestamo-ticket">${prestamo.vchticket || 'T-000'}</span>
+                <span class="prestamo-ticket">${prestamo.vchticket || 'S/N'}</span>
                 <span class="prestamo-estado estado-${estado}">${etiquetaEstado(estado)}</span>
             </div>
             <div class="prestamo-libro">
-                <div class="libro-titulo">${prestamo.titulo_libro ?? 'Libro'}</div>
-                <div class="libro-autor">Por: ${prestamo.autor_libro ?? 'Desconocido'}</div>
+                <div class="libro-titulo">${prestamo.titulo_libro || 'Sin título'}</div>
+                <div class="libro-autor">Por: ${prestamo.autor_libro || 'Desconocido'}</div>
             </div>
             <div class="prestamo-fechas">
                 <div class="fecha-item"><label>Préstamo</label><span>${formatearFecha(prestamo.fecha_prestamo)}</span></div>
                 <div class="fecha-item"><label>Devolución</label><span>${formatearFecha(prestamo.fecha_devolucion)}</span></div>
-                <div class="fecha-item"><label>Estado</label>${estadoHtml}</div>
+                <div class="fecha-item"><label>Estado</label>${infoDias}</div>
             </div>
         </article>`;
 };
 
-// 5. INICIALIZACIÓN
 const init = async () => {
-    // 1. Intentamos obtener el usuario de la función global
-    const usuario = await window.verificarSesion();
+    // IMPORTANTE: session_handler devuelve { logged_in: true, usuario: {...} }
+    const resultadoSesion = await window.verificarSesion();
     
-    // 2. Intentamos extraer la matrícula de tres lugares posibles para no fallar:
-    //    - Del objeto devuelto (usuario.matricula)
-    //    - Directamente del localStorage (usuario_matricula)
-    //    - O del objeto de sesión guardado como string
-    let matricula = null;
-
-    if (usuario && usuario.matricula) {
-        matricula = usuario.matricula;
-    } else {
-        // Plan B: Si la función no nos dio el objeto limpio, lo buscamos nosotros
-        matricula = localStorage.getItem('usuario_matricula');
-    }
-
-    // 3. Verificación de seguridad
-    if (!matricula) {
-        console.error("No se pudo recuperar la matrícula de ninguna fuente.");
-        // Opcional: window.location.href = 'iniciarsesion.html';
+    if (!resultadoSesion || !resultadoSesion.usuario) {
+        console.error("No se encontró sesión activa");
+        window.location.href = '/HTML/iniciar_sesion.html';
         return;
     }
 
-    const idRol = localStorage.getItem('usuario_idrol');
-    if (idRol && parseInt(idRol) !== 3) {
-        window.location.href = 'index.html';
+    const usuario = resultadoSesion.usuario;
+    const matricula = usuario.matricula;
+    const idRol = parseInt(usuario.idrol);
+
+    // Seguridad: Solo alumnos (Rol 3)
+    if (idRol !== 3) {
+        window.location.href = '/HTML/index.html';
         return;
     }
 
     const lista = document.getElementById('lista-prestamos');
     try {
-        console.log("Solicitando préstamos para la matrícula:", matricula);
+        const prestamos = await obtenerPrestamos(matricula);
         
-        const data = await obtenerPrestamos(matricula);
-        const prestamos = Array.isArray(data) ? data : [];
-
-        // Lógica de estadísticas
+        // Calcular Estadísticas
         const stats = { activos: 0, devueltos: 0, vencidos: 0, sanciones: 0 };
         prestamos.forEach(p => {
             const e = obtenerEstado(p);
@@ -131,28 +108,25 @@ const init = async () => {
             else if (e === 'vencido') stats.vencidos++;
             else stats.activos++;
             
-            if (parseFloat(p.flmontosancion) > 0 && p.boolsancion == 0) stats.sanciones++;
+            if (parseFloat(p.flmontosancion) > 0 && parseInt(p.boolsancion) === 0) stats.sanciones++;
         });
 
-        // Renderizado de las cajas de números
+        // Actualizar UI de estadísticas
         if(document.getElementById('stat-activos')) document.getElementById('stat-activos').textContent = stats.activos;
         if(document.getElementById('stat-devueltos')) document.getElementById('stat-devueltos').textContent = stats.devueltos;
         if(document.getElementById('stat-vencidos')) document.getElementById('stat-vencidos').textContent = stats.vencidos;
         if(document.getElementById('stat-sanciones')) document.getElementById('stat-sanciones').textContent = stats.sanciones;
 
-        // Renderizado de la lista
+        // Renderizar Lista
         lista.innerHTML = prestamos.length 
             ? prestamos.map(renderPrestamo).join('') 
-            : `<div class="sin-prestamos">
-                    <h3>No tienes préstamos registrados</h3>
-                    <p>Los libros que solicites aparecerán aquí.</p>
-               </div>`;
+            : '<div class="sin-prestamos"><h3>No tienes préstamos registrados</h3></div>';
 
     } catch (e) {
         console.error("Error al cargar préstamos:", e);
-        if(lista) lista.innerHTML = '<div class="error">Hubo un problema al conectar con el servidor.</div>';
+        if(lista) lista.innerHTML = '<div class="error">Error al conectar con el servidor.</div>';
     }
 };
 
-
+// Esperamos a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', init);
