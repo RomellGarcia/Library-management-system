@@ -225,10 +225,10 @@ function mostrarEjemplares(libro) {
     lista.innerHTML = libro.ejemplares.map(ejemplar => `
         <div class="ejemplar-card">
             <div class="ejemplar-info">
-                <div class="ejemplar-dato"><strong>📊 Código de Barras</strong><span>${escapeHtml(ejemplar.vchcodigobarras)}</span></div>
-                <div class="ejemplar-dato"><strong>📕 Edición</strong><span>${escapeHtml(ejemplar.vchedicion || 'N/A')}</span></div>
-                <div class="ejemplar-dato"><strong>📍 Ubicación</strong><span>${escapeHtml(ejemplar.vchubicacion || 'N/A')}</span></div>
-                <div class="ejemplar-dato"><strong>✅ Estado</strong><span>${escapeHtml(ejemplar.vchestadolibro || 'N/A')}</span></div>
+                <div class="ejemplar-dato"><strong>Código de Barras</strong><span>${escapeHtml(ejemplar.vchcodigobarras)}</span></div>
+                <div class="ejemplar-dato"><strong>Edición</strong><span>${escapeHtml(ejemplar.vchedicion || 'N/A')}</span></div>
+                <div class="ejemplar-dato"><strong>Ubicación</strong><span>${escapeHtml(ejemplar.vchubicacion || 'N/A')}</span></div>
+                <div class="ejemplar-dato"><strong>Estado</strong><span>${escapeHtml(ejemplar.vchestadolibro || 'N/A')}</span></div>
             </div>
             <button type="button" class="btn-seleccionar-este"
                     data-libro='${JSON.stringify(libro).replace(/'/g, "&#39;")}'
