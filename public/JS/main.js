@@ -88,10 +88,10 @@ async function cargarCategorias() {
                 iconContainer.className = 'category-icon';
 
                 const img = document.createElement('img');
-                if (categoria.icono && categoria.icono.startsWith('http')) {
+                if (categoria.icono) {
                     img.src = categoria.icono;
                 } else {
-                    img.src = obtenerRuta('/images/categorias/default.png');
+                    img.style.display = 'none';
                 }
 
                 img.alt = categoria.vchcategoria;
@@ -100,7 +100,7 @@ async function cargarCategorias() {
                 img.style.objectFit = 'contain';
 
                 img.onerror = function () {
-                    this.onerror = null; // Evitar loop infinito
+                    this.onerror = null;
                     this.style.display = 'none';
                 };
                 iconContainer.appendChild(img);
