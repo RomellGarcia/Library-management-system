@@ -1,6 +1,3 @@
-// listado_libros.js
-// Carga el listado de libros desde la API, con búsqueda en cliente y paginación.
-
 const LIBROS_POR_PAGINA = 20;
 let todosLosLibros = [];
 let librosFiltrados = [];
@@ -20,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 l.vchtitulo?.toLowerCase().includes(termino) ||
                 l.vchautor?.toLowerCase().includes(termino) ||
                 l.vchfolio?.toLowerCase().includes(termino)
-              )
+            )
             : [...todosLosLibros];
         paginaActual = 1;
         renderTabla();
@@ -34,7 +31,7 @@ async function cargarLibros() {
 
         if (!data.success) throw new Error(data.error || 'Error al cargar libros');
 
-        todosLosLibros  = data.data || [];
+        todosLosLibros = data.data || [];
         librosFiltrados = [...todosLosLibros];
         renderTabla();
     } catch (error) {
@@ -50,7 +47,7 @@ function renderTabla() {
     const tbody = document.getElementById('tablaLibros');
     const totalPaginas = Math.ceil(librosFiltrados.length / LIBROS_POR_PAGINA);
     const inicio = (paginaActual - 1) * LIBROS_POR_PAGINA;
-    const fin    = inicio + LIBROS_POR_PAGINA;
+    const fin = inicio + LIBROS_POR_PAGINA;
     const pagina = librosFiltrados.slice(inicio, fin);
 
     if (pagina.length === 0) {
@@ -68,10 +65,10 @@ function renderTabla() {
             ? `<a href="${detalleUrl}"><img src="${libro.imagen}" alt="Portada" class="libro-thumb" style="cursor:pointer;"></a>`
             : `<div class="thumb-placeholder">Sin img</div>`;
 
-        const folio  = escapeHtml(libro.vchfolio      || '');
-        const titulo = escapeHtml(libro.vchtitulo     || '');
-        const autor  = escapeHtml(libro.vchautor      || '');
-        const cat    = escapeHtml(libro.vchcategoria  || 'N/A');
+        const folio = escapeHtml(libro.vchfolio || '');
+        const titulo = escapeHtml(libro.vchtitulo || '');
+        const autor = escapeHtml(libro.vchautor || '');
+        const cat = escapeHtml(libro.vchcategoria || 'N/A');
 
         return `
         <tr>
@@ -90,7 +87,7 @@ function renderTabla() {
                 <div class="action-buttons">
                     <a href="${obtenerRuta('/HTML/registrar_libro.html')}?folio=${encodeURIComponent(libro.vchfolio)}" class="edit-btn">Editar</a>
                     <a href="${obtenerRuta('/HTML/ejemplares.html')}?folio=${encodeURIComponent(libro.vchfolio)}" class="manage-ejemplares-btn">Ejemplares</a>
-                    <button class="delete-btn" onclick="confirmarEliminar('${escapeHtml(libro.vchfolio)}', '${titulo.replace(/'/g,"\\'")}')">Eliminar</button>
+                    <button class="delete-btn" onclick="confirmarEliminar('${escapeHtml(libro.vchfolio)}', '${titulo.replace(/'/g, "\\'")}')">Eliminar</button>
                 </div>
             </td>
         </tr>`;
@@ -120,12 +117,12 @@ async function confirmarEliminar(folio, titulo) {
     if (!confirm(`¿Eliminar el libro "${titulo}" y TODOS sus ejemplares?\nEsta acción no se puede deshacer.`)) return;
 
     try {
-        const res = await fetchConToken(`/api/libros/${encodeURIComponent(folio)}`, { method: 'DELETE' });
+        const res = await fetchConToken(`/api/libros/eliminar/${encodeURIComponent(folio)}`, { method: 'DELETE' });
         const data = await res.json();
 
         if (data.success) {
             // Quitar del array local y re-renderizar
-            todosLosLibros  = todosLosLibros.filter(l => l.vchfolio !== folio);
+            todosLosLibros = todosLosLibros.filter(l => l.vchfolio !== folio);
             librosFiltrados = librosFiltrados.filter(l => l.vchfolio !== folio);
             if ((paginaActual - 1) * LIBROS_POR_PAGINA >= librosFiltrados.length && paginaActual > 1) {
                 paginaActual--;
@@ -142,5 +139,5 @@ async function confirmarEliminar(folio, titulo) {
 }
 
 // Exponer cambiarPagina al onclick del HTML
-window.cambiarPagina   = cambiarPagina;
+window.cambiarPagina = cambiarPagina;
 window.confirmarEliminar = confirmarEliminar;
