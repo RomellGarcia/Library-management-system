@@ -135,9 +135,9 @@ async function manejarEnvio(e) {
     try {
         const token  = localStorage.getItem('token');
         const method = isEditar ? 'PUT' : 'POST';
-        const url    = isEditar
-            ? `${CONFIG.BASE_URL}/api/libros/${encodeURIComponent(folio)}`
-            : `${CONFIG.BASE_URL}/api/libros`;
+        const url = isEditar
+    ? `${CONFIG.BASE_URL}/api/libros/actualizar/${encodeURIComponent(folio)}` 
+    : `${CONFIG.BASE_URL}/api/libros/registrar`;
 
         const res = await fetch(url, {
             method,
