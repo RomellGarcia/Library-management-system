@@ -104,7 +104,7 @@ async function manejarEnvio(e) {
     e.preventDefault();
 
     const btn = document.getElementById('btnGuardar');
-    
+
     // 1. Captura de valores
     const titulo = document.getElementById('vchtitulo').value.trim();
     const autor = document.getElementById('vchautor').value.trim();
@@ -151,14 +151,14 @@ async function manejarEnvio(e) {
         formData.append('imagen', archivoImagen);
     } else if (isEditar) {
         const imagenActual = document.getElementById('imagenActual').src;
-        formData.append('vchimagen', imagenActual); 
+        formData.append('vchimagen', imagenActual);
     }
 
     try {
         const token = localStorage.getItem('token');
         const method = isEditar ? 'PUT' : 'POST';
         const url = isEditar
-            ? `${CONFIG.BASE_URL}/api/libros/actualizar/${encodeURIComponent(folio)}` 
+            ? `${CONFIG.BASE_URL}/api/libros/actualizar/${encodeURIComponent(folio)}`
             : `${CONFIG.BASE_URL}/api/libros/registrar`;
 
         const res = await fetch(url, {
@@ -191,7 +191,7 @@ async function manejarEnvio(e) {
 }
 
 function mostrarMensaje(texto, tipo) {
-    alert(texto); 
+    alert(texto);
 }
 
 function ocultarMensaje() {
