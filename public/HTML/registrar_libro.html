@@ -128,20 +128,14 @@
     </style>
 </head>
 
+<head>
+    <script src="../JS/config.js"></script>
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/session_handler.js"></script>
+</head>
+
 <body class="pagina-sesion">
-
-    <head>
-        <script src="../JS/config.js"></script>
-        <script src="../JS/utils.js"></script>
-        <script src="../JS/session_handler.js"></script>
-    </head>
-
-
     <main class="contenedor-perfil" style="padding: 30px 20px;">
-        <a id="btnVolverLibros" href="#" class="boton-volver-detalle">
-            <span>←</span>
-            <span>Volver a Libros</span>
-        </a>
         <script>document.getElementById('btnVolverLibros').href = obtenerRuta('/HTML/listado_libros.html');</script>
 
         <section class="tarjeta-datos">
@@ -216,7 +210,6 @@
             </form>
         </section>
     </main>
-
 
     <script src="../JS/header.js"></script>
     <script src="../JS/footer.js"></script>
