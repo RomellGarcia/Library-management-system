@@ -91,33 +91,24 @@ const renderPrestamo = (prestamo) => {
 };
 
 const init = async () => {
-    // IMPORTANTE: session_handler devuelve { logged_in: true, usuario: {...} }
-    const resultadoSesion = await window.verificarSesion();
+    // Obtenemos la matrícula directamente del localStorage, que ya vimos que ahí está
+    const matricula = localStorage.getItem('usuario_matricula');
     
-    if (!resultadoSesion || !resultadoSesion.usuario) {
-        console.error("No se encontró sesión activa");
-        window.location.href = '/HTML/iniciar_sesion.html';
-        return;
-    }
-
-    const usuario = resultadoSesion.usuario;
-    const matricula = usuario.matricula;
-    const idRol = parseInt(usuario.idrol);
-
-    // Seguridad: Solo alumnos (Rol 3)
-    if (idRol !== 3) {
-        window.location.href = '/HTML/index.html';
+    if (!matricula) {
+        console.error("No se encontró matrícula en el almacenamiento.");
         return;
     }
 
     const lista = document.getElementById('lista-prestamos');
     try {
-        const prestamos = await obtenerPrestamos(matricula);
-        
-        // Calcular Estadísticas
+        // Hacemos la petición a la API
+        const data = await obtenerPrestamos(matricula);
+        const prestamos = Array.isArray(data) ? data : [];
+
+        // Lógica de estadísticas (Activos, Devueltos, etc.)
         const stats = { activos: 0, devueltos: 0, vencidos: 0, sanciones: 0 };
         prestamos.forEach(p => {
-            const e = obtenerEstado(p);
+            const e = obtenerEstado(p); // Esta función ya la tienes en tu código
             if (e === 'devuelto') stats.devueltos++;
             else if (e === 'vencido') stats.vencidos++;
             else stats.activos++;
@@ -125,19 +116,19 @@ const init = async () => {
             if (parseFloat(p.flmontosancion) > 0 && parseInt(p.boolsancion) === 0) stats.sanciones++;
         });
 
-        // Actualizar UI de estadísticas
-        if(document.getElementById('stat-activos')) document.getElementById('stat-activos').textContent = stats.activos;
-        if(document.getElementById('stat-devueltos')) document.getElementById('stat-devueltos').textContent = stats.devueltos;
-        if(document.getElementById('stat-vencidos')) document.getElementById('stat-vencidos').textContent = stats.vencidos;
-        if(document.getElementById('stat-sanciones')) document.getElementById('stat-sanciones').textContent = stats.sanciones;
+        // Actualizar los números de las cajas
+        document.getElementById('stat-activos').textContent = stats.activos;
+        document.getElementById('stat-devueltos').textContent = stats.devueltos;
+        document.getElementById('stat-vencidos').textContent = stats.vencidos;
+        document.getElementById('stat-sanciones').textContent = stats.sanciones;
 
-        // Renderizar Lista
+        // Renderizar las tarjetas de los préstamos
         lista.innerHTML = prestamos.length 
             ? prestamos.map(renderPrestamo).join('') 
             : '<div class="sin-prestamos"><h3>No tienes préstamos registrados</h3></div>';
 
     } catch (e) {
-        console.error("Error al cargar préstamos:", e);
+        console.error("Error al cargar:", e);
         if(lista) lista.innerHTML = '<div class="error">Error al conectar con el servidor.</div>';
     }
 };
