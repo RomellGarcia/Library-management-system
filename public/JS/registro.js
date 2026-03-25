@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.success) {
                 alert('¡Registro Exitoso!\n\nTu matrícula asignada es: ' + data.matricula);
-                window.location.href = 'iniciarsesion.html';
+                window.location.href = 'iniciar_sesion.html';
             } else {
                 alert('Error: ' + data.message);
             }
