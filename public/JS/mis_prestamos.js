@@ -1,5 +1,3 @@
-// mis_prestamos.js
-
 const formatearFecha = (fechaStr) => {
     if (!fechaStr) return '---';
     const fecha = new Date(fechaStr);
@@ -33,7 +31,6 @@ const etiquetaEstado = (estado) => {
     return etiquetas[estado] ?? 'Activo';
 };
 
-// --- ESTA ES LA FUNCIÓN QUE FALTABA ---
 const obtenerPrestamos = async (matricula) => {
     const API_URL = "https://api-biblioteca-uthh.vercel.app"; 
     const token = localStorage.getItem('token');
@@ -120,6 +117,30 @@ const renderPrestamo = (prestamo) => {
         </article>`;
 };
 
+
+//Variable global para mantener los datos en memoria
+let todosLosPrestamos = []; 
+
+const filtrarYRenderizar = () => {
+    const filtro = document.getElementById('filtro-estado').value;
+    const lista = document.getElementById('lista-prestamos');
+    
+    // Filtramos el arreglo global basándonos en la lógica de obtenerEstado
+    const prestamosFiltrados = todosLosPrestamos.filter(p => {
+        if (filtro === 'todos') return true;
+        const estadoActual = obtenerEstado(p);
+        return estadoActual === filtro;
+    });
+
+    // Limpiamos y renderizamos solo los filtrados
+    if (prestamosFiltrados.length === 0) {
+        lista.innerHTML = `<div class="sin-prestamos"><h3>No hay préstamos con el estado: ${filtro}</h3></div>`;
+    } else {
+        lista.innerHTML = prestamosFiltrados.map(renderPrestamo).join('');
+    }
+};
+
+
 const init = async () => {
     const usuarioStored = localStorage.getItem('usuario');
     let matricula = null;
@@ -128,27 +149,30 @@ const init = async () => {
         try {
             const userObj = JSON.parse(usuarioStored);
             matricula = userObj.matricula || userObj.id;
-        } catch (e) {
-            console.error("Error al parsear el objeto usuario");
-        }
+        } catch (e) { console.error("Error al parsear el objeto usuario"); }
     }
 
     if (!matricula) {
         matricula = localStorage.getItem('usuario_matricula');
     }
     
-    if (!matricula) {
-        console.error("No se encontró matrícula.");
-        return;
-    }
+    if (!matricula) return;
 
     const lista = document.getElementById('lista-prestamos');
+    const selectFiltro = document.getElementById('filtro-estado');
+
     try {
         const data = await obtenerPrestamos(matricula);
-        const prestamos = Array.isArray(data) ? data : [];
+        // Guardamos los datos en nuestra variable global
+        todosLosPrestamos = Array.isArray(data) ? data : [];
 
+        if (selectFiltro) {
+            selectFiltro.addEventListener('change', filtrarYRenderizar);
+        }
+
+        filtrarYRenderizar();
         const stats = { activos: 0, devueltos: 0, vencidos: 0, sanciones: 0 };
-        prestamos.forEach(p => {
+        todosLosPrestamos.forEach(p => {
             const e = obtenerEstado(p);
             if (e === 'devuelto') stats.devueltos++;
             else if (e === 'vencido') stats.vencidos++;
@@ -162,14 +186,12 @@ const init = async () => {
         if(document.getElementById('stat-vencidos')) document.getElementById('stat-vencidos').textContent = stats.vencidos;
         if(document.getElementById('stat-sanciones')) document.getElementById('stat-sanciones').textContent = stats.sanciones;
 
-        lista.innerHTML = prestamos.length 
-            ? prestamos.map(renderPrestamo).join('') 
-            : '<div class="sin-prestamos"><h3>No tienes préstamos registrados</h3></div>';
-
     } catch (e) {
         console.error("Error al cargar:", e);
         if(lista) lista.innerHTML = `<div class="error">${e.message}</div>`;
     }
 };
+
+document.addEventListener('DOMContentLoaded', init);
 
 document.addEventListener('DOMContentLoaded', init);
