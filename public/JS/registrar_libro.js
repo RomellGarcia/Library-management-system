@@ -105,7 +105,7 @@ async function manejarEnvio(e) {
 
     const btn = document.getElementById('btnGuardar');
     
-    // Captura de valores para validar
+    // 1. Captura de valores
     const titulo = document.getElementById('vchtitulo').value.trim();
     const autor = document.getElementById('vchautor').value.trim();
     const anio = document.getElementById('intanio').value;
@@ -113,14 +113,12 @@ async function manejarEnvio(e) {
     const folio = document.getElementById('vchfolio').value.trim();
     const isEditar = document.getElementById('vchfolio').readOnly;
 
-
-    //Validar campos obligatorios
+    // 2. Validaciones básicas
     if (!folio || !titulo || !autor || !categoria) {
         alert("¡Atención! Todos los campos marcados son obligatorios.");
         return;
     }
 
-    //Validar que el año sea un número de 4 dígitos lógico
     const anioNum = parseInt(anio);
     const anioActual = new Date().getFullYear();
     if (anio && (isNaN(anioNum) || anioNum < 1000 || anioNum > anioActual)) {
@@ -128,14 +126,13 @@ async function manejarEnvio(e) {
         return;
     }
 
-    //Validar imagen solo si es registro nuevo
     const archivoImagen = document.getElementById('imagen').files[0];
     if (!isEditar && !archivoImagen) {
         alert("Es obligatorio subir una imagen para registrar un libro nuevo.");
         return;
     }
 
-    // Si todo está bien, procedemos
+    // 3. Preparar el envío (Bloqueamos botón y creamos FormData)
     btn.disabled = true;
     btn.textContent = 'Guardando...';
 
@@ -149,7 +146,13 @@ async function manejarEnvio(e) {
     formData.append('vchsinopsis', document.getElementById('vchsinopsis').value.trim());
     formData.append('intidcategoria', categoria);
 
-    if (archivoImagen) formData.append('imagen', archivoImagen);
+    // Lógica de imagen: Si hay archivo nuevo se envía, si no y es edición, enviamos la URL actual
+    if (archivoImagen) {
+        formData.append('imagen', archivoImagen);
+    } else if (isEditar) {
+        const imagenActual = document.getElementById('imagenActual').src;
+        formData.append('vchimagen', imagenActual); 
+    }
 
     try {
         const token = localStorage.getItem('token');
@@ -164,12 +167,20 @@ async function manejarEnvio(e) {
             body: formData
         });
 
-        const data = await res.json();
+        // Leemos la respuesta como texto primero para evitar el error de JSON.parse
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (err) {
+            throw new Error("El servidor no respondió con un formato válido. Revisa Vercel.");
+        }
 
         if (data.success) {
             alert(isEditar ? '¡Éxito! Libro actualizado.' : '¡Éxito! Libro registrado en la Biblioteca UTHH.');
             window.location.href = obtenerRuta('/HTML/listado_libros.html');
         } else {
+            // Aquí data ya no es un [object Object], es el error real
             throw new Error(data.error || 'Error en el servidor');
         }
     } catch (error) {
