@@ -88,10 +88,10 @@ async function cargarCategorias() {
                 iconContainer.className = 'category-icon';
 
                 const img = document.createElement('img');
-                if (categoria.icono && categoria.icono.startsWith('data:image')) {
-                    img.src = categoria.icono; 
+                if (categoria.icono && categoria.icono.startsWith('http')) {
+                    img.src = categoria.icono;
                 } else {
-                    img.src = obtenerRuta('/images/categorias/Ciencias.png'); 
+                    img.src = obtenerRuta('/images/categorias/default.png');
                 }
 
                 img.alt = categoria.vchcategoria;
@@ -100,9 +100,9 @@ async function cargarCategorias() {
                 img.style.objectFit = 'contain';
 
                 img.onerror = function () {
-                    this.src = obtenerRuta('/images/categorias/Ciencias.png');
+                    this.onerror = null; // Evitar loop infinito
+                    this.style.display = 'none';
                 };
-
                 iconContainer.appendChild(img);
 
                 const title = document.createElement('h3');
