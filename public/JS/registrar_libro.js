@@ -32,34 +32,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function cargarCategorias() {
     try {
-        const token = localStorage.getItem('token');
-        // Usamos la URL correcta según tu backend
-        const res = await fetch(`${CONFIG.BASE_URL}/api/libros/categorias`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        // Si la respuesta no es 200 OK, lanzamos error para ver qué pasó
+        const res = await fetch(`${CONFIG.BASE_URL}/api/libros/categorias`);
         if (!res.ok) {
-            const textoError = await res.text();
-            console.error("Respuesta del servidor no es JSON:", textoError);
-            return;
+            throw new Error(`Error en el servidor: ${res.status}`);
         }
 
         const data = await res.json();
-        
-        // Ajustamos según la estructura que envíe tu API (data.data o data directamente)
-        const listaCategorias = data.data || data; 
+        if (!data.success || !data.data) return;
 
         const select = document.getElementById('intidcategoria');
-        select.innerHTML = '<option value="">-- Seleccione una categoría --</option>'; // Limpiar
+        select.innerHTML = '<option value="">-- Seleccione una categoría --</option>';
 
-        listaCategorias.forEach(cat => {
+        data.data.forEach(cat => {
             const opt = document.createElement('option');
-            // Asegúrate de que estos nombres (intidcategoria, vchcategoria) sean los que manda tu API
             opt.value = cat.intidcategoria;
-            opt.textContent = cat.vchcategoria || cat.vchnombre; 
+            opt.textContent = cat.vchcategoria || cat.vchnombre || 'Sin nombre';
             select.appendChild(opt);
         });
+        
+        console.log("Categorías cargadas correctamente");
     } catch (e) {
         console.error('Error cargando categorías:', e);
     }
