@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Libros - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #A02142, #A02142);
+            color: #fff;
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #ecf0f1;
+            text-align: left;
+            font-size: 15px;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .libro-thumb {
+            width: 50px;
+            height: 68px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .thumb-placeholder {
+            width: 50px;
+            height: 68px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #999;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .edit-btn {
+            background: #3498db;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background .2s;
+        }
+
+        .edit-btn:hover {
+            background: #2980b9;
+        }
+
+        .manage-ejemplares-btn {
+            background: #BC955B;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background .2s;
+        }
+
+        .manage-ejemplares-btn:hover {
+            background: #a07d40;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: background .2s;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .btn-pagina {
+            display: inline-block;
+            padding: 8px 18px;
+            background: #A02142;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background .2s;
+        }
+
+        .btn-pagina:hover {
+            background: #8a1c38;
+        }
+
+        .btn-pagina:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .paginacion {
+            margin-top: 24px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .secondary-button {
+            display: inline-block;
+            background: #A02142;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 20px;
+            transition: background .2s;
+        }
+
+        .secondary-button:hover {
+            background: #8a1c38;
+        }
+
+        #buscadorLibros {
+            width: 100%;
+            max-width: 500px;
+            padding: 10px 15px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color .2s;
+        }
+
+        #buscadorLibros:focus {
+            outline: none;
+            border-color: #BC955B;
+        }
+
+        #msgTabla {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body class="pagina-sesion">
+
+    <script src="../JS/config.js"></script>
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/header.js"></script>
+
+    <main class="container">
+        <a id="btnVolver" href="#" class="boton-volver-detalle">
+            <span>←</span>
+            <span>Volver al inicio</span>
+        </a>
+        <script>document.getElementById('btnVolver').href = obtenerRuta('/index.html');</script>
+
+        <section class="tarjeta-datos">
+            <h2>Gestión de Libros</h2>
+
+            <a id="btnAñadir" href="#" class="secondary-button">+ Añadir Nuevo Libro</a>
+            <script>document.getElementById('btnAñadir').href = obtenerRuta('/HTML/registrar_libro.html');</script>
+
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="buscadorLibros" placeholder="Buscar por título, autor o folio...">
+            </div>
+
+            <div class="tabla-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Folio</th>
+                            <th>Título</th>
+                            <th>Autor</th>
+                            <th>Categoría</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaLibros">
+                        <tr>
+                            <td colspan="6" id="msgTabla">Cargando libros...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="paginacion" id="paginacion" style="display:none;">
+                <button class="btn-pagina" id="btnAnterior" onclick="cambiarPagina(-1)">← Anterior</button>
+                <span id="infoPagina" style="font-weight:600; color:#4a5568;"></span>
+                <button class="btn-pagina" id="btnSiguiente" onclick="cambiarPagina(1)">Siguiente →</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/config.js"></script>
+    <script src="../JS/header.js"></script>
+    <script src="../JS/footer.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script src="../JS/listado_libros.js"></script>
+    <script src="../JS/session_handler.js"></script>
+</body>
+
+</html>
