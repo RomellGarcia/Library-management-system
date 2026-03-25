@@ -30,18 +30,32 @@ const etiquetaEstado = (estado) => {
 };
 
 const obtenerPrestamos = async (matricula) => {
-    // Usamos CONFIG.BASE_URL si existe (ya que session_handler lo usa)
-    const API_URL = typeof CONFIG !== 'undefined' ? CONFIG.BASE_URL : 'http://localhost:3000';
+    // Usamos la URL de Vercel directamente si CONFIG no está definido
+    const API_URL = "https://api-biblioteca-uthh.vercel.app"; 
     const token = localStorage.getItem('token');
 
+    // Si no hay token, ni siquiera intentamos la petición
+    if (!token) {
+        throw new Error("No hay token de sesión disponible.");
+    }
+
     const respuesta = await fetch(`${API_URL}/api/prestamos/misprestamos/${matricula}`, {
+        method: 'GET',
         headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Authorization': `Bearer ${token}`, // Verifica que el backend espere "Bearer "
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
     });
 
-    if (!respuesta.ok) throw new Error(`Error API: ${respuesta.status}`);
+    if (respuesta.status === 403) {
+        throw new Error("No tienes permiso para ver estos préstamos (403). Revisa tu sesión.");
+    }
+
+    if (!respuesta.ok) {
+        throw new Error(`Error API: ${respuesta.status}`);
+    }
+
     return await respuesta.json();
 };
 
