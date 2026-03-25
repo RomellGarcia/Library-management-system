@@ -87,12 +87,16 @@ const renderPrestamo = (prestamo) => {
 
 // 5. INICIALIZACIÓN
 const init = async () => {
-    const matricula = await window.verificarSesion();
+    const usuario = await window.verificarSesion();
 
-    const idRol = localStorage.getItem('usuario_idrol');
+    const matricula = usuario ? usuario.matricula : null;
     
-    // Si no hay matrícula o el rol no es 3, detenemos la ejecución
-    if (!matricula) return;
+    const idRol = localStorage.getItem('usuario_idrol');
+
+    if (!matricula) {
+        console.error("No se encontró la matrícula en el objeto de sesión");
+        return;
+    }
 
     if (idRol && parseInt(idRol) !== 3) {
         window.location.href = 'index.html';
@@ -104,7 +108,6 @@ const init = async () => {
         const data = await obtenerPrestamos(matricula);
         const prestamos = Array.isArray(data) ? data : [];
 
-        // Lógica de estadísticas
         const stats = { activos: 0, devueltos: 0, vencidos: 0, sanciones: 0 };
         prestamos.forEach(p => {
             const e = obtenerEstado(p);
@@ -115,7 +118,6 @@ const init = async () => {
             if (parseFloat(p.flmontosancion) > 0 && p.boolsancion == 0) stats.sanciones++;
         });
 
-        // Actualizar la interfaz
         if(document.getElementById('stat-activos')) document.getElementById('stat-activos').textContent = stats.activos;
         if(document.getElementById('stat-devueltos')) document.getElementById('stat-devueltos').textContent = stats.devueltos;
         if(document.getElementById('stat-vencidos')) document.getElementById('stat-vencidos').textContent = stats.vencidos;
@@ -130,5 +132,6 @@ const init = async () => {
         if(lista) lista.innerHTML = '<div class="error">No se pudieron cargar tus préstamos.</div>';
     }
 };
+
 
 document.addEventListener('DOMContentLoaded', init);
