@@ -104,94 +104,84 @@ async function manejarEnvio(e) {
     e.preventDefault();
 
     const btn = document.getElementById('btnGuardar');
-    btn.disabled = true;
-    btn.textContent = 'Guardando...';
-    ocultarMensaje();
-
-    const folio = document.getElementById('vchfolio').value.trim();
-    const isEditar = document.getElementById('vchfolio').readOnly;
-    // ... dentro de manejarEnvio(e) ...
+    
+    // Captura de valores para validar
     const titulo = document.getElementById('vchtitulo').value.trim();
     const autor = document.getElementById('vchautor').value.trim();
     const anio = document.getElementById('intanio').value;
     const categoria = document.getElementById('intidcategoria').value;
-    
-    if (!titulo || !autor || !categoria) {
-        mostrarMensaje('El título, autor y categoría son obligatorios.', 'err');
-        btn.disabled = false;
-        btn.textContent = isEditar ? 'Actualizar Libro' : 'Añadir Libro';
+    const folio = document.getElementById('vchfolio').value.trim();
+    const isEditar = document.getElementById('vchfolio').readOnly;
+
+    // --- ASEGURAMIENTOS NATIVOS ---
+
+    // 1. Validar campos obligatorios
+    if (!folio || !titulo || !autor || !categoria) {
+        alert("¡Atención! Todos los campos marcados son obligatorios.");
         return;
     }
 
-    const añoActual = new Date().getFullYear();
-    if (anio && (isNaN(anio) || anio < 1000 || anio > añoActual)) {
-        mostrarMensaje(`Por favor ingresa un año válido (entre 1000 y ${añoActual}).`, 'err');
-        btn.disabled = false;
-        btn.textContent = isEditar ? 'Actualizar Libro' : 'Añadir Libro';
+    // 2. Validar que el año sea un número de 4 dígitos lógico
+    const anioNum = parseInt(anio);
+    const anioActual = new Date().getFullYear();
+    if (anio && (isNaN(anioNum) || anioNum < 1000 || anioNum > anioActual)) {
+        alert(`El año debe ser un número entre 1000 y ${anioActual}`);
         return;
     }
 
-    // Construir FormData para poder enviar archivo
+    // 3. Validar imagen solo si es registro nuevo
+    const archivoImagen = document.getElementById('imagen').files[0];
+    if (!isEditar && !archivoImagen) {
+        alert("Es obligatorio subir una imagen para registrar un libro nuevo.");
+        return;
+    }
+
+    // Si todo está bien, procedemos
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
     const formData = new FormData();
     formData.append('vchfolio', folio);
-    formData.append('vchtitulo', document.getElementById('vchtitulo').value.trim());
-    formData.append('vchautor', document.getElementById('vchautor').value.trim());
+    formData.append('vchtitulo', titulo);
+    formData.append('vchautor', autor);
     formData.append('vcheditorial', document.getElementById('vcheditorial').value.trim());
-    formData.append('intanio', document.getElementById('intanio').value);
+    formData.append('intanio', anio);
     formData.append('vchisbn', document.getElementById('vchisbn').value.trim());
     formData.append('vchsinopsis', document.getElementById('vchsinopsis').value.trim());
-    formData.append('intidcategoria', document.getElementById('intidcategoria').value);
+    formData.append('intidcategoria', categoria);
 
-    const archivoImagen = document.getElementById('imagen').files[0];
-    if (archivoImagen) {
-        formData.append('imagen', archivoImagen);
-    } else if (!isEditar) {
-        mostrarMensaje('Debes seleccionar una imagen para el libro.', 'err');
-        btn.disabled = false;
-        btn.textContent = 'Añadir Libro';
-        return;
-    }
+    if (archivoImagen) formData.append('imagen', archivoImagen);
 
     try {
         const token = localStorage.getItem('token');
         const method = isEditar ? 'PUT' : 'POST';
         const url = isEditar
-            ? `${CONFIG.BASE_URL}/api/libros/actualizar/${encodeURIComponent(folio)}`
+            ? `${CONFIG.BASE_URL}/api/libros/actualizar/${encodeURIComponent(folio)}` 
             : `${CONFIG.BASE_URL}/api/libros/registrar`;
 
         const res = await fetch(url, {
             method,
             headers: { 'Authorization': `Bearer ${token}` },
-            // NO ponemos Content-Type: el navegador lo fija solo con el boundary de FormData
             body: formData
         });
 
         const data = await res.json();
 
         if (data.success) {
-            mostrarMensaje(
-                isEditar ? 'Libro actualizado correctamente.' : 'Libro registrado correctamente.',
-                'ok'
-            );
-            setTimeout(() => {
-                window.location.href = obtenerRuta('/HTML/listado_libros.html');
-            }, 1200);
+            alert(isEditar ? '¡Éxito! Libro actualizado.' : '¡Éxito! Libro registrado en la Biblioteca UTHH.');
+            window.location.href = obtenerRuta('/HTML/listado_libros.html');
         } else {
-            throw new Error(data.error || data.message || 'Error al guardar');
+            throw new Error(data.error || 'Error en el servidor');
         }
     } catch (error) {
-        console.error('Error:', error);
-        mostrarMensaje('Error al guardar: ' + error.message, 'err');
+        alert('Hubo un problema: ' + error.message);
         btn.disabled = false;
         btn.textContent = isEditar ? 'Actualizar Libro' : 'Añadir Libro';
     }
 }
 
 function mostrarMensaje(texto, tipo) {
-    const el = document.getElementById('msgResultado');
-    el.textContent = texto;
-    el.className = tipo;
-    el.style.display = 'block';
+    alert(texto); 
 }
 
 function ocultarMensaje() {
