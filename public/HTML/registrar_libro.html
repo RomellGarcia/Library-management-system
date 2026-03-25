@@ -138,7 +138,6 @@
 
 <body class="pagina-sesion">
     <main class="contenedor-perfil" style="padding: 30px 20px;">
-        <script>document.getElementById('btnVolverLibros').href = obtenerRuta('/HTML/listado_libros.html');</script>
 
         <section class="tarjeta-datos">
             <h2 id="tituloFormulario">Registrar Nuevo Libro</h2>
@@ -215,18 +214,17 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const asignarRuta = (id, path) => {
+        const configurarEnlace = (id, path) => {
             const el = document.getElementById(id);
             if (el) {
                 el.href = typeof obtenerRuta === 'function' ? obtenerRuta(path) : path;
             }
         };
 
-        asignarRuta('btnCancelar', '/HTML/listado_libros.html');
-        asignarRuta('btnVolver', '/HTML/listado_libros.html');
-        asignarRuta('btnVolverLibros', '/HTML/listado_libros.html');
+        configurarEnlace('btnCancelar', '/HTML/listado_libros.html');
+        configurarEnlace('btnVolverLibros', '/HTML/listado_libros.html');
     });
-</script>
+    </script>
 </body>
 
 </html>
