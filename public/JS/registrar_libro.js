@@ -113,15 +113,14 @@ async function manejarEnvio(e) {
     const folio = document.getElementById('vchfolio').value.trim();
     const isEditar = document.getElementById('vchfolio').readOnly;
 
-    // --- ASEGURAMIENTOS NATIVOS ---
 
-    // 1. Validar campos obligatorios
+    //Validar campos obligatorios
     if (!folio || !titulo || !autor || !categoria) {
         alert("¡Atención! Todos los campos marcados son obligatorios.");
         return;
     }
 
-    // 2. Validar que el año sea un número de 4 dígitos lógico
+    //Validar que el año sea un número de 4 dígitos lógico
     const anioNum = parseInt(anio);
     const anioActual = new Date().getFullYear();
     if (anio && (isNaN(anioNum) || anioNum < 1000 || anioNum > anioActual)) {
@@ -129,7 +128,7 @@ async function manejarEnvio(e) {
         return;
     }
 
-    // 3. Validar imagen solo si es registro nuevo
+    //Validar imagen solo si es registro nuevo
     const archivoImagen = document.getElementById('imagen').files[0];
     if (!isEditar && !archivoImagen) {
         alert("Es obligatorio subir una imagen para registrar un libro nuevo.");
