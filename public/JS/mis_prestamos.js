@@ -30,11 +30,9 @@ const etiquetaEstado = (estado) => {
 };
 
 const obtenerPrestamos = async (matricula) => {
-    // Usamos la URL de Vercel directamente si CONFIG no está definido
     const API_URL = "https://api-biblioteca-uthh.vercel.app"; 
     const token = localStorage.getItem('token');
 
-    // Si no hay token, ni siquiera intentamos la petición
     if (!token) {
         throw new Error("No hay token de sesión disponible.");
     }
@@ -42,14 +40,14 @@ const obtenerPrestamos = async (matricula) => {
     const respuesta = await fetch(`${API_URL}/api/prestamos/misprestamos/${matricula}`, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${token}`, // Verifica que el backend espere "Bearer "
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
     });
 
     if (respuesta.status === 403) {
-        throw new Error("No tienes permiso para ver estos préstamos (403). Revisa tu sesión.");
+        throw new Error("No tienes permiso para ver estos préstamos (403).");
     }
 
     if (!respuesta.ok) {
@@ -91,8 +89,23 @@ const renderPrestamo = (prestamo) => {
 };
 
 const init = async () => {
-    // Obtenemos la matrícula directamente del localStorage, que ya vimos que ahí está
-    const matricula = localStorage.getItem('usuario_matricula');
+    // Intentamos obtener la matrícula del objeto 'usuario' en localStorage
+    const usuarioStored = localStorage.getItem('usuario');
+    let matricula = null;
+
+    if (usuarioStored) {
+        try {
+            const userObj = JSON.parse(usuarioStored);
+            matricula = userObj.matricula || userObj.id;
+        } catch (e) {
+            console.error("Error al parsear el objeto usuario");
+        }
+    }
+
+    // Si no funcionó, intentamos buscar la matrícula directa
+    if (!matricula) {
+        matricula = localStorage.getItem('usuario_matricula');
+    }
     
     if (!matricula) {
         console.error("No se encontró matrícula en el almacenamiento.");
@@ -101,14 +114,12 @@ const init = async () => {
 
     const lista = document.getElementById('lista-prestamos');
     try {
-        // Hacemos la petición a la API
         const data = await obtenerPrestamos(matricula);
         const prestamos = Array.isArray(data) ? data : [];
 
-        // Lógica de estadísticas (Activos, Devueltos, etc.)
         const stats = { activos: 0, devueltos: 0, vencidos: 0, sanciones: 0 };
         prestamos.forEach(p => {
-            const e = obtenerEstado(p); // Esta función ya la tienes en tu código
+            const e = obtenerEstado(p);
             if (e === 'devuelto') stats.devueltos++;
             else if (e === 'vencido') stats.vencidos++;
             else stats.activos++;
@@ -116,22 +127,20 @@ const init = async () => {
             if (parseFloat(p.flmontosancion) > 0 && parseInt(p.boolsancion) === 0) stats.sanciones++;
         });
 
-        // Actualizar los números de las cajas
-        document.getElementById('stat-activos').textContent = stats.activos;
-        document.getElementById('stat-devueltos').textContent = stats.devueltos;
-        document.getElementById('stat-vencidos').textContent = stats.vencidos;
-        document.getElementById('stat-sanciones').textContent = stats.sanciones;
+        // Actualizar estadísticas en el HTML
+        if(document.getElementById('stat-activos')) document.getElementById('stat-activos').textContent = stats.activos;
+        if(document.getElementById('stat-devueltos')) document.getElementById('stat-devueltos').textContent = stats.devueltos;
+        if(document.getElementById('stat-vencidos')) document.getElementById('stat-vencidos').textContent = stats.vencidos;
+        if(document.getElementById('stat-sanciones')) document.getElementById('stat-sanciones').textContent = stats.sanciones;
 
-        // Renderizar las tarjetas de los préstamos
         lista.innerHTML = prestamos.length 
             ? prestamos.map(renderPrestamo).join('') 
             : '<div class="sin-prestamos"><h3>No tienes préstamos registrados</h3></div>';
 
     } catch (e) {
         console.error("Error al cargar:", e);
-        if(lista) lista.innerHTML = '<div class="error">Error al conectar con el servidor.</div>';
+        if(lista) lista.innerHTML = `<div class="error">${e.message}</div>`;
     }
 };
 
-// Esperamos a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', init);
