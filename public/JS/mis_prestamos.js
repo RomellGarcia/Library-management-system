@@ -52,7 +52,7 @@ const obtenerPrestamos = async (matricula) => {
     const API_URL = typeof getApiUrl === 'function' ? getApiUrl() : '';
     const token = localStorage.getItem('token');
 
-    const respuesta = await fetch(`${API_URL}/api/misprestamos/${matricula}`, {
+    const respuesta = await fetch(`${API_URL}/api/prestamos/misprestamos/${matricula}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
