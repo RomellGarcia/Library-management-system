@@ -66,6 +66,7 @@ const obtenerPrestamos = async (matricula) => {
     return await respuesta.json();
 };
 
+
 const calcularEstadisticas = (prestamos) => {
     let activos = 0, devueltos = 0, vencidos = 0;
     let sancionesPendientes = 0, montoTotal = 0;
@@ -88,6 +89,7 @@ const calcularEstadisticas = (prestamos) => {
 
     return { activos, devueltos, vencidos, sancionesPendientes, montoTotal };
 };
+
 
 const renderPrestamo = (prestamo) => {
     const estado = prestamo.estado ?? obtenerEstado(prestamo);
@@ -159,16 +161,13 @@ const renderPrestamo = (prestamo) => {
 const renderLista = (prestamos) => {
     const lista = document.getElementById('lista-prestamos');
 
-    if (!prestamos.length) {
-        lista.innerHTML = `
-            <div class="sin-prestamos">
+    // Siempre reemplaza el contenido (limpia el "Cargando...")
+    lista.innerHTML = prestamos.length
+        ? prestamos.map(renderPrestamo).join('')
+        : `<div class="sin-prestamos">
                 <h3>No tienes préstamos registrados</h3>
                 <p>Cuando solicites un libro en préstamo, aparecerá aquí.</p>
-            </div>`;
-        return;
-    }
-
-    lista.innerHTML = prestamos.map(renderPrestamo).join('');
+           </div>`;
 };
 
 const renderEstadisticas = ({ activos, devueltos, vencidos, sancionesPendientes, montoTotal }) => {
@@ -206,14 +205,20 @@ const iniciarFiltros = () => {
     });
 };
 
+
 const init = async () => {
     const matricula = verificarSesion();
     if (!matricula) return;
 
-    try {
-        const prestamos = await obtenerPrestamos(matricula);
-        const stats = calcularEstadisticas(prestamos);
+    const lista = document.getElementById('lista-prestamos');
 
+    try {
+        const data = await obtenerPrestamos(matricula);
+
+        // Asegurar que sea un arreglo aunque la API devuelva otro formato
+        const prestamos = Array.isArray(data) ? data : [];
+
+        const stats = calcularEstadisticas(prestamos);
         renderEstadisticas(stats);
         renderLista(prestamos);
         iniciarFiltros();
@@ -224,7 +229,8 @@ const init = async () => {
         mensajeError.textContent = `Error al cargar préstamos: ${error.message}`;
         mensajeError.style.display = 'block';
 
-        document.getElementById('lista-prestamos').innerHTML = `
+        // Siempre limpiar el estado de carga aunque falle
+        lista.innerHTML = `
             <div class="sin-prestamos">
                 <h3>No se pudieron cargar los préstamos</h3>
                 <p>Intenta recargar la página.</p>
