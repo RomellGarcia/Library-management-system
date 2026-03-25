@@ -87,33 +87,35 @@ const renderPrestamo = (prestamo) => {
 
 // 5. INICIALIZACIÓN
 const init = async () => {
-    // Usamos la función global verificarSesion (venga de donde venga)
-    const matricula = window.verificarSesion();
-    
-    // Validación de seguridad específica para esta página (Rol 3)
+    const matricula = await window.verificarSesion();
+
     const idRol = localStorage.getItem('usuario_idrol');
+    
+    // Si no hay matrícula o el rol no es 3, detenemos la ejecución
+    if (!matricula) return;
+
     if (idRol && parseInt(idRol) !== 3) {
         window.location.href = 'index.html';
         return;
     }
-
-    if (!matricula) return;
 
     const lista = document.getElementById('lista-prestamos');
     try {
         const data = await obtenerPrestamos(matricula);
         const prestamos = Array.isArray(data) ? data : [];
 
-        // Actualizar números de las cajas
+        // Lógica de estadísticas
         const stats = { activos: 0, devueltos: 0, vencidos: 0, sanciones: 0 };
         prestamos.forEach(p => {
             const e = obtenerEstado(p);
             if (e === 'devuelto') stats.devueltos++;
             else if (e === 'vencido') stats.vencidos++;
             else stats.activos++;
-            if (p.flmontosancion > 0 && p.boolsancion == 0) stats.sanciones++;
+            
+            if (parseFloat(p.flmontosancion) > 0 && p.boolsancion == 0) stats.sanciones++;
         });
 
+        // Actualizar la interfaz
         if(document.getElementById('stat-activos')) document.getElementById('stat-activos').textContent = stats.activos;
         if(document.getElementById('stat-devueltos')) document.getElementById('stat-devueltos').textContent = stats.devueltos;
         if(document.getElementById('stat-vencidos')) document.getElementById('stat-vencidos').textContent = stats.vencidos;
@@ -121,11 +123,11 @@ const init = async () => {
 
         lista.innerHTML = prestamos.length 
             ? prestamos.map(renderPrestamo).join('') 
-            : '<p>No hay préstamos.</p>';
+            : '<div class="sin-prestamos"><h3>No tienes préstamos registrados</h3></div>';
 
     } catch (e) {
-        console.error(e);
-        if(lista) lista.innerHTML = '<p>Error al cargar datos.</p>';
+        console.error("Error al cargar préstamos:", e);
+        if(lista) lista.innerHTML = '<div class="error">No se pudieron cargar tus préstamos.</div>';
     }
 };
 
