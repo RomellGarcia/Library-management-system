@@ -6,23 +6,8 @@
 
 const MESES_LABELS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
-const DATA = {
-  libros: [
-    { nombre: 'Cálculo Diferencial',    prestamos: [12,15,14,18,20,22,21,25,28,30,29,33] },
-    { nombre: 'Álgebra Lineal',         prestamos: [20,19,18,17,16,14,13,12,11,10,9,8]   },
-    { nombre: 'Programación en Python', prestamos: [8,10,11,14,16,18,22,24,26,28,31,35]  },
-    { nombre: 'Bases de Datos',         prestamos: [15,15,16,14,15,15,14,16,15,14,15,16] },
-    { nombre: 'Inglés Técnico',         prestamos: [18,17,15,13,12,10,9,8,7,7,6,5]       },
-    { nombre: 'Redes y Comunicaciones', prestamos: [6,7,9,10,12,13,15,16,18,20,21,23]    },
-  ],
-  categorias: [
-    { nombre: 'Matemáticas',   prestamos: [45,48,50,55,58,62,60,65,70,74,72,78] },
-    { nombre: 'Informática',   prestamos: [30,33,36,40,44,48,54,58,63,68,74,80] },
-    { nombre: 'Idiomas',       prestamos: [38,35,32,30,27,25,22,20,18,17,15,13] },
-    { nombre: 'Ingeniería',    prestamos: [20,21,20,22,21,23,22,24,23,25,24,26] },
-    { nombre: 'Humanidades',   prestamos: [14,13,12,11,10,9,8,7,7,6,5,5]        },
-  ]
-};
+const res = await fetch('https://tu-backend.vercel.app/api/reportes/prestamos-por-mes');
+const DATA = await res.json();
 
 // ═══════════════════════════════════════════════
 //  CÁLCULOS — Ley de Crecimiento y Decrecimiento
