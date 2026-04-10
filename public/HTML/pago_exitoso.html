@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Exitoso - Biblioteca UTHH</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .container-pago-exitoso {
+            max-width: 600px;
+            margin: 60px auto;
+            padding: 40px;
+            text-align: center;
+        }
+        .icono-exito {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            background: #2E7D32;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 60px;
+            font-weight: 700;
+        }
+        .icono-error {
+            background: #E65100;
+        }
+        .icono-loading {
+            background: #BC955B;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .mensaje-pago h1 {
+            color: #7A1832;
+            margin-bottom: 12px;
+            font-size: 1.8rem;
+        }
+        .mensaje-pago p {
+            color: #6B6B6B;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .detalle-pago {
+            background: #F0E6D3;
+            border: 1px solid #BC955B;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 24px 0;
+            text-align: left;
+        }
+        .detalle-pago div {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(188,149,91,0.3);
+        }
+        .detalle-pago div:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            color: #7A1832;
+            font-size: 1.1rem;
+            padding-top: 12px;
+        }
+        .btn-volver {
+            display: inline-block;
+            padding: 12px 32px;
+            background: #A02142;
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-volver:hover {
+            background: #7A1832;
+        }
+    </style>
+</head>
+<body>
+    <main class="container-pago-exitoso">
+        <div id="contenido-pago">
+            <div class="icono-exito icono-loading">...</div>
+            <div class="mensaje-pago">
+                <h1>Verificando tu pago</h1>
+                <p>Por favor espera un momento mientras confirmamos tu transaccion.</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="../JS/utils.js"></script>
+    <script src="../JS/config.js"></script>
+    <script src="../JS/session_handler.js"></script>
+    <script src="../JS/protect_route.js"></script>
+    <script>
+        (async function() {
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('session_id');
+            const contenido = document.getElementById('contenido-pago');
+
+            if (!sessionId) {
+                contenido.innerHTML = `
+                    <div class="icono-exito icono-error">!</div>
+                    <div class="mensaje-pago">
+                        <h1>Sesion no encontrada</h1>
+                        <p>No se proporciono informacion del pago.</p>
+                        <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const respuesta = await fetchConToken('/api/pagos/verificar-sesion/' + sessionId);
+                const data = await respuesta.json();
+
+                if (data.success && data.estado === 'paid') {
+                    contenido.innerHTML = `
+                        <div class="icono-exito">OK</div>
+                        <div class="mensaje-pago">
+                            <h1>Pago Realizado con Exito</h1>
+                            <p>Tu sancion ha sido liquidada correctamente. Ya puedes seguir usando los servicios de la biblioteca.</p>
+                            <div class="detalle-pago">
+                                <div><span>Ticket</span><span>${data.ticket || '---'}</span></div>
+                                <div><span>Monto pagado</span><span>$${data.monto.toFixed(2)} MXN</span></div>
+                            </div>
+                            <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
+                        </div>
+                    `;
+                } else {
+                    contenido.innerHTML = `
+                        <div class="icono-exito icono-error">!</div>
+                        <div class="mensaje-pago">
+                            <h1>Pago no completado</h1>
+                            <p>El pago aun no se ha confirmado. Si el problema persiste, contacta al personal de la biblioteca.</p>
+                            <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error verificando pago:', error);
+                contenido.innerHTML = `
+                    <div class="icono-exito icono-error">!</div>
+                    <div class="mensaje-pago">
+                        <h1>Error al verificar el pago</h1>
+                        <p>No pudimos verificar el estado de tu pago. Si el cargo aparece en tu tarjeta, contacta al personal de la biblioteca.</p>
+                        <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
+                    </div>
+                `;
+            }
+        })();
+    </script>
+</body>
+</html>
