@@ -60,19 +60,21 @@ const obtenerPrestamos = async (matricula) => {
 };
 
 // ============================================================
-// PAGO DE SANCIONES CON STRIPE
+// PAGO DE SANCIONES CON MERCADO PAGO
 // ============================================================
 window.pagarSancionAlm = async (ticket, monto) => {
-    // Confirmar antes de redirigir
     const confirmar = confirm(
         `Vas a pagar $${monto.toFixed(2)} MXN por la sancion del ticket ${ticket}.\n\n` +
-        `Seras redirigido al sitio seguro de Stripe para completar el pago.\n\n` +
+        `Seras redirigido a Mercado Pago donde podras pagar con:\n` +
+        `- Tarjeta de credito o debito\n` +
+        `- Efectivo en OXXO\n` +
+        `- Transferencia bancaria (SPEI)\n` +
+        `- Saldo de Mercado Pago\n\n` +
         `Continuar?`
     );
 
     if (!confirmar) return;
 
-    // Mostrar indicador de carga
     const botones = document.querySelectorAll('.btn-pagar');
     botones.forEach(btn => {
         btn.disabled = true;
@@ -80,7 +82,7 @@ window.pagarSancionAlm = async (ticket, monto) => {
     });
 
     try {
-        const respuesta = await fetchConToken('/api/pagos/crear-sesion', {
+        const respuesta = await fetchConToken('/api/pagos/crear-preferencia', {
             method: 'POST',
             body: JSON.stringify({ vchticket: ticket })
         });
@@ -88,17 +90,16 @@ window.pagarSancionAlm = async (ticket, monto) => {
         const data = await respuesta.json();
 
         if (!data.success) {
-            throw new Error(data.message || 'Error al crear la sesion de pago');
+            throw new Error(data.message || 'Error al crear la preferencia de pago');
         }
 
-        // Redirigir al checkout de Stripe
+        // Redirigir al checkout de Mercado Pago
         window.location.href = data.url;
 
     } catch (error) {
         console.error('Error al iniciar pago:', error);
         alert('No se pudo iniciar el pago: ' + error.message);
 
-        // Restaurar botones
         botones.forEach(btn => {
             btn.disabled = false;
             btn.textContent = 'Pagar Sancion';
@@ -132,9 +133,9 @@ const renderPrestamo = (prestamo) => {
             <div class="sancion-container" style="margin-top:10px; border-top:1px dashed #ccc; padding-top:10px; display:flex; justify-content:space-between; align-items:center;">
                 <span class="monto-deuda" style="color:#e74c3c; font-weight:bold;">Sanción: $${monto.toFixed(2)}</span>
                 <button class="btn-pagar"
-                        style="background:#e74c3c; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:600;"
+                        style="background:#009EE3; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:600;"
                         onclick="pagarSancionAlm('${prestamo.vchticket}', ${monto})">
-                    Pagar Sancion
+                    Pagar con Mercado Pago
                 </button>
             </div>`;
     } else if (monto > 0 && pagado === 1) {
@@ -164,7 +165,6 @@ const renderPrestamo = (prestamo) => {
         </article>`;
 };
 
-// Variable global para mantener los datos en memoria
 let todosLosPrestamos = [];
 
 const filtrarYRenderizar = () => {
@@ -184,17 +184,20 @@ const filtrarYRenderizar = () => {
     }
 };
 
-// Mostrar mensaje si el usuario regresa de un pago cancelado
+// Mostrar mensaje si el usuario regresa de un pago fallido o cancelado
 const verificarRetornoDePago = () => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('pago') === 'cancelado') {
+    const pagoEstado = params.get('pago');
+
+    if (pagoEstado === 'fallido' || pagoEstado === 'cancelado') {
         const div = document.createElement('div');
         div.style.cssText = 'background:#FFF3E0;border:1px solid #E65100;color:#E65100;padding:14px 20px;border-radius:10px;margin-bottom:20px;font-weight:600;';
-        div.textContent = 'El pago fue cancelado. Puedes intentarlo de nuevo cuando quieras.';
+        div.textContent = pagoEstado === 'fallido'
+            ? 'El pago no pudo completarse. Puedes intentarlo de nuevo cuando quieras.'
+            : 'El pago fue cancelado. Puedes intentarlo de nuevo cuando quieras.';
         const main = document.querySelector('main');
         if (main) main.insertBefore(div, main.firstChild);
 
-        // Limpiar la URL
         window.history.replaceState({}, '', window.location.pathname);
     }
 };

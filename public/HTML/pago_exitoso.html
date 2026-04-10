@@ -12,7 +12,7 @@
             padding: 40px;
             text-align: center;
         }
-        .icono-exito {
+        .icono-pago {
             width: 100px;
             height: 100px;
             margin: 0 auto 24px;
@@ -22,13 +22,13 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 60px;
+            font-size: 48px;
             font-weight: 700;
+            font-family: 'Playfair Display', serif;
         }
-        .icono-error {
-            background: #E65100;
-        }
-        .icono-loading {
+        .icono-pago.error { background: #E65100; }
+        .icono-pago.pendiente { background: #F9A825; }
+        .icono-pago.loading {
             background: #BC955B;
             animation: pulse 1.5s ease-in-out infinite;
         }
@@ -59,6 +59,7 @@
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px solid rgba(188,149,91,0.3);
+            font-size: 0.92rem;
         }
         .detalle-pago div:last-child {
             border-bottom: none;
@@ -67,6 +68,8 @@
             font-size: 1.1rem;
             padding-top: 12px;
         }
+        .detalle-pago .label { color: #6B6B6B; }
+        .detalle-pago .valor { color: #2D2D2D; font-weight: 600; }
         .btn-volver {
             display: inline-block;
             padding: 12px 32px;
@@ -76,19 +79,36 @@
             text-decoration: none;
             font-weight: 600;
             transition: background 0.2s;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
         }
-        .btn-volver:hover {
-            background: #7A1832;
+        .btn-volver:hover { background: #7A1832; }
+        .btn-secundario {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #fff;
+            color: #A02142;
+            border: 2px solid #A02142;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-right: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
         }
+        .btn-secundario:hover { background: #F0E6D3; }
     </style>
 </head>
 <body>
     <main class="container-pago-exitoso">
         <div id="contenido-pago">
-            <div class="icono-exito icono-loading">...</div>
+            <div class="icono-pago loading">...</div>
             <div class="mensaje-pago">
                 <h1>Verificando tu pago</h1>
-                <p>Por favor espera un momento mientras confirmamos tu transaccion.</p>
+                <p>Por favor espera un momento mientras confirmamos tu transaccion con Mercado Pago.</p>
             </div>
         </div>
     </main>
@@ -100,14 +120,15 @@
     <script>
         (async function() {
             const params = new URLSearchParams(window.location.search);
-            const sessionId = params.get('session_id');
+            const externalRef = params.get('ref');
+            const estadoUrl = params.get('estado'); // 'pendiente' si viene de OXXO/SPEI
             const contenido = document.getElementById('contenido-pago');
 
-            if (!sessionId) {
+            if (!externalRef) {
                 contenido.innerHTML = `
-                    <div class="icono-exito icono-error">!</div>
+                    <div class="icono-pago error">!</div>
                     <div class="mensaje-pago">
-                        <h1>Sesion no encontrada</h1>
+                        <h1>Referencia no encontrada</h1>
                         <p>No se proporciono informacion del pago.</p>
                         <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
                     </div>
@@ -115,40 +136,93 @@
                 return;
             }
 
-            try {
-                const respuesta = await fetchConToken('/api/pagos/verificar-sesion/' + sessionId);
-                const data = await respuesta.json();
+            // Intentar verificar el pago varias veces porque el webhook de MP puede tardar unos segundos
+            let intentos = 0;
+            const maxIntentos = 6;
+            let pago = null;
 
-                if (data.success && data.estado === 'paid') {
-                    contenido.innerHTML = `
-                        <div class="icono-exito">OK</div>
-                        <div class="mensaje-pago">
-                            <h1>Pago Realizado con Exito</h1>
-                            <p>Tu sancion ha sido liquidada correctamente. Ya puedes seguir usando los servicios de la biblioteca.</p>
-                            <div class="detalle-pago">
-                                <div><span>Ticket</span><span>${data.ticket || '---'}</span></div>
-                                <div><span>Monto pagado</span><span>$${data.monto.toFixed(2)} MXN</span></div>
-                            </div>
-                            <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
-                        </div>
-                    `;
-                } else {
-                    contenido.innerHTML = `
-                        <div class="icono-exito icono-error">!</div>
-                        <div class="mensaje-pago">
-                            <h1>Pago no completado</h1>
-                            <p>El pago aun no se ha confirmado. Si el problema persiste, contacta al personal de la biblioteca.</p>
-                            <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
-                        </div>
-                    `;
+            while (intentos < maxIntentos) {
+                try {
+                    const respuesta = await fetchConToken('/api/pagos/verificar/' + externalRef);
+                    const data = await respuesta.json();
+
+                    if (data.success) {
+                        pago = data;
+                        // Si ya esta completado, salir del loop
+                        if (pago.estado === 'completado') break;
+                        // Si esta fallido o cancelado, tambien salir
+                        if (pago.estado === 'fallido' || pago.estado === 'cancelado') break;
+                    }
+                } catch (error) {
+                    console.error('Error verificando pago:', error);
                 }
-            } catch (error) {
-                console.error('Error verificando pago:', error);
+
+                intentos++;
+                if (intentos < maxIntentos) {
+                    // Esperar 2 segundos antes de reintentar (para dar tiempo al webhook)
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+            }
+
+            if (!pago) {
                 contenido.innerHTML = `
-                    <div class="icono-exito icono-error">!</div>
+                    <div class="icono-pago error">!</div>
                     <div class="mensaje-pago">
-                        <h1>Error al verificar el pago</h1>
-                        <p>No pudimos verificar el estado de tu pago. Si el cargo aparece en tu tarjeta, contacta al personal de la biblioteca.</p>
+                        <h1>Error al verificar</h1>
+                        <p>No pudimos verificar el estado de tu pago. Si el cargo aparece en tu cuenta, contacta al personal de la biblioteca.</p>
+                        <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // Renderizar segun estado
+            if (pago.estado === 'completado') {
+                contenido.innerHTML = `
+                    <div class="icono-pago">OK</div>
+                    <div class="mensaje-pago">
+                        <h1>Pago Realizado con Exito</h1>
+                        <p>Tu sancion ha sido liquidada correctamente. Ya puedes seguir usando los servicios de la biblioteca.</p>
+                        <div class="detalle-pago">
+                            <div><span class="label">Ticket</span><span class="valor">${pago.ticket || '---'}</span></div>
+                            <div><span class="label">Libro</span><span class="valor">${pago.libro || '---'}</span></div>
+                            <div><span class="label">ID de transaccion</span><span class="valor">${pago.paymentId || '---'}</span></div>
+                            <div><span class="label">Metodo</span><span class="valor">Mercado Pago</span></div>
+                            <div><span class="label">Monto pagado</span><span class="valor">$${pago.monto.toFixed(2)} MXN</span></div>
+                        </div>
+                        <button class="btn-secundario" onclick="window.print()">Imprimir comprobante</button>
+                        <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
+                    </div>
+                `;
+            } else if (pago.estado === 'pendiente') {
+                contenido.innerHTML = `
+                    <div class="icono-pago pendiente">...</div>
+                    <div class="mensaje-pago">
+                        <h1>Pago Pendiente de Confirmacion</h1>
+                        <p>Tu pago esta siendo procesado. Si elegiste pagar en OXXO o por transferencia SPEI, tu sancion se liquidara automaticamente una vez que Mercado Pago confirme el pago (puede tardar desde unos minutos hasta 24 horas).</p>
+                        <div class="detalle-pago">
+                            <div><span class="label">Ticket</span><span class="valor">${pago.ticket || '---'}</span></div>
+                            <div><span class="label">Libro</span><span class="valor">${pago.libro || '---'}</span></div>
+                            <div><span class="label">Monto</span><span class="valor">$${pago.monto.toFixed(2)} MXN</span></div>
+                        </div>
+                        <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
+                    </div>
+                `;
+            } else if (pago.estado === 'fallido') {
+                contenido.innerHTML = `
+                    <div class="icono-pago error">X</div>
+                    <div class="mensaje-pago">
+                        <h1>Pago No Realizado</h1>
+                        <p>El pago fue rechazado. Puedes intentarlo nuevamente con otra tarjeta o metodo de pago.</p>
+                        <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
+                    </div>
+                `;
+            } else {
+                contenido.innerHTML = `
+                    <div class="icono-pago error">?</div>
+                    <div class="mensaje-pago">
+                        <h1>Estado desconocido</h1>
+                        <p>No pudimos determinar el estado de tu pago. Contacta al personal de la biblioteca si tienes dudas.</p>
                         <a href="mis_prestamos.html" class="btn-volver">Volver a Mis Prestamos</a>
                     </div>
                 `;
