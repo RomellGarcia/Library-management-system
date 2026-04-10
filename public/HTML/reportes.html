@@ -6,15 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reportes y Estadisticas - Biblioteca UTHH</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
     <link rel="stylesheet" href="../styles.css">
     <style>
         .rpt-header {
             background: linear-gradient(135deg, #A02142 0%, #7A1832 100%);
-            padding: 0;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -45,13 +40,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 18px;
             color: #BC955B;
             font-weight: 700;
         }
 
         .rpt-header h1 {
-            font-family: 'Playfair Display', serif;
             font-size: 1.5rem;
             font-weight: 700;
             color: #fff;
@@ -74,28 +68,11 @@
             text-transform: uppercase;
         }
 
-        .rpt-header-back {
-            color: #D4AF72;
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: opacity 0.2s;
-        }
-
-        .rpt-header-back:hover {
-            opacity: 0.8;
-        }
-
-        /* NAV TABS */
         .nav-tabs {
             background: #fff;
             border-bottom: 1px solid #E0D8D0;
             padding: 0 32px;
             display: flex;
-            gap: 0;
             max-width: 1400px;
             margin: 0 auto;
             overflow-x: auto;
@@ -112,7 +89,6 @@
             border-bottom: 3px solid transparent;
             transition: all 0.3s;
             white-space: nowrap;
-            font-family: 'Source Sans 3', sans-serif;
         }
 
         .nav-tab:hover {
@@ -125,7 +101,6 @@
             border-bottom-color: #A02142;
         }
 
-        /* MAIN */
         .rpt-main {
             max-width: 1400px;
             margin: 0 auto;
@@ -145,8 +120,7 @@
         }
 
         .section-header h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
+            font-size: 1.7rem;
             font-weight: 700;
             color: #7A1832;
             margin-bottom: 6px;
@@ -155,113 +129,10 @@
         .section-header p {
             color: #6B6B6B;
             font-size: 0.95rem;
-            line-height: 1.5;
+            line-height: 1.6;
+            max-width: 850px;
         }
 
-        /* FORMULA CARD */
-        .formula-card {
-            background: linear-gradient(135deg, #7A1832 0%, #A02142 60%, #C4345A 100%);
-            border-radius: 16px;
-            padding: 32px;
-            margin-bottom: 28px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 40px;
-            box-shadow: 0 8px 30px rgba(122, 24, 50, 0.25);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .formula-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(188, 149, 91, 0.15) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-
-        .formula-math {
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 14px;
-            padding: 24px 36px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .formula-math .frac {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: center;
-            vertical-align: middle;
-            margin-right: 6px;
-        }
-
-        .formula-math .frac-num,
-        .formula-math .frac-den {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6rem;
-            font-style: italic;
-            line-height: 1.2;
-        }
-
-        .formula-math .frac-line {
-            width: 100%;
-            height: 2px;
-            background: #D4AF72;
-            margin: 2px 0;
-        }
-
-        .formula-math .eq {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            font-style: italic;
-            vertical-align: middle;
-        }
-
-        .formula-info {
-            position: relative;
-            z-index: 1;
-        }
-
-        .formula-info h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.25rem;
-            color: #D4AF72;
-            margin-bottom: 10px;
-        }
-
-        .formula-info p {
-            font-size: 0.9rem;
-            line-height: 1.7;
-            opacity: 0.9;
-        }
-
-        .formula-info .vars {
-            margin-top: 12px;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .formula-info .var-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .var-item strong {
-            color: #D4AF72;
-            font-style: italic;
-        }
-
-        /* STATS GRID */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -284,7 +155,7 @@
         }
 
         .stat-card .stat-label {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 600;
             color: #6B6B6B;
             text-transform: uppercase;
@@ -293,10 +164,16 @@
         }
 
         .stat-card .stat-value {
-            font-family: 'Playfair Display', serif;
             font-size: 2rem;
             font-weight: 800;
             color: #A02142;
+        }
+
+        .stat-card .stat-desc {
+            font-size: 0.82rem;
+            color: #6B6B6B;
+            margin-top: 8px;
+            line-height: 1.4;
         }
 
         .stat-card .stat-change {
@@ -320,7 +197,6 @@
             background: rgba(230, 81, 0, 0.1);
         }
 
-        /* CHARTS */
         .charts-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -331,7 +207,7 @@
         .chart-card {
             background: #fff;
             border-radius: 14px;
-            padding: 24px;
+            padding: 26px;
             box-shadow: 0 2px 12px rgba(160, 33, 66, 0.08);
             border: 1px solid #E0D8D0;
         }
@@ -341,44 +217,56 @@
         }
 
         .chart-card h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             color: #7A1832;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
 
-        .chart-card .chart-subtitle {
-            font-size: 0.82rem;
+        .chart-card .chart-desc {
+            font-size: 0.86rem;
             color: #6B6B6B;
             margin-bottom: 18px;
+            line-height: 1.55;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #F0E6D3;
         }
 
         .chart-card canvas {
             max-height: 320px;
         }
 
-        /* TABLE */
         .table-card {
             background: #fff;
             border-radius: 14px;
-            padding: 24px;
+            padding: 26px;
             box-shadow: 0 2px 12px rgba(160, 33, 66, 0.08);
             border: 1px solid #E0D8D0;
             margin-bottom: 24px;
-            overflow-x: auto;
         }
 
         .table-card h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             color: #7A1832;
-            margin-bottom: 16px;
+            margin-bottom: 6px;
+        }
+
+        .table-card .chart-desc {
+            font-size: 0.86rem;
+            color: #6B6B6B;
+            margin-bottom: 18px;
+            line-height: 1.55;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #F0E6D3;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.88rem;
+            font-size: 0.9rem;
         }
 
         thead th {
@@ -386,44 +274,149 @@
             color: #7A1832;
             font-weight: 700;
             text-align: left;
-            padding: 12px 16px;
+            padding: 13px 16px;
             font-size: 0.78rem;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             border-bottom: 2px solid #BC955B;
+            white-space: nowrap;
         }
 
         tbody td {
-            padding: 11px 16px;
-            border-bottom: 1px solid #E0D8D0;
+            padding: 13px 16px;
+            border-bottom: 1px solid #F0E6D3;
             color: #2D2D2D;
         }
 
         tbody tr:hover {
-            background: rgba(160, 33, 66, 0.03);
+            background: #FAF6F0;
         }
 
-        .trend-badge {
+        .badge {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 3px 10px;
+            padding: 4px 12px;
             border-radius: 12px;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
-        .trend-badge.growth {
-            background: rgba(46, 125, 50, 0.1);
+        .badge.alta {
+            background: rgba(46, 125, 50, 0.12);
             color: #2E7D32;
         }
 
-        .trend-badge.decay {
-            background: rgba(230, 81, 0, 0.1);
+        .badge.media {
+            background: rgba(188, 149, 91, 0.18);
+            color: #8B6914;
+        }
+
+        .badge.baja {
+            background: rgba(230, 81, 0, 0.12);
             color: #E65100;
         }
 
-        /* PROJECTION PANEL */
+        .badge.critica {
+            background: rgba(160, 33, 66, 0.12);
+            color: #A02142;
+        }
+
+        .recomendaciones-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .reco-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 26px;
+            box-shadow: 0 2px 12px rgba(160, 33, 66, 0.08);
+            border: 1px solid #E0D8D0;
+            border-left: 5px solid #BC955B;
+        }
+
+        .reco-card.positiva {
+            border-left-color: #2E7D32;
+        }
+
+        .reco-card.negativa {
+            border-left-color: #E65100;
+        }
+
+        .reco-card h3 {
+            font-size: 1.1rem;
+            color: #7A1832;
+            margin-bottom: 8px;
+        }
+
+        .reco-card .reco-desc {
+            font-size: 0.85rem;
+            color: #6B6B6B;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .reco-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reco-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #F0E6D3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .reco-list li:last-child {
+            border-bottom: none;
+        }
+
+        .reco-list li.empty {
+            color: #9B9B9B;
+            font-style: italic;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .reco-titulo {
+            font-weight: 600;
+            color: #2D2D2D;
+            font-size: 0.92rem;
+        }
+
+        .reco-titulo small {
+            display: block;
+            color: #6B6B6B;
+            font-weight: 400;
+            font-size: 0.78rem;
+            margin-top: 2px;
+        }
+
+        .reco-cambio {
+            font-weight: 700;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .reco-cambio.up {
+            color: #2E7D32;
+            background: rgba(46, 125, 50, 0.1);
+        }
+
+        .reco-cambio.down {
+            color: #E65100;
+            background: rgba(230, 81, 0, 0.1);
+        }
+
         .projection-panel {
             background: #fff;
             border-radius: 14px;
@@ -434,16 +427,18 @@
         }
 
         .projection-panel h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             color: #7A1832;
             margin-bottom: 6px;
         }
 
-        .projection-panel .panel-subtitle {
-            font-size: 0.82rem;
+        .projection-panel .panel-desc {
+            font-size: 0.86rem;
             color: #6B6B6B;
             margin-bottom: 20px;
+            line-height: 1.55;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #F0E6D3;
         }
 
         .proj-controls {
@@ -473,11 +468,10 @@
             padding: 10px 14px;
             border: 1px solid #E0D8D0;
             border-radius: 10px;
-            font-family: 'Source Sans 3', sans-serif;
             font-size: 0.9rem;
             color: #2D2D2D;
             background: #fff;
-            min-width: 180px;
+            min-width: 200px;
             transition: border-color 0.2s;
         }
 
@@ -488,12 +482,11 @@
         }
 
         .btn-calcular {
-            padding: 10px 28px;
+            padding: 11px 28px;
             background: #A02142;
             color: #fff;
             border: none;
             border-radius: 10px;
-            font-family: 'Source Sans 3', sans-serif;
             font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
@@ -512,7 +505,7 @@
             background: #F0E6D3;
             border: 1px solid #BC955B;
             border-radius: 12px;
-            padding: 20px 24px;
+            padding: 22px 26px;
             margin-top: 16px;
             display: none;
         }
@@ -522,61 +515,25 @@
         }
 
         .resultado-box h4 {
-            font-family: 'Playfair Display', serif;
             color: #7A1832;
-            font-size: 1rem;
-            margin-bottom: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
         }
 
         .resultado-box p {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #2D2D2D;
-        }
-
-        .resultado-box .formula-used {
-            font-style: italic;
-            color: #6B6B6B;
-            font-size: 0.85rem;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #BC955B;
-        }
-
-        /* INTERPRETACION */
-        .interpretacion {
-            background: #fff;
-            border-left: 4px solid #BC955B;
-            border-radius: 0 14px 14px 0;
-            padding: 20px 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 12px rgba(160, 33, 66, 0.08);
-        }
-
-        .interpretacion h4 {
-            font-family: 'Playfair Display', serif;
-            color: #7A1832;
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-
-        .interpretacion p {
-            font-size: 0.88rem;
+            font-size: 0.92rem;
             line-height: 1.65;
             color: #2D2D2D;
         }
 
-        .k-positive {
-            color: #2E7D32;
-            font-weight: 700;
+        .resultado-box .reco-final {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #BC955B;
+            font-weight: 600;
+            color: #7A1832;
         }
 
-        .k-negative {
-            color: #E65100;
-            font-weight: 700;
-        }
-
-        /* LOADING */
         .loading-overlay {
             position: fixed;
             inset: 0;
@@ -616,7 +573,6 @@
             }
         }
 
-        /* ERROR */
         .error-msg {
             background: #fff;
             border: 1px solid #E65100;
@@ -642,20 +598,13 @@
             font-weight: 600;
         }
 
-        /* RESPONSIVE */
         @media (max-width: 900px) {
             .charts-row {
                 grid-template-columns: 1fr;
             }
 
-            .formula-card {
-                flex-direction: column;
-                gap: 20px;
-                text-align: center;
-            }
-
-            .formula-info .vars {
-                justify-content: center;
+            .recomendaciones-grid {
+                grid-template-columns: 1fr;
             }
 
             .rpt-header-inner {
@@ -672,11 +621,16 @@
 
             .proj-controls {
                 flex-direction: column;
+                align-items: stretch;
             }
 
             .control-group select,
             .control-group input {
                 min-width: 100%;
+            }
+
+            .btn-calcular {
+                width: 100%;
             }
         }
 
@@ -702,64 +656,28 @@
         <div class="loader-ring"></div>
         <div class="loading-text">Cargando datos de prestamos...</div>
     </div>
-
-    <header class="rpt-header">
-        <div class="rpt-header-inner">
-            <div class="rpt-header-title">
-                <div class="rpt-header-icon">R</div>
-                <h1>Reportes <span>y Estadisticas</span></h1>
-            </div>
-            <div style="display:flex;align-items:center;gap:20px;">
-                <div class="rpt-header-badge">Biblioteca UTHH</div>
-            </div>
-        </div>
-    </header>
-
     <nav class="nav-tabs" id="navTabs">
         <button class="nav-tab active" data-section="resumen">Resumen General</button>
-        <button class="nav-tab" data-section="libros">Analisis por Libros</button>
-        <button class="nav-tab" data-section="categorias">Analisis por Categorias</button>
-        <button class="nav-tab" data-section="proyeccion">Proyeccion de Demanda</button>
+        <button class="nav-tab" data-section="libros">Libros</button>
+        <button class="nav-tab" data-section="categorias">Categorias</button>
+        <button class="nav-tab" data-section="proyeccion">Proyeccion</button>
     </nav>
 
     <main class="rpt-main">
 
-        <!-- ERROR -->
         <div class="error-msg" id="errorMsg" style="display:none;">
             <h3>Error al cargar datos</h3>
             <p id="errorText">No se pudieron obtener los datos de la API.</p>
             <button onclick="location.reload()">Reintentar</button>
         </div>
 
-        <!-- RESUMEN GENERAL -->
+        <!-- ========== RESUMEN GENERAL ========== -->
         <section class="section active" id="sec-resumen">
             <div class="section-header">
                 <h2>Resumen General</h2>
-                <p>Vista general del comportamiento de prestamos en la biblioteca, aplicando la Ley de Crecimiento y
-                    Decrecimiento.</p>
-            </div>
-
-            <div class="formula-card">
-                <div class="formula-math">
-                    <span class="frac">
-                        <span class="frac-num">dx</span>
-                        <span class="frac-line"></span>
-                        <span class="frac-den">dt</span>
-                    </span>
-                    <span class="eq"> = kx</span>
-                </div>
-                <div class="formula-info">
-                    <h3>Ley de Crecimiento y Decrecimiento</h3>
-                    <p>La tasa de cambio en los prestamos es proporcional a la cantidad actual. Si <strong>k &gt;
-                            0</strong>, la demanda crece. Si <strong>k &lt; 0</strong>, decrece. Solucion: <strong
-                            style="color:#D4AF72">x(t) = x0 * e^(kt)</strong></p>
-                    <div class="vars">
-                        <span class="var-item"><strong>x(t)</strong> = Prestamos en tiempo t</span>
-                        <span class="var-item"><strong>x0</strong> = Prestamos iniciales</span>
-                        <span class="var-item"><strong>k</strong> = Constante de proporcionalidad</span>
-                        <span class="var-item"><strong>t</strong> = Periodo (meses)</span>
-                    </div>
-                </div>
+                <p>Una vista rapida del estado actual de la biblioteca. Aqui puedes ver cuantos prestamos se han
+                    realizado, cuantos libros tienes en circulacion, y como se comportan los prestamos mes a mes.
+                </p>
             </div>
 
             <div class="stats-grid" id="statsGrid"></div>
@@ -767,179 +685,192 @@
             <div class="charts-row">
                 <div class="chart-card">
                     <h3>Prestamos por Mes</h3>
-                    <p class="chart-subtitle">Evolucion mensual del total de prestamos realizados</p>
+                    <p class="chart-desc">Muestra cuantos prestamos se realizaron cada mes en los ultimos seis
+                        meses. Las barras mas altas indican meses con mayor actividad. El mes mas reciente aparece
+                        resaltado en color vino.</p>
                     <canvas id="chartPrestamosMes"></canvas>
                 </div>
                 <div class="chart-card">
                     <h3>Distribucion por Categoria</h3>
-                    <p class="chart-subtitle">Proporcion de prestamos segun categoria de libro</p>
+                    <p class="chart-desc">Muestra que porcentaje de los prestamos del ultimo mes corresponden a cada
+                        categoria. Las secciones mas grandes son las categorias con mas movimiento entre los
+                        usuarios.</p>
                     <canvas id="chartCategorias"></canvas>
                 </div>
             </div>
 
-            <div class="interpretacion">
-                <h4>Interpretacion con la Ley dx/dt = kx</h4>
-                <p id="interpretacionGeneral">Cargando analisis...</p>
+            <div class="recomendaciones-grid">
+                <div class="reco-card positiva">
+                    <h3>Categorias con Mayor Crecimiento</h3>
+                    <p class="reco-desc">Estas categorias estan ganando popularidad entre los usuarios. Considera
+                        adquirir mas titulos de estos temas para satisfacer la demanda.</p>
+                    <ul class="reco-list" id="categoriasCrecimiento"></ul>
+                </div>
+                <div class="reco-card negativa">
+                    <h3>Categorias con Menor Demanda</h3>
+                    <p class="reco-desc">Estas categorias estan siendo menos solicitadas. Conviene revisar si los
+                        titulos siguen siendo relevantes antes de invertir en nuevos ejemplares.</p>
+                    <ul class="reco-list" id="categoriasDecrecimiento"></ul>
+                </div>
             </div>
         </section>
 
-        <!-- ANALISIS POR LIBROS -->
+        <!-- ========== LIBROS ========== -->
         <section class="section" id="sec-libros">
             <div class="section-header">
                 <h2>Analisis por Libros</h2>
-                <p>Identificacion de libros con tendencia de crecimiento y decrecimiento en sus prestamos.</p>
+                <p>Identifica que libros estan siendo mas solicitados y cuales han perdido demanda. Esto te ayuda a
+                    decidir cuales conviene tener en mas ejemplares y cuales podrias dar de baja del acervo activo.
+                </p>
             </div>
 
-            <div class="charts-row">
-                <div class="chart-card full">
-                    <h3>Top 10 Libros - Tendencia de Prestamos</h3>
-                    <p class="chart-subtitle">Comparativa de prestamos entre los ultimos dos periodos con constante k
-                        calculada</p>
-                    <canvas id="chartTopLibros"></canvas>
+            <div class="recomendaciones-grid">
+                <div class="reco-card positiva">
+                    <h3>Libros que Estan Ganando Popularidad</h3>
+                    <p class="reco-desc">Estos titulos estan siendo prestados cada vez mas. Recomendacion: adquirir
+                        ejemplares adicionales para evitar listas de espera.</p>
+                    <ul class="reco-list" id="librosCrecimiento"></ul>
                 </div>
+                <div class="reco-card negativa">
+                    <h3>Libros que Estan Perdiendo Demanda</h3>
+                    <p class="reco-desc">Estos titulos se estan prestando cada vez menos. Recomendacion: revisar si
+                        siguen siendo relevantes para los planes de estudio actuales.</p>
+                    <ul class="reco-list" id="librosDecrecimiento"></ul>
+                </div>
+            </div>
+
+            <div class="chart-card full" style="margin-bottom:24px;">
+                <h3>Comparativa: Mes Anterior vs Mes Actual</h3>
+                <p class="chart-desc">Compara cuantas veces se presto cada uno de los diez libros mas populares en
+                    el mes anterior (barras doradas) contra el mes actual (barras vino). Cuando la barra vino es mas
+                    grande, el libro esta ganando popularidad. Cuando es mas pequena, esta perdiendo demanda.</p>
+                <canvas id="chartTopLibros"></canvas>
             </div>
 
             <div class="table-card">
-                <h3>Detalle de Libros - Crecimiento y Decrecimiento</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Libro</th>
-                            <th>Categoria</th>
-                            <th>P. Anterior</th>
-                            <th>P. Actual</th>
-                            <th>Constante k</th>
-                            <th>Tendencia</th>
-                            <th>Proyeccion +1</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaLibros"></tbody>
-                </table>
-            </div>
-
-            <div class="interpretacion">
-                <h4>Que nos dice la constante k?</h4>
-                <p>Para cada libro se calcula <strong>k = ln(x1/x0) / t</strong>, donde x0 son los prestamos del periodo
-                    anterior y x1 del periodo actual. Un <span class="k-positive">k positivo</span> indica que el libro
-                    esta ganando popularidad y conviene tener mas ejemplares. Un <span class="k-negative">k
-                        negativo</span> sugiere menor interes.</p>
-            </div>
-
-            <div class="charts-row">
-                <div class="chart-card">
-                    <h3>Libros en Crecimiento (k &gt; 0)</h3>
-                    <p class="chart-subtitle">Titulos cuya demanda aumenta</p>
-                    <canvas id="chartLibrosCrecimiento"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3>Libros en Decrecimiento (k &lt; 0)</h3>
-                    <p class="chart-subtitle">Titulos cuya demanda disminuye</p>
-                    <canvas id="chartLibrosDecrecimiento"></canvas>
+                <h3>Tabla Completa de Libros</h3>
+                <p class="chart-desc">Listado completo de los libros con prestamos registrados. Para cada uno se
+                    muestra cuantas veces se presto el mes pasado, cuantas el mes actual, y una recomendacion clara
+                    sobre que accion tomar. La columna "Estimacion proximo mes" indica cuantos prestamos se esperan
+                    si la tendencia se mantiene.</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Libro</th>
+                                <th>Categoria</th>
+                                <th>Mes anterior</th>
+                                <th>Mes actual</th>
+                                <th>Estimacion proximo mes</th>
+                                <th>Recomendacion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaLibros"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
 
-        <!-- ANALISIS POR CATEGORIAS -->
+        <!-- ========== CATEGORIAS ========== -->
         <section class="section" id="sec-categorias">
             <div class="section-header">
                 <h2>Analisis por Categorias</h2>
-                <p>Evaluacion del comportamiento de cada categoria para orientar la adquisicion de acervo.</p>
+                <p>Evalua el comportamiento de cada categoria del acervo. Esta seccion te permite identificar que
+                    areas del conocimiento estan despertando mas interes entre los usuarios y cuales necesitan
+                    renovacion.</p>
             </div>
 
-            <div class="charts-row">
-                <div class="chart-card full">
-                    <h3>Evolucion de Categorias por Mes</h3>
-                    <p class="chart-subtitle">Tendencia de prestamos por categoria en los ultimos meses</p>
-                    <canvas id="chartCategoriasLinea"></canvas>
-                </div>
+            <div class="chart-card full" style="margin-bottom:24px;">
+                <h3>Evolucion de las Categorias</h3>
+                <p class="chart-desc">Muestra como ha cambiado la cantidad de prestamos de cada categoria a lo largo
+                    de los ultimos meses. Las lineas que suben indican categorias en crecimiento. Las lineas que
+                    bajan indican categorias con menor demanda. Cada color representa una categoria distinta.</p>
+                <canvas id="chartCategoriasLinea"></canvas>
             </div>
 
             <div class="table-card">
                 <h3>Resumen de Categorias</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Categoria</th>
-                            <th>Total</th>
-                            <th>Promedio Mensual</th>
-                            <th>Constante k</th>
-                            <th>Tendencia</th>
-                            <th>Recomendacion</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaCategorias"></tbody>
-                </table>
+                <p class="chart-desc">Resumen del comportamiento de cada categoria. Incluye el total de prestamos en
+                    el periodo, el promedio mensual, y una recomendacion clara sobre que hacer con esa categoria del
+                    acervo.</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Total de prestamos</th>
+                                <th>Promedio mensual</th>
+                                <th>Tendencia</th>
+                                <th>Recomendacion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaCategorias"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="charts-row">
                 <div class="chart-card">
-                    <h3>Radar de Categorias</h3>
-                    <p class="chart-subtitle">Actual vs proyeccion</p>
+                    <h3>Prestamos Actuales vs Estimados</h3>
+                    <p class="chart-desc">Compara los prestamos reales del ultimo mes (linea vino) con los prestamos
+                        estimados para el proximo mes (linea dorada punteada). Si la linea dorada es mas grande, esa
+                        categoria seguira creciendo.</p>
                     <canvas id="chartRadar"></canvas>
                 </div>
                 <div class="chart-card">
-                    <h3>Constante k por Categoria</h3>
-                    <p class="chart-subtitle">Velocidad de crecimiento/decrecimiento</p>
+                    <h3>Categorias Mejor Posicionadas</h3>
+                    <p class="chart-desc">Ordena las categorias segun cuanto estan creciendo o decreciendo. Las
+                        barras verdes indican categorias en crecimiento, las naranjas indican categorias en
+                        descenso. Las que esten mas a la derecha son las prioritarias para invertir.</p>
                     <canvas id="chartKCategorias"></canvas>
                 </div>
             </div>
-
-            <div class="interpretacion">
-                <h4>Decisiones basadas en datos</h4>
-                <p id="interpretacionCategorias">Cargando analisis...</p>
-            </div>
         </section>
 
-        <!-- PROYECCION DE DEMANDA -->
+        <!-- ========== PROYECCION ========== -->
         <section class="section" id="sec-proyeccion">
             <div class="section-header">
                 <h2>Proyeccion de Demanda</h2>
-                <p>Utiliza la formula <strong>x(t) = x0 * e^(kt)</strong> para estimar la demanda futura de prestamos.
-                </p>
+                <p>Estima cuantos prestamos tendra un libro o una categoria en los proximos meses. Esta herramienta
+                    te ayuda a planificar adquisiciones con anticipacion y a presupuestar de manera mas precisa.</p>
             </div>
 
             <div class="projection-panel">
                 <h3>Calculadora de Proyeccion</h3>
-                <p class="panel-subtitle">Selecciona un libro o categoria y el numero de periodos a proyectar</p>
+                <p class="panel-desc">Selecciona si quieres analizar un libro o una categoria, escoge el elemento, y
+                    define cuantos meses hacia el futuro deseas estimar. El sistema calculara la cantidad estimada
+                    de prestamos basandose en el comportamiento de los ultimos meses.</p>
                 <div class="proj-controls">
                     <div class="control-group">
-                        <label>Tipo de analisis</label>
+                        <label>Que quieres analizar?</label>
                         <select id="projTipo">
-                            <option value="libro">Por Libro</option>
-                            <option value="categoria">Por Categoria</option>
+                            <option value="libro">Un libro especifico</option>
+                            <option value="categoria">Una categoria completa</option>
                         </select>
                     </div>
                     <div class="control-group">
-                        <label>Seleccionar</label>
+                        <label>Selecciona el elemento</label>
                         <select id="projSeleccion"></select>
                     </div>
                     <div class="control-group">
-                        <label>Periodos a futuro (meses)</label>
+                        <label>Cuantos meses al futuro</label>
                         <input type="number" id="projPeriodos" value="3" min="1" max="12">
                     </div>
-                    <button class="btn-calcular" id="btnCalcular">Calcular Proyeccion</button>
+                    <button class="btn-calcular" id="btnCalcular">Generar Estimacion</button>
                 </div>
                 <div class="resultado-box" id="resultadoBox">
                     <h4 id="resultadoTitulo"></h4>
                     <p id="resultadoTexto"></p>
-                    <p class="formula-used" id="resultadoFormula"></p>
+                    <p class="reco-final" id="resultadoReco"></p>
                 </div>
             </div>
 
-            <div class="charts-row">
-                <div class="chart-card full">
-                    <h3>Grafica de Proyeccion</h3>
-                    <p class="chart-subtitle">Datos historicos vs proyeccion futura usando x(t) = x0 * e^(kt)</p>
-                    <canvas id="chartProyeccion"></canvas>
-                </div>
-            </div>
-
-            <div class="interpretacion">
-                <h4>Sobre la proyeccion exponencial</h4>
-                <p>La Ley de Crecimiento y Decrecimiento modela la demanda asumiendo que la tasa de cambio es
-                    proporcional a la cantidad actual. Las proyecciones son estimaciones basadas en el comportamiento
-                    reciente; factores externos como nuevos programas de estudio o eventos pueden alterar las
-                    tendencias.</p>
+            <div class="chart-card full">
+                <h3>Grafica de Proyeccion</h3>
+                <p class="chart-desc">Muestra los prestamos reales que ya ocurrieron (linea vino solida) junto con
+                    la estimacion para los proximos meses (linea dorada punteada). Esta vista te permite ver de un
+                    vistazo si la tendencia es de crecimiento o decrecimiento.</p>
+                <canvas id="chartProyeccion"></canvas>
             </div>
         </section>
 
@@ -951,7 +882,7 @@
     <script src="../JS/footer.js"></script>
     <script src="../JS/protect_route.js"></script>
     <script src="../JS/session_handler.js"></script>
-    <script src="reportes.js"></script>
+    <script src="../JS/reportes.js"></script>
 </body>
 
 </html>
