@@ -4,8 +4,8 @@ var STATS = null;
 var chartInstances = {};
 var PALETTE = ['#A02142', '#BC955B', '#7A1832', '#D4AF72', '#C4345A', '#5C3D2E', '#2E7D32', '#1565C0', '#6A1B9A', '#E65100'];
 
+// ====================== CALCULOS INTERNOS ======================
 
-// CALCULOS INTERNOS
 function calcularTasa(x0, x1, deltaT) {
     if (x0 <= 0 || x1 <= 0 || deltaT <= 0) return 0;
     return Math.log(x1 / x0) / deltaT;
@@ -15,16 +15,44 @@ function proyectar(x0, k, t) {
     return x0 * Math.exp(k * t);
 }
 
-function calcularTasaPromedio(prestamos) {
+// Versión principal: usa deltaT real entre meses (recomendada)
+function calcularTasaPromedio(prestamos, meses) {
+    if (!meses || meses.length !== prestamos.length || meses.length < 2) {
+        return calcularTasaPromedioSimple(prestamos);   // fallback
+    }
+
+    var suma = 0;
+    var count = 0;
+
+    for (var i = 1; i < prestamos.length; i++) {
+        if (prestamos[i-1] > 0 && prestamos[i] > 0) {
+            var deltaT = calcularDeltaMeses(meses[i-1], meses[i]);
+            if (deltaT > 0) {
+                suma += calcularTasa(prestamos[i-1], prestamos[i], deltaT);
+                count++;
+            }
+        }
+    }
+    return count > 0 ? suma / count : 0;
+}
+
+// Fallback simple (deltaT = 1) cuando no hay información de meses
+function calcularTasaPromedioSimple(prestamos) {
     var suma = 0;
     var count = 0;
     for (var i = 1; i < prestamos.length; i++) {
-        if (prestamos[i - 1] > 0 && prestamos[i] > 0) {
-            suma += calcularTasa(prestamos[i - 1], prestamos[i], 1);
+        if (prestamos[i-1] > 0 && prestamos[i] > 0) {
+            suma += calcularTasa(prestamos[i-1], prestamos[i], 1);
             count++;
         }
     }
     return count > 0 ? suma / count : 0;
+}
+
+function calcularDeltaMeses(mes1, mes2) {
+    var p1 = mes1.split('-').map(Number);
+    var p2 = mes2.split('-').map(Number);
+    return (p2[0] - p1[0]) * 12 + (p2[1] - p1[1]);
 }
 
 // Convertir tasa a porcentaje aproximado de cambio mensual
@@ -128,8 +156,10 @@ function renderResumen() {
     var totalAnterior = totalesMes.length >= 2 ? totalesMes[totalesMes.length - 2] : 0;
     var cambio = totalAnterior > 0 ? ((totalActual - totalAnterior) / totalAnterior * 100).toFixed(1) : 0;
 
-    var librosCrec = DATA.libros.filter(function(l) { return calcularTasaPromedio(l.prestamos) > 0; }).length;
-    var librosDec = DATA.libros.length - librosCrec;
+    // Corregido: pasar DATA.meses
+    var librosCrec = DATA.libros.filter(function(l) { 
+        return calcularTasaPromedio(l.prestamos, DATA.meses) > 0; 
+    }).length;
 
     var totalLibros = STATS ? STATS.total_libros : DATA.libros.length;
     var prestamosActivos = STATS ? STATS.prestamos_activos : 0;
@@ -182,7 +212,7 @@ function renderResumen() {
         }
     });
 
-    // Chart categorias donut por dona jajaja
+    // Chart categorias donut
     var catActual = DATA.categorias.map(function(c) {
         return c.prestamos[c.prestamos.length - 1] || 0;
     });
@@ -214,7 +244,11 @@ function renderResumen() {
 
     // Recomendaciones de categorias
     var catsConTasa = DATA.categorias.map(function(c) {
-        return { nombre: c.nombre, k: calcularTasaPromedio(c.prestamos), prestamos: c.prestamos };
+        return { 
+            nombre: c.nombre, 
+            k: calcularTasaPromedio(c.prestamos, DATA.meses),   // Corregido
+            prestamos: c.prestamos 
+        };
     });
     catsConTasa.sort(function(a, b) { return b.k - a.k; });
 
@@ -253,10 +287,11 @@ function renderLibros() {
     if (!DATA || DATA.libros.length === 0) return;
 
     var librosConTasa = DATA.libros.map(function(l) {
-        var k = calcularTasaPromedio(l.prestamos);
+        var k = calcularTasaPromedio(l.prestamos, DATA.meses);   // Corregido
         var x0 = l.prestamos[l.prestamos.length - 1] || 0;
         var anterior = l.prestamos.length >= 2 ? l.prestamos[l.prestamos.length - 2] : 0;
         var proy = x0 > 0 ? Math.round(proyectar(x0, k, 1)) : 0;
+
         return {
             nombre: l.nombre,
             categoria: l.categoria || 'Sin categoria',
@@ -385,7 +420,7 @@ function renderCategorias() {
 
     // Tabla
     var catsConTasa = DATA.categorias.map(function(c) {
-        var k = calcularTasaPromedio(c.prestamos);
+        var k = calcularTasaPromedio(c.prestamos, DATA.meses);   // Corregido
         var total = c.prestamos.reduce(function(s, v) { return s + v; }, 0);
         var prom = (total / c.prestamos.length).toFixed(1);
         var reco = obtenerRecomendacion(k);
@@ -408,7 +443,7 @@ function renderCategorias() {
     });
     document.getElementById('tablaCategorias').innerHTML = tbHTML;
 
-    // Radar
+    // Radar y otros charts...
     destruirChart('chartRadar');
     chartInstances['chartRadar'] = new Chart(document.getElementById('chartRadar'), {
         type: 'radar',
@@ -424,7 +459,7 @@ function renderCategorias() {
             }, {
                 label: 'Estimacion proximo mes',
                 data: DATA.categorias.map(function(c) {
-                    var k = calcularTasaPromedio(c.prestamos);
+                    var k = calcularTasaPromedio(c.prestamos, DATA.meses);  // Corregido
                     var x0 = c.prestamos[c.prestamos.length - 1] || 0;
                     return Math.round(proyectar(x0, k, 1));
                 }),
@@ -442,7 +477,7 @@ function renderCategorias() {
         }
     });
 
-    // Categorias mejor posicionadas (cambio porcentual)
+    // Chart K categorías (cambio %)
     destruirChart('chartKCategorias');
     chartInstances['chartKCategorias'] = new Chart(document.getElementById('chartKCategorias'), {
         type: 'bar',
@@ -473,12 +508,7 @@ function renderCategorias() {
                 }
             },
             scales: {
-                x: {
-                    grid: { color: '#E0D8D0' },
-                    ticks: {
-                        callback: function(v) { return (v >= 0 ? '+' : '') + v + '%'; }
-                    }
-                },
+                x: { grid: { color: '#E0D8D0' }, ticks: { callback: function(v) { return (v >= 0 ? '+' : '') + v + '%'; }} },
                 y: { grid: { display: false } }
             }
         }
@@ -512,9 +542,10 @@ function calcularProyeccion() {
     if (!item) return;
 
     var prestamos = item.prestamos;
-    var k = calcularTasaPromedio(prestamos);
+    var k = calcularTasaPromedio(prestamos, DATA.meses);   // Corregido
     var x0 = prestamos[prestamos.length - 1] || 0;
 
+    // ... (el resto de la función se mantiene igual)
     var proyecciones = [];
     var mesesFuturos = [];
     var ultimoMes = DATA.meses[DATA.meses.length - 1];
@@ -531,7 +562,7 @@ function calcularProyeccion() {
         mesesFuturos.push(mesStr);
     }
 
-    // Resultado box
+    // Resultado box (se mantiene igual)
     var box = document.getElementById('resultadoBox');
     box.classList.add('visible');
     document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
@@ -539,8 +570,6 @@ function calcularProyeccion() {
     var pctMensual = tasaAPorcentaje(k);
     var ultimaProy = proyecciones[proyecciones.length - 1];
     var diferencia = ultimaProy - x0;
-    var direccion = diferencia >= 0 ? 'aumentar' : 'disminuir';
-    var diferenciaAbs = Math.abs(diferencia);
 
     var textoCambio = '';
     if (k > 0.05) textoCambio = 'esta creciendo de manera notable';
@@ -552,23 +581,18 @@ function calcularProyeccion() {
         'Actualmente este ' + (tipo === 'libro' ? 'libro' : 'categoria') + ' tiene <strong>' + x0 + ' prestamos</strong> en el ultimo mes y ' + textoCambio + ' a un ritmo de aproximadamente ' +
         '<strong>' + (k >= 0 ? '+' : '') + pctMensual + '% mensual</strong>. ' +
         'Si esta tendencia continua, en <strong>' + periodos + ' mes(es)</strong> se esperan cerca de ' +
-        '<strong>' + ultimaProy + ' prestamos</strong> (' + (diferencia >= 0 ? 'un aumento' : 'una reduccion') + ' de ' + diferenciaAbs + ' prestamos respecto al mes actual).';
+        '<strong>' + ultimaProy + ' prestamos</strong> (' + (diferencia >= 0 ? 'un aumento' : 'una reduccion') + ' de ' + Math.abs(diferencia) + ' prestamos respecto al mes actual).';
 
     var recomendacion = '';
-    if (k > 0.1) {
-        recomendacion = 'Recomendacion: Conviene adquirir mas ejemplares lo antes posible para evitar listas de espera.';
-    } else if (k > 0.02) {
-        recomendacion = 'Recomendacion: La demanda es estable y creciente. Mantener el acervo actual es suficiente por ahora.';
-    } else if (k > -0.02) {
-        recomendacion = 'Recomendacion: La demanda esta estable. No se requiere accion inmediata.';
-    } else if (k > -0.1) {
-        recomendacion = 'Recomendacion: Vigilar la tendencia. Si continua bajando, evaluar si el material sigue siendo relevante.';
-    } else {
-        recomendacion = 'Recomendacion: Considerar dar de baja este material o reasignar el espacio a titulos con mayor demanda.';
-    }
+    if (k > 0.1) recomendacion = 'Recomendacion: Conviene adquirir mas ejemplares lo antes posible para evitar listas de espera.';
+    else if (k > 0.02) recomendacion = 'Recomendacion: La demanda es estable y creciente. Mantener el acervo actual es suficiente por ahora.';
+    else if (k > -0.02) recomendacion = 'Recomendacion: La demanda esta estable. No se requiere accion inmediata.';
+    else if (k > -0.1) recomendacion = 'Recomendacion: Vigilar la tendencia. Si continua bajando, evaluar si el material sigue siendo relevante.';
+    else recomendacion = 'Recomendacion: Considerar dar de baja este material o reasignar el espacio a titulos con mayor demanda.';
+
     document.getElementById('resultadoReco').textContent = recomendacion;
 
-    // Chart
+    // Chart de proyección (se mantiene igual)
     var labelsHistoricos = DATA.meses.map(formatearMes);
     var labelsFuturos = mesesFuturos.map(formatearMes);
     var labelsAll = labelsHistoricos.concat(labelsFuturos);
@@ -616,9 +640,7 @@ function calcularProyeccion() {
                 legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) {
-                            return ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos';
-                        }
+                        label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos'; }
                     }
                 }
             },
