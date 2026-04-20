@@ -546,7 +546,7 @@ function calcularProyeccion() {
             'No hay historial suficiente para calcular una tendencia confiable. ' +
             'La proyección se mantiene en <strong>' + x0 + ' préstamos</strong> por mes.';
         document.getElementById('resultadoReco').textContent = '';
-        return;
+        return;                
     }
 
     // Calcular proyecciones mes a mes
