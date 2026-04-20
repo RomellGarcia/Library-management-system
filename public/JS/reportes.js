@@ -168,7 +168,7 @@ function renderResumen() {
 
     document.getElementById('statsGrid').innerHTML = html;
 
-    // Chart barras: préstamos por mes
+    //Chart barras prestamos por mes
     destruirChart('chartPrestamosMes');
     chartInstances['chartPrestamosMes'] = new Chart(document.getElementById('chartPrestamosMes'), {
         type: 'bar',
@@ -201,7 +201,7 @@ function renderResumen() {
         }
     });
 
-    // Chart donut: categorías
+    //Grafica de dona
     var catActual = DATA.categorias.map(function(c) {
         return c.prestamos[c.prestamos.length - 1] || 0;
     });
@@ -231,7 +231,7 @@ function renderResumen() {
         }
     });
 
-    // Recomendaciones de categorías — usar tasa_k de la API
+    // Recomendaciones de categorías.
     var catsConTasa = DATA.categorias.map(function(c) {
         return {
             nombre: c.nombre,
@@ -271,7 +271,7 @@ function renderResumen() {
     document.getElementById('categoriasDecrecimiento').innerHTML = htmlDec;
 }
 
-//SECCION: LIBROS 
+//seccion de libros
 function renderLibros() {
     if (!DATA || DATA.libros.length === 0) return;
 
@@ -336,7 +336,7 @@ function renderLibros() {
     });
     document.getElementById('tablaLibros').innerHTML = tbodyHTML;
 
-    // Chart top 10
+    // Chart/grafica top 10
     var top10 = librosConTasa.slice(0, 10);
     destruirChart('chartTopLibros');
     chartInstances['chartTopLibros'] = new Chart(document.getElementById('chartTopLibros'), {
@@ -370,7 +370,7 @@ function renderLibros() {
     });
 }
 
-//SECCION: CATEGORIAS 
+//seccion categoria
 function renderCategorias() {
     if (!DATA || DATA.categorias.length === 0) return;
 
@@ -406,7 +406,7 @@ function renderCategorias() {
         }
     });
 
-    // Tabla categorías — usar tasa_k de la API
+    // Tabla categorias
     var catsConTasa = DATA.categorias.map(function(c) {
         var k = obtenerK(c);
         var total = c.prestamos.reduce(function(s, v) { return s + v; }, 0);
@@ -430,7 +430,7 @@ function renderCategorias() {
     });
     document.getElementById('tablaCategorias').innerHTML = tbHTML;
 
-    // Chart radar: mes actual vs estimación próximo mes
+    // mes actual vs estimación próximo mes
     destruirChart('chartRadar');
     chartInstances['chartRadar'] = new Chart(document.getElementById('chartRadar'), {
         type: 'radar',
@@ -505,7 +505,7 @@ function renderCategorias() {
     });
 }
 
-//SECCION: PROYECCION
+//seccion proyeccion
 function llenarSeleccion() {
     if (!DATA) return;
     var tipo = document.getElementById('projTipo').value;
@@ -533,11 +533,9 @@ function calcularProyeccion() {
 
     var prestamos = item.prestamos;
     var x0 = prestamos[prestamos.length - 1] || 0;
-
-    // CRÍTICO: tomar k de la API, no recalcular localmente
     var k = obtenerK(item);
 
-    // Caso sin datos suficientes (ej: Clean Code con solo 1 mes con actividad)
+    //Caso sin datos suficientes
     if (item.datos_suficientes === false) {
         var box = document.getElementById('resultadoBox');
         box.classList.add('visible');
@@ -568,12 +566,10 @@ function calcularProyeccion() {
         mesesFuturos.push(mesStr);
     }
 
-    // Mostrar caja de resultado
+    //mostrar caja de resultado
     var box = document.getElementById('resultadoBox');
     box.classList.add('visible');
     document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
-
-    // Usar porcentaje_mensual de la API (ya viene calculado correctamente)
     var pctMensual = item.porcentaje_mensual !== undefined
         ? parseFloat(item.porcentaje_mensual).toFixed(1)
         : tasaAPorcentaje(k);
@@ -606,15 +602,12 @@ function calcularProyeccion() {
 
     document.getElementById('resultadoReco').textContent = recomendacion;
 
-    // Gráfica de proyección
+    // Grafica de proyección
     var labelsHistoricos = DATA.meses.map(formatearMes);
     var labelsFuturos = mesesFuturos.map(formatearMes);
     var labelsAll = labelsHistoricos.concat(labelsFuturos);
 
-    // Datos históricos: valores reales + nulls para los meses futuros
     var datosHistCompleto = prestamos.slice().concat(new Array(periodos).fill(null));
-
-    // Datos proyectados: nulls hasta el último mes real, luego las proyecciones
     var datosProyectados = new Array(prestamos.length - 1).fill(null);
     datosProyectados.push(prestamos[prestamos.length - 1]); // punto de empalme
     datosProyectados = datosProyectados.concat(proyecciones);
@@ -682,7 +675,7 @@ function calcularProyeccion() {
     });
 }
 
-// ====================== INIT ======================
+//init
 (function() {
     initTabs();
 
