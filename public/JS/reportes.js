@@ -127,7 +127,7 @@ function initTabs() {
     });
 }
 
-//SECCION: RESUMEN 
+//Seccion resumen
 function renderResumen() {
     if (!DATA || !DATA.meses || DATA.meses.length === 0) return;
 
