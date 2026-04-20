@@ -19,26 +19,28 @@ function calcularTasaPromedio(prestamos, meses) {
     if (!prestamos || prestamos.length < 2) return 0;
 
     var sumaTasas = 0;
-    var conteo = 0;
+    var conteoIntervalos = 0;
 
     for (var i = 1; i < prestamos.length; i++) {
-        var x0 = prestamos[i - 1];
-        var x1 = prestamos[i];
-        
+        var x0 = prestamos[i - 1]; 
+        var x1 = prestamos[i];     
         if (x0 > 0 && x1 > 0) {
-            var k = Math.log(x1 / x0) / 1; 
+            var k = Math.log(x1 / x0); 
             sumaTasas += k;
-            conteo++;
+            conteoIntervalos++;
         } 
         else if (x0 > 0 && x1 === 0) {
-            sumaTasas += Math.log(0.5 / x0); 
-            conteo++;
+            sumaTasas += Math.log(0.5 / x0);
+            conteoIntervalos++;
+        }
+        else if (x0 === 0 && x1 > 0) {
+            sumaTasas += Math.log(x1 / 0.5);
+            conteoIntervalos++;
         }
     }
 
-    return conteo > 0 ? (sumaTasas / conteo) : 0;
+    return conteoIntervalos > 0 ? (sumaTasas / conteoIntervalos) : 0;
 }
-
 function calcularTasaPromedioSimple(prestamos) {
     var suma = 0;
     var count = 0;
