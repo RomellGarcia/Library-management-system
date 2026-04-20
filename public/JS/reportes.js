@@ -16,7 +16,7 @@ function proyectar(x0, k, t) {
 
 
 function calcularTasaPromedio(prestamos, meses) {
-    if (!prestamos || !meses || prestamos.length < 2) {
+    if (!prestamos || prestamos.length < 2) {
         return 0;
     }
 
@@ -28,7 +28,7 @@ function calcularTasaPromedio(prestamos, meses) {
         var x1 = prestamos[i];
 
         if (x0 > 0 && x1 > 0) {
-            var deltaT = 1; // valor por defecto
+            var deltaT = 1; // default
             if (meses && meses.length === prestamos.length) {
                 deltaT = calcularDeltaMeses(meses[i-1], meses[i]);
             }
