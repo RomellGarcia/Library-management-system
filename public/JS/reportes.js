@@ -11,7 +11,9 @@ function proyectar(x0, k, t) {
 }
 
 function colorAlpha(hex, alpha) {
-    var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
     return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
 }
 
@@ -29,66 +31,96 @@ function obtenerRecomendacion(k) {
     if (k > 0.1) return { texto: 'Adquirir más ejemplares', clase: 'alta' };
     if (k > 0.02) return { texto: 'Mantener acervo', clase: 'media' };
     if (k > -0.02) return { texto: 'Sin cambios', clase: 'media' };
-    return { texto: 'Monitorear / Baja', clase: 'critica' };
+    return { texto: 'Considerar baja / Monitorear', clase: 'critica' };
+}
+
+// ====================== CARGA DE DATOS ======================
+
+function cargarDatos() {
+    var urlPrestamos = '/api/reportes/prestamos-por-mes?meses=6';
+    var urlStats = '/api/reportes/estadisticas';
+
+    return Promise.all([
+        fetch(urlPrestamos).then(r => r.json()),
+        fetch(urlStats).then(r => r.json())
+    ])
+    .then(resultados => {
+        DATA = resultados[0].data;
+        STATS = resultados[1].data;
+        return true;
+    });
 }
 
 // ====================== RENDERIZADO ======================
 
 function renderResumen() {
     if (!DATA) return;
-    var mesesLabel = DATA.meses.map(formatearMes);
     
-    // Totales por mes
+    var mesesLabel = DATA.meses.map(formatearMes);
     var totalesMes = DATA.meses.map(function(_, idx) {
-        return DATA.categorias.reduce(function(acc, c) { return acc + (c.prestamos[idx] || 0); }, 0);
+        return DATA.categorias.reduce((sum, c) => sum + (c.prestamos[idx] || 0), 0);
     });
 
-    var totalActual = totalesMes[totalesMes.length - 1] || 0;
-    var totalAnterior = totalesMes[totalesMes.length - 2] || 0;
-    var cambio = totalAnterior > 0 ? ((totalActual - totalAnterior) / totalAnterior * 100).toFixed(1) : 0;
+    var actual = totalesMes[totalesMes.length - 1];
+    var anterior = totalesMes[totalesMes.length - 2] || 0;
+    var cambio = anterior > 0 ? ((actual - anterior) / anterior * 100).toFixed(1) : 0;
 
-    // Tarjetas
-    var html = '<div class="stat-card"><div class="stat-label">Préstamos Este Mes</div><div class="stat-value">' + totalActual + '</div>' +
-               '<div class="stat-change ' + (cambio >= 0 ? 'up' : 'down') + '">' + (cambio >= 0 ? '↑' : '↓') + ' ' + Math.abs(cambio) + '%</div></div>';
-    // ... (repetir para otras tarjetas usando STATS)
+    // Tarjetas de estadísticas
+    var html = `
+        <div class="stat-card">
+            <div class="stat-label">Préstamos Este Mes</div>
+            <div class="stat-value">${actual}</div>
+            <div class="stat-change ${cambio >= 0 ? 'up' : 'down'}">
+                ${cambio >= 0 ? 'Sube' : 'Baja'} ${Math.abs(cambio)}% vs mes anterior
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Libros en Acervo</div>
+            <div class="stat-value">${STATS.total_libros}</div>
+        </div>
+    `;
     document.getElementById('statsGrid').innerHTML = html;
 
-    // Categorías Crecimiento (Usando el porcentaje que ya calculó el API)
+    // Categorías Crecimiento
     var htmlCrec = '';
-    DATA.categorias.filter(c => c.tasa_k > 0).slice(0,5).forEach(function(c) {
-        htmlCrec += '<li><span class="reco-titulo">' + c.nombre + '</span><span class="reco-cambio up">+' + c.porcentaje_mensual.toFixed(1) + '% / mes</span></li>';
+    DATA.categorias.filter(c => c.tasa_k > 0).slice(0, 5).forEach(c => {
+        htmlCrec += `<li><span class="reco-titulo">${c.nombre}</span>
+                     <span class="reco-cambio up">+${c.porcentaje_mensual.toFixed(1)}% / mes</span></li>`;
     });
     document.getElementById('categoriasCrecimiento').innerHTML = htmlCrec;
-    
-    // Gráfica de Barras Principal
-    destruirChart('chartPrestamosMes');
-    chartInstances['chartPrestamosMes'] = new Chart(document.getElementById('chartPrestamosMes'), {
-        type: 'bar',
-        data: {
-            labels: mesesLabel,
-            datasets: [{ label: 'Préstamos', data: totalesMes, backgroundColor: '#A02142', borderRadius: 5 }]
-        }
-    });
 }
 
 function renderLibros() {
-    if (!DATA) return;
     var tbodyHTML = '';
-    
-    DATA.libros.forEach(function(l) {
+    DATA.libros.forEach(l => {
         var x0 = l.prestamos[l.prestamos.length - 1];
         var proy = Math.round(proyectar(x0, l.tasa_k, 1));
         var reco = obtenerRecomendacion(l.tasa_k);
 
-        tbodyHTML += '<tr>' +
-            '<td><strong>' + l.nombre + '</strong></td>' +
-            '<td>' + l.categoria + '</td>' +
-            '<td style="text-align:center">' + x0 + '</td>' +
-            '<td style="text-align:center; color:#2E7D32"><strong>' + proy + '</strong></td>' +
-            '<td><span class="badge ' + reco.clase + '">' + reco.texto + '</span></td>' +
-            '</tr>';
+        tbodyHTML += `<tr>
+            <td><strong>${l.nombre}</strong></td>
+            <td>${l.categoria}</td>
+            <td style="text-align:center">${x0}</td>
+            <td style="text-align:center; color:#A02142"><strong>${proy}</strong></td>
+            <td><span class="badge ${reco.clase}">${reco.texto}</span></td>
+        </tr>`;
     });
     document.getElementById('tablaLibros').innerHTML = tbodyHTML;
+}
+
+// ====================== SECCIÓN PROYECCIÓN ======================
+
+function llenarSeleccion() {
+    var tipo = document.getElementById('projTipo').value;
+    var sel = document.getElementById('projSeleccion');
+    sel.innerHTML = '';
+    var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
+    items.forEach(i => {
+        var opt = document.createElement('option');
+        opt.value = i.nombre;
+        opt.textContent = i.nombre;
+        sel.appendChild(opt);
+    });
 }
 
 function calcularProyeccion() {
@@ -96,7 +128,7 @@ function calcularProyeccion() {
     var seleccion = document.getElementById('projSeleccion').value;
     var periodos = parseInt(document.getElementById('projPeriodos').value) || 3;
 
-    var items = (tipo === 'libro' ? DATA.libros : DATA.categorias);
+    var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
     var item = items.find(i => i.nombre === seleccion);
     if (!item) return;
 
@@ -104,26 +136,29 @@ function calcularProyeccion() {
     var k = item.tasa_k;
     var pct = item.porcentaje_mensual.toFixed(2);
 
-    var proyeccionFinal = Math.round(proyectar(x0, k, periodos));
+    // Calculamos los meses futuros
+    var proyecciones = [];
+    for (var i = 1; i <= periodos; i++) {
+        proyecciones.push(Math.round(proyectar(x0, k, i)));
+    }
 
     document.getElementById('resultadoBox').classList.add('visible');
     document.getElementById('resultadoTexto').innerHTML = 
-        'El análisis muestra una tasa del <strong>' + pct + '% mensual</strong>. ' +
-        'En ' + periodos + ' meses se estiman <strong>' + proyeccionFinal + ' préstamos</strong>.';
+        `Este material tiene una tasa de <strong>${pct}% mensual</strong>. 
+        En ${periodos} meses se estiman <strong>${proyecciones[periodos-1]} préstamos</strong>.`;
     
-    // Aquí llamarías a la función de la gráfica de proyecciones usando k e item.prestamos
+    // Aquí actualizarías tu gráfica de líneas de proyección con 'proyecciones'
 }
 
-// ====================== INIT ======================
+// ====================== INICIALIZACIÓN ======================
 (function() {
-    document.getElementById('btnCalcular').addEventListener('click', calcularProyeccion);
-    document.getElementById('projTipo').addEventListener('change', llenarSeleccion);
-
     cargarDatos().then(() => {
         renderResumen();
         renderLibros();
-        renderCategorias();
         llenarSeleccion();
+        
+        document.getElementById('projTipo').addEventListener('change', llenarSeleccion);
+        document.getElementById('btnCalcular').addEventListener('click', calcularProyeccion);
         document.getElementById('loadingOverlay').classList.add('hidden');
     });
 })();
