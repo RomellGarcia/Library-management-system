@@ -4,60 +4,13 @@ var STATS = null;
 var chartInstances = {};
 var PALETTE = ['#A02142', '#BC955B', '#7A1832', '#D4AF72', '#C4345A', '#5C3D2E', '#2E7D32', '#1565C0', '#6A1B9A', '#E65100'];
 
-// ====================== CALCULOS INTERNOS ======================
-
-function calcularTasa(x0, x1, deltaT) {
-    if (x0 <= 0 || x1 <= 0 || deltaT <= 0) return 0;
-    return Math.log(x1 / x0) / deltaT;
-}
+// ====================== UTILIDADES ======================
 
 function proyectar(x0, k, t) {
     return x0 * Math.exp(k * t);
 }
 
-function calcularTasaPromedio(prestamos) {
-    if (!prestamos || prestamos.length < 2) return 0;
-
-    // Filtrar puntos con actividad guardando índice real
-    var puntos = [];
-    prestamos.forEach(function (v, i) {
-        if (v > 0) puntos.push({ valor: v, idx: i });
-    });
-
-    if (puntos.length === 0) return 0;
-    if (puntos.length === 1) return 0;  // Sin historial suficiente
-
-    var sumaPonderada = 0;
-    var sumaPesos = 0;
-    var n = puntos.length;
-
-    for (var i = 1; i < n; i++) {
-        var x0 = puntos[i - 1].valor;
-        var x1 = puntos[i].valor;
-        var deltaT = puntos[i].idx - puntos[i - 1].idx;
-        if (deltaT <= 0) continue;
-
-        var k = Math.log(x1 / x0) / deltaT;
-        if (!isFinite(k) || Math.abs(k) >= 5) continue;
-
-        // Peso exponencial: los pares más recientes pesan más
-        // i=1 es el primer par, i=n-1 es el último (más reciente)
-        var peso = Math.pow(2, i);   // 2, 4, 8, 16...
-        sumaPonderada += k * peso;
-        sumaPesos += peso;
-    }
-
-    return sumaPesos > 0 ? sumaPonderada / sumaPesos : 0;
-}
-
-
-function calcularDeltaMeses(mes1, mes2) {
-    var p1 = mes1.split('-').map(Number);
-    var p2 = mes2.split('-').map(Number);
-    return (p2[0] - p1[0]) * 12 + (p2[1] - p1[1]);
-}
-
-// Convertir tasa a porcentaje aproximado de cambio mensual
+// Convierte tasa k a porcentaje mensual: (e^k - 1) * 100
 function tasaAPorcentaje(k) {
     return ((Math.exp(k) - 1) * 100).toFixed(1);
 }
@@ -83,72 +36,113 @@ function destruirChart(id) {
     }
 }
 
-// Determinar nivel de recomendacion basado en tasa
+// Recomendación basada en tasa k
 function obtenerRecomendacion(k) {
-    if (k > 0.1) return { texto: 'Adquirir mas ejemplares', clase: 'alta' };
-    if (k > 0.02) return { texto: 'Mantener acervo', clase: 'media' };
-    if (k > -0.02) return { texto: 'Sin cambios', clase: 'media' };
-    if (k > -0.1) return { texto: 'Monitorear', clase: 'baja' };
-    return { texto: 'Considerar baja', clase: 'critica' };
+    if (k > 0.1)   return { texto: 'Adquirir mas ejemplares', clase: 'alta' };
+    if (k > 0.02)  return { texto: 'Mantener acervo',        clase: 'media' };
+    if (k > -0.02) return { texto: 'Sin cambios',            clase: 'media' };
+    if (k > -0.1)  return { texto: 'Monitorear',             clase: 'baja' };
+    return              { texto: 'Considerar baja',          clase: 'critica' };
 }
 
 function obtenerTendenciaTexto(k) {
-    if (k > 0.05) return 'Crecimiento alto';
-    if (k > 0) return 'Crecimiento moderado';
+    if (k > 0.05)  return 'Crecimiento alto';
+    if (k > 0)     return 'Crecimiento moderado';
     if (k > -0.05) return 'Decrecimiento leve';
-    return 'Decrecimiento marcado';
+    return               'Decrecimiento marcado';
 }
 
-// CHART.JS DEFAULTS
+// Obtener la tasa k de un item — usa tasa_k de la API si existe,
+// si no, calcula localmente con la Ley de Crecimiento/Decaimiento
+function obtenerK(item) {
+    if (item.tasa_k !== undefined) return item.tasa_k;
+    return calcularTasaKLocal(item.prestamos);
+}
+
+// Fallback local: solo se usa si la API no manda tasa_k
+// Ley de Crecimiento: k = ln(x1/x0) / deltaT, promedio ponderado por recencia
+function calcularTasaKLocal(prestamos) {
+    if (!prestamos || prestamos.length < 2) return 0;
+
+    var puntos = [];
+    prestamos.forEach(function(v, i) {
+        if (v > 0) puntos.push({ valor: v, idx: i });
+    });
+
+    if (puntos.length < 2) return 0;
+
+    var sumaPonderada = 0;
+    var sumaPesos = 0;
+
+    for (var i = 1; i < puntos.length; i++) {
+        var x0 = puntos[i - 1].valor;
+        var x1 = puntos[i].valor;
+        var deltaT = puntos[i].idx - puntos[i - 1].idx;
+        if (deltaT <= 0) continue;
+
+        var k = Math.log(x1 / x0) / deltaT;
+        if (!isFinite(k) || Math.abs(k) >= 5) continue;
+
+        var peso = Math.pow(2, i);
+        sumaPonderada += k * peso;
+        sumaPesos += peso;
+    }
+
+    if (sumaPesos === 0) return 0;
+    var resultado = sumaPonderada / sumaPesos;
+    return Math.max(-1.1, Math.min(1.1, resultado));
+}
+
+// ====================== CHART.JS DEFAULTS ======================
 Chart.defaults.font.family = "'Source Sans 3', sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#6B6B6B';
 
-// CARGA DE DATOS
+// ====================== CARGA DE DATOS ======================
 function cargarDatos() {
     var urlPrestamos = '/api/reportes/prestamos-por-mes?meses=6';
     var urlStats = '/api/reportes/estadisticas';
 
     return Promise.all([
-        fetchConToken(urlPrestamos).then(function (r) { return r.json(); }),
-        fetchConToken(urlStats).then(function (r) { return r.json(); })
+        fetchConToken(urlPrestamos).then(function(r) { return r.json(); }),
+        fetchConToken(urlStats).then(function(r) { return r.json(); })
     ])
-        .then(function (resultados) {
-            var resPrestamos = resultados[0];
-            var resStats = resultados[1];
+    .then(function(resultados) {
+        var resPrestamos = resultados[0];
+        var resStats = resultados[1];
 
-            if (!resPrestamos.success) {
-                throw new Error(resPrestamos.message || 'Error al obtener datos');
-            }
+        if (!resPrestamos.success) {
+            throw new Error(resPrestamos.message || 'Error al obtener datos');
+        }
 
-            DATA = resPrestamos.data;
-            STATS = resStats.success ? resStats.data : null;
-            return true;
-        });
+        DATA = resPrestamos.data;
+        STATS = resStats.success ? resStats.data : null;
+        return true;
+    });
 }
 
-// TABS
+// ====================== TABS ======================
 function initTabs() {
     var tabs = document.querySelectorAll('.nav-tab');
-    tabs.forEach(function (tab) {
-        tab.addEventListener('click', function () {
-            tabs.forEach(function (t) { t.classList.remove('active'); });
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            tabs.forEach(function(t) { t.classList.remove('active'); });
             tab.classList.add('active');
-            document.querySelectorAll('.section').forEach(function (s) { s.classList.remove('active'); });
+            document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
             document.getElementById('sec-' + tab.getAttribute('data-section')).classList.add('active');
         });
     });
 }
 
-// SECCION: RESUMEN GENERAL
+// ====================== SECCION: RESUMEN ======================
 function renderResumen() {
     if (!DATA || !DATA.meses || DATA.meses.length === 0) return;
 
     var mesesLabel = DATA.meses.map(formatearMes);
 
-    var totalesMes = DATA.meses.map(function (mes, idx) {
+    var totalesMes = DATA.meses.map(function(mes, idx) {
         var total = 0;
-        DATA.categorias.forEach(function (c) {
+        DATA.categorias.forEach(function(c) {
             total += (c.prestamos[idx] || 0);
         });
         return total;
@@ -158,9 +152,9 @@ function renderResumen() {
     var totalAnterior = totalesMes.length >= 2 ? totalesMes[totalesMes.length - 2] : 0;
     var cambio = totalAnterior > 0 ? ((totalActual - totalAnterior) / totalAnterior * 100).toFixed(1) : 0;
 
-    // Corregido: pasar DATA.meses
-    var librosCrec = DATA.libros.filter(function (l) {
-        return calcularTasaPromedio(l.prestamos, DATA.meses) > 0;
+    // Usar tasa_k de la API directamente
+    var librosCrec = DATA.libros.filter(function(l) {
+        return obtenerK(l) > 0;
     }).length;
 
     var totalLibros = STATS ? STATS.total_libros : DATA.libros.length;
@@ -181,7 +175,7 @@ function renderResumen() {
 
     document.getElementById('statsGrid').innerHTML = html;
 
-    // Chart prestamos por mes
+    // Chart barras: préstamos por mes
     destruirChart('chartPrestamosMes');
     chartInstances['chartPrestamosMes'] = new Chart(document.getElementById('chartPrestamosMes'), {
         type: 'bar',
@@ -190,7 +184,7 @@ function renderResumen() {
             datasets: [{
                 label: 'Prestamos',
                 data: totalesMes,
-                backgroundColor: totalesMes.map(function (_, i) {
+                backgroundColor: totalesMes.map(function(_, i) {
                     return i === totalesMes.length - 1 ? '#A02142' : colorAlpha('#A02142', 0.55);
                 }),
                 borderRadius: 8,
@@ -203,7 +197,7 @@ function renderResumen() {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function (ctx) { return ctx.parsed.y + ' prestamos'; }
+                        label: function(ctx) { return ctx.parsed.y + ' prestamos'; }
                     }
                 }
             },
@@ -214,18 +208,18 @@ function renderResumen() {
         }
     });
 
-    // Chart categorias donut
-    var catActual = DATA.categorias.map(function (c) {
+    // Chart donut: categorías
+    var catActual = DATA.categorias.map(function(c) {
         return c.prestamos[c.prestamos.length - 1] || 0;
     });
     destruirChart('chartCategorias');
     chartInstances['chartCategorias'] = new Chart(document.getElementById('chartCategorias'), {
         type: 'doughnut',
         data: {
-            labels: DATA.categorias.map(function (c) { return c.nombre; }),
+            labels: DATA.categorias.map(function(c) { return c.nombre; }),
             datasets: [{
                 data: catActual,
-                backgroundColor: DATA.categorias.map(function (_, i) { return PALETTE[i % PALETTE.length]; }),
+                backgroundColor: DATA.categorias.map(function(_, i) { return PALETTE[i % PALETTE.length]; }),
                 borderWidth: 3,
                 borderColor: '#FFFFFF'
             }]
@@ -237,31 +231,31 @@ function renderResumen() {
                 legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } },
                 tooltip: {
                     callbacks: {
-                        label: function (ctx) { return ctx.label + ': ' + ctx.parsed + ' prestamos'; }
+                        label: function(ctx) { return ctx.label + ': ' + ctx.parsed + ' prestamos'; }
                     }
                 }
             }
         }
     });
 
-    // Recomendaciones de categorias
-    var catsConTasa = DATA.categorias.map(function (c) {
+    // Recomendaciones de categorías — usar tasa_k de la API
+    var catsConTasa = DATA.categorias.map(function(c) {
         return {
             nombre: c.nombre,
-            k: calcularTasaPromedio(c.prestamos, DATA.meses),   // Corregido
+            k: obtenerK(c),
             prestamos: c.prestamos
         };
     });
-    catsConTasa.sort(function (a, b) { return b.k - a.k; });
+    catsConTasa.sort(function(a, b) { return b.k - a.k; });
 
-    var crecimiento = catsConTasa.filter(function (c) { return c.k > 0; }).slice(0, 5);
-    var decrecimiento = catsConTasa.filter(function (c) { return c.k < 0; }).slice(0, 5);
+    var crecimiento  = catsConTasa.filter(function(c) { return c.k > 0; }).slice(0, 5);
+    var decrecimiento = catsConTasa.filter(function(c) { return c.k < 0; }).slice(0, 5);
 
     var htmlCrec = '';
     if (crecimiento.length === 0) {
         htmlCrec = '<li class="empty">No hay categorias en crecimiento por ahora</li>';
     } else {
-        crecimiento.forEach(function (c) {
+        crecimiento.forEach(function(c) {
             var pct = tasaAPorcentaje(c.k);
             var ultimo = c.prestamos[c.prestamos.length - 1];
             htmlCrec += '<li><span class="reco-titulo">' + c.nombre + '<small>' + ultimo + ' prestamos el ultimo mes</small></span>';
@@ -274,7 +268,7 @@ function renderResumen() {
     if (decrecimiento.length === 0) {
         htmlDec = '<li class="empty">No hay categorias en descenso por ahora</li>';
     } else {
-        decrecimiento.forEach(function (c) {
+        decrecimiento.forEach(function(c) {
             var pct = tasaAPorcentaje(c.k);
             var ultimo = c.prestamos[c.prestamos.length - 1];
             htmlDec += '<li><span class="reco-titulo">' + c.nombre + '<small>' + ultimo + ' prestamos el ultimo mes</small></span>';
@@ -284,12 +278,12 @@ function renderResumen() {
     document.getElementById('categoriasDecrecimiento').innerHTML = htmlDec;
 }
 
-// SECCION: LIBROS
+// ====================== SECCION: LIBROS ======================
 function renderLibros() {
     if (!DATA || DATA.libros.length === 0) return;
 
-    var librosConTasa = DATA.libros.map(function (l) {
-        var k = calcularTasaPromedio(l.prestamos, DATA.meses);   // Corregido
+    var librosConTasa = DATA.libros.map(function(l) {
+        var k = obtenerK(l);  // usa tasa_k de la API
         var x0 = l.prestamos[l.prestamos.length - 1] || 0;
         var anterior = l.prestamos.length >= 2 ? l.prestamos[l.prestamos.length - 2] : 0;
         var proy = x0 > 0 ? Math.round(proyectar(x0, k, 1)) : 0;
@@ -305,17 +299,16 @@ function renderLibros() {
         };
     });
 
-    librosConTasa.sort(function (a, b) { return b.k - a.k; });
+    librosConTasa.sort(function(a, b) { return b.k - a.k; });
 
-    // Recomendaciones
-    var crecimiento = librosConTasa.filter(function (l) { return l.k > 0; }).slice(0, 6);
-    var decrecimiento = librosConTasa.filter(function (l) { return l.k < 0; }).slice(0, 6);
+    var crecimiento  = librosConTasa.filter(function(l) { return l.k > 0; }).slice(0, 6);
+    var decrecimiento = librosConTasa.filter(function(l) { return l.k < 0; }).slice(0, 6);
 
     var htmlCrec = '';
     if (crecimiento.length === 0) {
         htmlCrec = '<li class="empty">No hay libros en crecimiento por ahora</li>';
     } else {
-        crecimiento.forEach(function (l) {
+        crecimiento.forEach(function(l) {
             var pct = tasaAPorcentaje(l.k);
             htmlCrec += '<li><span class="reco-titulo">' + l.nombre + '<small>' + l.categoria + ' - ' + l.actual + ' prestamos el ultimo mes</small></span>';
             htmlCrec += '<span class="reco-cambio up">+' + pct + '% / mes</span></li>';
@@ -327,7 +320,7 @@ function renderLibros() {
     if (decrecimiento.length === 0) {
         htmlDec = '<li class="empty">No hay libros en descenso por ahora</li>';
     } else {
-        decrecimiento.forEach(function (l) {
+        decrecimiento.forEach(function(l) {
             var pct = tasaAPorcentaje(l.k);
             htmlDec += '<li><span class="reco-titulo">' + l.nombre + '<small>' + l.categoria + ' - ' + l.actual + ' prestamos el ultimo mes</small></span>';
             htmlDec += '<span class="reco-cambio down">' + pct + '% / mes</span></li>';
@@ -337,7 +330,7 @@ function renderLibros() {
 
     // Tabla
     var tbodyHTML = '';
-    librosConTasa.forEach(function (libro) {
+    librosConTasa.forEach(function(libro) {
         var reco = obtenerRecomendacion(libro.k);
         tbodyHTML += '<tr>' +
             '<td><strong>' + libro.nombre + '</strong></td>' +
@@ -350,23 +343,23 @@ function renderLibros() {
     });
     document.getElementById('tablaLibros').innerHTML = tbodyHTML;
 
-    // Top 10
+    // Chart top 10
     var top10 = librosConTasa.slice(0, 10);
     destruirChart('chartTopLibros');
     chartInstances['chartTopLibros'] = new Chart(document.getElementById('chartTopLibros'), {
         type: 'bar',
         data: {
-            labels: top10.map(function (l) { return l.nombre; }),
+            labels: top10.map(function(l) { return l.nombre; }),
             datasets: [
                 {
                     label: 'Mes anterior',
-                    data: top10.map(function (l) { return l.anterior; }),
+                    data: top10.map(function(l) { return l.anterior; }),
                     backgroundColor: colorAlpha('#BC955B', 0.7),
                     borderRadius: 6, borderSkipped: false
                 },
                 {
                     label: 'Mes actual',
-                    data: top10.map(function (l) { return l.actual; }),
+                    data: top10.map(function(l) { return l.actual; }),
                     backgroundColor: colorAlpha('#A02142', 0.85),
                     borderRadius: 6, borderSkipped: false
                 }
@@ -384,7 +377,7 @@ function renderLibros() {
     });
 }
 
-// SECCION: CATEGORIAS
+// ====================== SECCION: CATEGORIAS ======================
 function renderCategorias() {
     if (!DATA || DATA.categorias.length === 0) return;
 
@@ -395,7 +388,7 @@ function renderCategorias() {
         type: 'line',
         data: {
             labels: mesesLabel,
-            datasets: DATA.categorias.map(function (c, i) {
+            datasets: DATA.categorias.map(function(c, i) {
                 var color = PALETTE[i % PALETTE.length];
                 return {
                     label: c.nombre,
@@ -420,20 +413,19 @@ function renderCategorias() {
         }
     });
 
-    // Tabla
-    var catsConTasa = DATA.categorias.map(function (c) {
-        var k = calcularTasaPromedio(c.prestamos, DATA.meses);   // Corregido
-        var total = c.prestamos.reduce(function (s, v) { return s + v; }, 0);
+    // Tabla categorías — usar tasa_k de la API
+    var catsConTasa = DATA.categorias.map(function(c) {
+        var k = obtenerK(c);
+        var total = c.prestamos.reduce(function(s, v) { return s + v; }, 0);
         var prom = (total / c.prestamos.length).toFixed(1);
         var reco = obtenerRecomendacion(k);
         var tendencia = obtenerTendenciaTexto(k);
         return { nombre: c.nombre, total: total, promedio: prom, k: k, reco: reco, tendencia: tendencia, prestamos: c.prestamos };
     });
-
-    catsConTasa.sort(function (a, b) { return b.k - a.k; });
+    catsConTasa.sort(function(a, b) { return b.k - a.k; });
 
     var tbHTML = '';
-    catsConTasa.forEach(function (c) {
+    catsConTasa.forEach(function(c) {
         var color = c.k >= 0 ? '#2E7D32' : '#E65100';
         tbHTML += '<tr>' +
             '<td><strong>' + c.nombre + '</strong></td>' +
@@ -445,32 +437,35 @@ function renderCategorias() {
     });
     document.getElementById('tablaCategorias').innerHTML = tbHTML;
 
-    // Radar y otros charts...
+    // Chart radar: mes actual vs estimación próximo mes
     destruirChart('chartRadar');
     chartInstances['chartRadar'] = new Chart(document.getElementById('chartRadar'), {
         type: 'radar',
         data: {
-            labels: DATA.categorias.map(function (c) { return c.nombre; }),
-            datasets: [{
-                label: 'Mes actual',
-                data: DATA.categorias.map(function (c) { return c.prestamos[c.prestamos.length - 1] || 0; }),
-                borderColor: '#A02142',
-                backgroundColor: colorAlpha('#A02142', 0.15),
-                borderWidth: 2,
-                pointBackgroundColor: '#A02142'
-            }, {
-                label: 'Estimacion proximo mes',
-                data: DATA.categorias.map(function (c) {
-                    var k = calcularTasaPromedio(c.prestamos, DATA.meses);  // Corregido
-                    var x0 = c.prestamos[c.prestamos.length - 1] || 0;
-                    return Math.round(proyectar(x0, k, 1));
-                }),
-                borderColor: '#BC955B',
-                backgroundColor: colorAlpha('#BC955B', 0.1),
-                borderWidth: 2,
-                pointBackgroundColor: '#BC955B',
-                borderDash: [5, 5]
-            }]
+            labels: DATA.categorias.map(function(c) { return c.nombre; }),
+            datasets: [
+                {
+                    label: 'Mes actual',
+                    data: DATA.categorias.map(function(c) { return c.prestamos[c.prestamos.length - 1] || 0; }),
+                    borderColor: '#A02142',
+                    backgroundColor: colorAlpha('#A02142', 0.15),
+                    borderWidth: 2,
+                    pointBackgroundColor: '#A02142'
+                },
+                {
+                    label: 'Estimacion proximo mes',
+                    data: DATA.categorias.map(function(c) {
+                        var k = obtenerK(c);  // usa tasa_k de la API
+                        var x0 = c.prestamos[c.prestamos.length - 1] || 0;
+                        return Math.round(proyectar(x0, k, 1));
+                    }),
+                    borderColor: '#BC955B',
+                    backgroundColor: colorAlpha('#BC955B', 0.1),
+                    borderWidth: 2,
+                    pointBackgroundColor: '#BC955B',
+                    borderDash: [5, 5]
+                }
+            ]
         },
         options: {
             responsive: true,
@@ -479,16 +474,16 @@ function renderCategorias() {
         }
     });
 
-    // Chart K categorías (cambio %)
+    // Chart barras horizontales: % cambio mensual por categoría
     destruirChart('chartKCategorias');
     chartInstances['chartKCategorias'] = new Chart(document.getElementById('chartKCategorias'), {
         type: 'bar',
         data: {
-            labels: catsConTasa.map(function (c) { return c.nombre; }),
+            labels: catsConTasa.map(function(c) { return c.nombre; }),
             datasets: [{
                 label: 'Cambio mensual %',
-                data: catsConTasa.map(function (c) { return parseFloat(tasaAPorcentaje(c.k)); }),
-                backgroundColor: catsConTasa.map(function (c) {
+                data: catsConTasa.map(function(c) { return parseFloat(tasaAPorcentaje(c.k)); }),
+                backgroundColor: catsConTasa.map(function(c) {
                     return c.k >= 0 ? colorAlpha('#2E7D32', 0.7) : colorAlpha('#E65100', 0.7);
                 }),
                 borderRadius: 8,
@@ -502,7 +497,7 @@ function renderCategorias() {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function (ctx) {
+                        label: function(ctx) {
                             var v = ctx.parsed.x;
                             return (v >= 0 ? '+' : '') + v + '% por mes';
                         }
@@ -510,14 +505,14 @@ function renderCategorias() {
                 }
             },
             scales: {
-                x: { grid: { color: '#E0D8D0' }, ticks: { callback: function (v) { return (v >= 0 ? '+' : '') + v + '%'; } } },
+                x: { grid: { color: '#E0D8D0' }, ticks: { callback: function(v) { return (v >= 0 ? '+' : '') + v + '%'; } } },
                 y: { grid: { display: false } }
             }
         }
     });
 }
 
-// SECCION: PROYECCION
+// ====================== SECCION: PROYECCION ======================
 function llenarSeleccion() {
     if (!DATA) return;
     var tipo = document.getElementById('projTipo').value;
@@ -525,7 +520,7 @@ function llenarSeleccion() {
     sel.innerHTML = '';
 
     var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
-    items.forEach(function (item) {
+    items.forEach(function(item) {
         var opt = document.createElement('option');
         opt.value = item.nombre;
         opt.textContent = item.nombre;
@@ -544,14 +539,12 @@ function calcularProyeccion() {
     if (!item) return;
 
     var prestamos = item.prestamos;
-
-    // ✅ Usar la k que ya viene calculada correctamente desde la API
-    // en lugar de recalcularla localmente con calcularTasaPromedio()
-    var k = item.tasa_k !== undefined ? item.tasa_k : calcularTasaPromedio(prestamos);
-
     var x0 = prestamos[prestamos.length - 1] || 0;
 
-    // Advertencia si no hay datos suficientes
+    // CRÍTICO: tomar k de la API, no recalcular localmente
+    var k = obtenerK(item);
+
+    // Caso sin datos suficientes (ej: Clean Code con solo 1 mes con actividad)
     if (item.datos_suficientes === false) {
         var box = document.getElementById('resultadoBox');
         box.classList.add('visible');
@@ -565,7 +558,7 @@ function calcularProyeccion() {
         return;
     }
 
-    // --- El resto de tu función igual, solo cambió la fuente de k ---
+    // Calcular proyecciones mes a mes
     var proyecciones = [];
     var mesesFuturos = [];
     var ultimoMes = DATA.meses[DATA.meses.length - 1];
@@ -582,21 +575,21 @@ function calcularProyeccion() {
         mesesFuturos.push(mesStr);
     }
 
-    // Caja de resultado
+    // Mostrar caja de resultado
     var box = document.getElementById('resultadoBox');
     box.classList.add('visible');
     document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
 
-    // Usar porcentaje_mensual de la API si está disponible
+    // Usar porcentaje_mensual de la API (ya viene calculado correctamente)
     var pctMensual = item.porcentaje_mensual !== undefined
-        ? item.porcentaje_mensual.toFixed(1)
+        ? parseFloat(item.porcentaje_mensual).toFixed(1)
         : tasaAPorcentaje(k);
 
     var ultimaProy = proyecciones[proyecciones.length - 1];
     var diferencia = ultimaProy - x0;
 
     var textoCambio = '';
-    if (k > 0.05) textoCambio = 'esta creciendo de manera notable';
+    if (k > 0.05)  textoCambio = 'esta creciendo de manera notable';
     else if (k > 0) textoCambio = 'esta creciendo de forma moderada';
     else if (k > -0.05) textoCambio = 'esta disminuyendo levemente';
     else textoCambio = 'esta disminuyendo de manera marcada';
@@ -612,22 +605,25 @@ function calcularProyeccion() {
         Math.abs(diferencia) + ' prestamos respecto al mes actual).';
 
     var recomendacion = '';
-    if (k > 0.1) recomendacion = 'Recomendacion: Conviene adquirir mas ejemplares lo antes posible para evitar listas de espera.';
+    if (k > 0.1)       recomendacion = 'Recomendacion: Conviene adquirir mas ejemplares lo antes posible para evitar listas de espera.';
     else if (k > 0.02) recomendacion = 'Recomendacion: La demanda es estable y creciente. Mantener el acervo actual es suficiente por ahora.';
     else if (k > -0.02) recomendacion = 'Recomendacion: La demanda esta estable. No se requiere accion inmediata.';
     else if (k > -0.1) recomendacion = 'Recomendacion: Vigilar la tendencia. Si continua bajando, evaluar si el material sigue siendo relevante.';
-    else recomendacion = 'Recomendacion: Considerar dar de baja este material o reasignar el espacio a titulos con mayor demanda.';
+    else               recomendacion = 'Recomendacion: Considerar dar de baja este material o reasignar el espacio a titulos con mayor demanda.';
 
     document.getElementById('resultadoReco').textContent = recomendacion;
 
-    // Chart
+    // Gráfica de proyección
     var labelsHistoricos = DATA.meses.map(formatearMes);
     var labelsFuturos = mesesFuturos.map(formatearMes);
     var labelsAll = labelsHistoricos.concat(labelsFuturos);
 
+    // Datos históricos: valores reales + nulls para los meses futuros
     var datosHistCompleto = prestamos.slice().concat(new Array(periodos).fill(null));
+
+    // Datos proyectados: nulls hasta el último mes real, luego las proyecciones
     var datosProyectados = new Array(prestamos.length - 1).fill(null);
-    datosProyectados.push(prestamos[prestamos.length - 1]);
+    datosProyectados.push(prestamos[prestamos.length - 1]); // punto de empalme
     datosProyectados = datosProyectados.concat(proyecciones);
 
     destruirChart('chartProyeccion');
@@ -645,7 +641,8 @@ function calcularProyeccion() {
                     fill: true,
                     tension: 0.3,
                     pointRadius: 5,
-                    pointBackgroundColor: '#A02142'
+                    pointBackgroundColor: '#A02142',
+                    spanGaps: false
                 },
                 {
                     label: 'Estimacion futura',
@@ -658,7 +655,8 @@ function calcularProyeccion() {
                     tension: 0.3,
                     pointRadius: 5,
                     pointBackgroundColor: '#BC955B',
-                    pointStyle: 'triangle'
+                    pointStyle: 'triangle',
+                    spanGaps: false
                 }
             ]
         },
@@ -669,6 +667,7 @@ function calcularProyeccion() {
                 tooltip: {
                     callbacks: {
                         label: function(ctx) {
+                            if (ctx.parsed.y === null) return null;
                             return ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos';
                         }
                     }
@@ -689,12 +688,13 @@ function calcularProyeccion() {
         }
     });
 }
-// INIT
-(function () {
+
+// ====================== INIT ======================
+(function() {
     initTabs();
 
     cargarDatos()
-        .then(function () {
+        .then(function() {
             renderResumen();
             renderLibros();
             renderCategorias();
@@ -703,11 +703,11 @@ function calcularProyeccion() {
             document.getElementById('projTipo').addEventListener('change', llenarSeleccion);
             document.getElementById('btnCalcular').addEventListener('click', calcularProyeccion);
 
-            setTimeout(function () {
+            setTimeout(function() {
                 document.getElementById('loadingOverlay').classList.add('hidden');
             }, 400);
         })
-        .catch(function (error) {
+        .catch(function(error) {
             console.error('Error cargando reportes:', error);
             document.getElementById('loadingOverlay').classList.add('hidden');
             document.getElementById('errorMsg').style.display = 'block';
