@@ -12,29 +12,24 @@ function calcularTasa(x0, x1, deltaT) {
 }
 
 function proyectar(x0, k, t) {
-    return x0 * Math.exp(k * t);
+    var base = x0 <= 0 ? 0.5 : x0;
+    return base * Math.exp(k * t);
 }
 
-function calcularTasaPromedio(prestamos, meses) {
+function calcularTasaPromedio(prestamos) {
     if (!prestamos || prestamos.length < 2) return 0;
 
     var sumaTasas = 0;
     var conteoIntervalos = 0;
 
     for (var i = 1; i < prestamos.length; i++) {
-        var x0 = prestamos[i - 1]; 
-        var x1 = prestamos[i];     
-        if (x0 > 0 && x1 > 0) {
-            var k = Math.log(x1 / x0); 
+        var x0 = prestamos[i - 1] <= 0 ? 0.5 : prestamos[i - 1];
+        var x1 = prestamos[i] <= 0 ? 0.5 : prestamos[i];
+
+        var k = Math.log(x1 / x0);
+        
+        if (isFinite(k)) {
             sumaTasas += k;
-            conteoIntervalos++;
-        } 
-        else if (x0 > 0 && x1 === 0) {
-            sumaTasas += Math.log(0.5 / x0);
-            conteoIntervalos++;
-        }
-        else if (x0 === 0 && x1 > 0) {
-            sumaTasas += Math.log(x1 / 0.5);
             conteoIntervalos++;
         }
     }
