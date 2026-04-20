@@ -16,22 +16,30 @@ function proyectar(x0, k, t) {
 
 
 function calcularTasaPromedio(prestamos, meses) {
-    if (!meses || meses.length !== prestamos.length || meses.length < 2) {
-        return calcularTasaPromedioSimple(prestamos);   // fallback
+    if (!prestamos || !meses || prestamos.length < 2) {
+        return 0;
     }
 
     var suma = 0;
     var count = 0;
 
     for (var i = 1; i < prestamos.length; i++) {
-        if (prestamos[i-1] > 0 && prestamos[i] > 0) {
-            var deltaT = calcularDeltaMeses(meses[i-1], meses[i]);
+        var x0 = prestamos[i-1];
+        var x1 = prestamos[i];
+
+        if (x0 > 0 && x1 > 0) {
+            var deltaT = 1; // valor por defecto
+            if (meses && meses.length === prestamos.length) {
+                deltaT = calcularDeltaMeses(meses[i-1], meses[i]);
+            }
+
             if (deltaT > 0) {
-                suma += calcularTasa(prestamos[i-1], prestamos[i], deltaT);
+                suma += calcularTasa(x0, x1, deltaT);
                 count++;
             }
         }
     }
+
     return count > 0 ? suma / count : 0;
 }
 
