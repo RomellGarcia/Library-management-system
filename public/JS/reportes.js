@@ -540,32 +540,32 @@ function calcularProyeccion() {
     var periodos = parseInt(document.getElementById('projPeriodos').value) || 3;
 
     var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
-    var item = items.find(function (i) { return i.nombre === seleccion; });
-
-    if (!item.datos_suficientes) {
-        document.getElementById('resultadoTexto').innerHTML =
-            'Este ' + (tipo === 'libro' ? 'libro' : 'categoría') +
-            ' solo tiene actividad en <strong>1 mes</strong> — ' +
-            'no hay historial suficiente para calcular una tendencia confiable. ' +
-            'La proyección se mantiene en <strong>' + x0 + ' préstamos</strong> por mes.';
-        return;
-    }
+    var item = items.find(function(i) { return i.nombre === seleccion; });
     if (!item) return;
 
     var prestamos = item.prestamos;
-    var k = calcularTasaPromedio(prestamos);
+
+    // ✅ Usar la k que ya viene calculada correctamente desde la API
+    // en lugar de recalcularla localmente con calcularTasaPromedio()
+    var k = item.tasa_k !== undefined ? item.tasa_k : calcularTasaPromedio(prestamos);
+
     var x0 = prestamos[prestamos.length - 1] || 0;
 
-    // Caso libro nuevo / sin historial suficiente
-    if (k === 0 && puntosSoloUno) {
+    // Advertencia si no hay datos suficientes
+    if (item.datos_suficientes === false) {
+        var box = document.getElementById('resultadoBox');
+        box.classList.add('visible');
+        document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
         document.getElementById('resultadoTexto').innerHTML =
             'Este ' + (tipo === 'libro' ? 'libro' : 'categoría') +
-            ' tiene <strong>' + x0 + ' préstamos</strong> en el último mes ' +
-            'pero <strong>no tiene historial previo suficiente</strong> para calcular una tendencia. ' +
-            'La proyección se mantiene plana en <strong>' + x0 + ' préstamos</strong> por mes.';
-        // ... igual el chart pero sin dispararse
+            ' solo tiene actividad en <strong>1 mes</strong>. ' +
+            'No hay historial suficiente para calcular una tendencia confiable. ' +
+            'La proyección se mantiene en <strong>' + x0 + ' préstamos</strong> por mes.';
+        document.getElementById('resultadoReco').textContent = '';
+        return;
     }
 
+    // --- El resto de tu función igual, solo cambió la fuente de k ---
     var proyecciones = [];
     var mesesFuturos = [];
     var ultimoMes = DATA.meses[DATA.meses.length - 1];
@@ -582,12 +582,16 @@ function calcularProyeccion() {
         mesesFuturos.push(mesStr);
     }
 
-    // Resultado box (se mantiene igual)
+    // Caja de resultado
     var box = document.getElementById('resultadoBox');
     box.classList.add('visible');
     document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
 
-    var pctMensual = tasaAPorcentaje(k);
+    // Usar porcentaje_mensual de la API si está disponible
+    var pctMensual = item.porcentaje_mensual !== undefined
+        ? item.porcentaje_mensual.toFixed(1)
+        : tasaAPorcentaje(k);
+
     var ultimaProy = proyecciones[proyecciones.length - 1];
     var diferencia = ultimaProy - x0;
 
@@ -598,10 +602,14 @@ function calcularProyeccion() {
     else textoCambio = 'esta disminuyendo de manera marcada';
 
     document.getElementById('resultadoTexto').innerHTML =
-        'Actualmente este ' + (tipo === 'libro' ? 'libro' : 'categoria') + ' tiene <strong>' + x0 + ' prestamos</strong> en el ultimo mes y ' + textoCambio + ' a un ritmo de aproximadamente ' +
-        '<strong>' + (k >= 0 ? '+' : '') + pctMensual + '% mensual</strong>. ' +
+        'Actualmente este ' + (tipo === 'libro' ? 'libro' : 'categoria') +
+        ' tiene <strong>' + x0 + ' prestamos</strong> en el ultimo mes y ' + textoCambio +
+        ' a un ritmo de aproximadamente <strong>' +
+        (k >= 0 ? '+' : '') + pctMensual + '% mensual</strong>. ' +
         'Si esta tendencia continua, en <strong>' + periodos + ' mes(es)</strong> se esperan cerca de ' +
-        '<strong>' + ultimaProy + ' prestamos</strong> (' + (diferencia >= 0 ? 'un aumento' : 'una reduccion') + ' de ' + Math.abs(diferencia) + ' prestamos respecto al mes actual).';
+        '<strong>' + ultimaProy + ' prestamos</strong> (' +
+        (diferencia >= 0 ? 'un aumento' : 'una reduccion') + ' de ' +
+        Math.abs(diferencia) + ' prestamos respecto al mes actual).';
 
     var recomendacion = '';
     if (k > 0.1) recomendacion = 'Recomendacion: Conviene adquirir mas ejemplares lo antes posible para evitar listas de espera.';
@@ -612,7 +620,7 @@ function calcularProyeccion() {
 
     document.getElementById('resultadoReco').textContent = recomendacion;
 
-    // Chart de proyección (se mantiene igual)
+    // Chart
     var labelsHistoricos = DATA.meses.map(formatearMes);
     var labelsFuturos = mesesFuturos.map(formatearMes);
     var labelsAll = labelsHistoricos.concat(labelsFuturos);
@@ -660,18 +668,27 @@ function calcularProyeccion() {
                 legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } },
                 tooltip: {
                     callbacks: {
-                        label: function (ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos'; }
+                        label: function(ctx) {
+                            return ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos';
+                        }
                     }
                 }
             },
             scales: {
-                y: { beginAtZero: true, grid: { color: '#E0D8D0' }, ticks: { precision: 0 }, title: { display: true, text: 'Prestamos', font: { weight: 600 } } },
-                x: { grid: { display: false }, title: { display: true, text: 'Mes', font: { weight: 600 } } }
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#E0D8D0' },
+                    ticks: { precision: 0 },
+                    title: { display: true, text: 'Prestamos', font: { weight: 600 } }
+                },
+                x: {
+                    grid: { display: false },
+                    title: { display: true, text: 'Mes', font: { weight: 600 } }
+                }
             }
         }
     });
 }
-
 // INIT
 (function () {
     initTabs();
