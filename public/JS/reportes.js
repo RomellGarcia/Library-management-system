@@ -18,24 +18,28 @@ function proyectar(x0, k, t) {
 function calcularTasaPromedio(prestamos) {
     if (!prestamos || prestamos.length < 2) return 0;
 
-    // Filtrar solo los valores con actividad real (> 0) manteniendo el índice para el Δt
-    var puntosValidos = [];
-    prestamos.forEach(function(v, i) {
-        if (v > 0) puntosValidos.push({ valor: v, indice: i });
+    // Filtrar puntos con actividad, guardando su índice (posición en el tiempo)
+    var puntos = [];
+    prestamos.forEach(function (v, i) {
+        if (v > 0) puntos.push({ valor: v, idx: i });
     });
 
-    if (puntosValidos.length < 2) return 0;
+    // Sin ningún punto con actividad
+    if (puntos.length === 0) return 0;
 
+    // Solo UN mes con datos (ej: Clean Code [0,0,0,0,0,5])
+    // No hay tasa calculable con ln — retornar 0 (sin tendencia definida)
+    if (puntos.length === 1) return 0;
+
+    // Caso normal: calcular k entre cada par de puntos válidos consecutivos
     var suma = 0;
     var count = 0;
-
-    for (var i = 1; i < puntosValidos.length; i++) {
-        var x0 = puntosValidos[i - 1].valor;
-        var x1 = puntosValidos[i].valor;
-        var deltaT = puntosValidos[i].indice - puntosValidos[i - 1].indice; // meses reales entre ambos
+    for (var i = 1; i < puntos.length; i++) {
+        var x0 = puntos[i - 1].valor;
+        var x1 = puntos[i].valor;
+        var deltaT = puntos[i].idx - puntos[i - 1].idx;  // meses reales entre ambos
         if (deltaT <= 0) continue;
-
-        var k = Math.log(x1 / x0) / deltaT;  // ← k = ln(x₁/x₀) / Δt real
+        var k = Math.log(x1 / x0) / deltaT;
         if (isFinite(k) && Math.abs(k) < 5) {
             suma += k;
             count++;
@@ -66,7 +70,7 @@ function colorAlpha(hex, alpha) {
 
 function formatearMes(ym) {
     var partes = ym.split('-');
-    var nombres = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    var nombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     var idx = parseInt(partes[1], 10) - 1;
     return nombres[idx] + ' ' + partes[0].substring(2);
 }
@@ -105,31 +109,31 @@ function cargarDatos() {
     var urlStats = '/api/reportes/estadisticas';
 
     return Promise.all([
-        fetchConToken(urlPrestamos).then(function(r) { return r.json(); }),
-        fetchConToken(urlStats).then(function(r) { return r.json(); })
+        fetchConToken(urlPrestamos).then(function (r) { return r.json(); }),
+        fetchConToken(urlStats).then(function (r) { return r.json(); })
     ])
-    .then(function(resultados) {
-        var resPrestamos = resultados[0];
-        var resStats = resultados[1];
+        .then(function (resultados) {
+            var resPrestamos = resultados[0];
+            var resStats = resultados[1];
 
-        if (!resPrestamos.success) {
-            throw new Error(resPrestamos.message || 'Error al obtener datos');
-        }
+            if (!resPrestamos.success) {
+                throw new Error(resPrestamos.message || 'Error al obtener datos');
+            }
 
-        DATA = resPrestamos.data;
-        STATS = resStats.success ? resStats.data : null;
-        return true;
-    });
+            DATA = resPrestamos.data;
+            STATS = resStats.success ? resStats.data : null;
+            return true;
+        });
 }
 
 // TABS
 function initTabs() {
     var tabs = document.querySelectorAll('.nav-tab');
-    tabs.forEach(function(tab) {
-        tab.addEventListener('click', function() {
-            tabs.forEach(function(t) { t.classList.remove('active'); });
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            tabs.forEach(function (t) { t.classList.remove('active'); });
             tab.classList.add('active');
-            document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+            document.querySelectorAll('.section').forEach(function (s) { s.classList.remove('active'); });
             document.getElementById('sec-' + tab.getAttribute('data-section')).classList.add('active');
         });
     });
@@ -141,9 +145,9 @@ function renderResumen() {
 
     var mesesLabel = DATA.meses.map(formatearMes);
 
-    var totalesMes = DATA.meses.map(function(mes, idx) {
+    var totalesMes = DATA.meses.map(function (mes, idx) {
         var total = 0;
-        DATA.categorias.forEach(function(c) {
+        DATA.categorias.forEach(function (c) {
             total += (c.prestamos[idx] || 0);
         });
         return total;
@@ -154,8 +158,8 @@ function renderResumen() {
     var cambio = totalAnterior > 0 ? ((totalActual - totalAnterior) / totalAnterior * 100).toFixed(1) : 0;
 
     // Corregido: pasar DATA.meses
-    var librosCrec = DATA.libros.filter(function(l) { 
-        return calcularTasaPromedio(l.prestamos, DATA.meses) > 0; 
+    var librosCrec = DATA.libros.filter(function (l) {
+        return calcularTasaPromedio(l.prestamos, DATA.meses) > 0;
     }).length;
 
     var totalLibros = STATS ? STATS.total_libros : DATA.libros.length;
@@ -185,7 +189,7 @@ function renderResumen() {
             datasets: [{
                 label: 'Prestamos',
                 data: totalesMes,
-                backgroundColor: totalesMes.map(function(_, i) {
+                backgroundColor: totalesMes.map(function (_, i) {
                     return i === totalesMes.length - 1 ? '#A02142' : colorAlpha('#A02142', 0.55);
                 }),
                 borderRadius: 8,
@@ -198,7 +202,7 @@ function renderResumen() {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) { return ctx.parsed.y + ' prestamos'; }
+                        label: function (ctx) { return ctx.parsed.y + ' prestamos'; }
                     }
                 }
             },
@@ -210,17 +214,17 @@ function renderResumen() {
     });
 
     // Chart categorias donut
-    var catActual = DATA.categorias.map(function(c) {
+    var catActual = DATA.categorias.map(function (c) {
         return c.prestamos[c.prestamos.length - 1] || 0;
     });
     destruirChart('chartCategorias');
     chartInstances['chartCategorias'] = new Chart(document.getElementById('chartCategorias'), {
         type: 'doughnut',
         data: {
-            labels: DATA.categorias.map(function(c) { return c.nombre; }),
+            labels: DATA.categorias.map(function (c) { return c.nombre; }),
             datasets: [{
                 data: catActual,
-                backgroundColor: DATA.categorias.map(function(_, i) { return PALETTE[i % PALETTE.length]; }),
+                backgroundColor: DATA.categorias.map(function (_, i) { return PALETTE[i % PALETTE.length]; }),
                 borderWidth: 3,
                 borderColor: '#FFFFFF'
             }]
@@ -232,7 +236,7 @@ function renderResumen() {
                 legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) { return ctx.label + ': ' + ctx.parsed + ' prestamos'; }
+                        label: function (ctx) { return ctx.label + ': ' + ctx.parsed + ' prestamos'; }
                     }
                 }
             }
@@ -240,23 +244,23 @@ function renderResumen() {
     });
 
     // Recomendaciones de categorias
-    var catsConTasa = DATA.categorias.map(function(c) {
-        return { 
-            nombre: c.nombre, 
+    var catsConTasa = DATA.categorias.map(function (c) {
+        return {
+            nombre: c.nombre,
             k: calcularTasaPromedio(c.prestamos, DATA.meses),   // Corregido
-            prestamos: c.prestamos 
+            prestamos: c.prestamos
         };
     });
-    catsConTasa.sort(function(a, b) { return b.k - a.k; });
+    catsConTasa.sort(function (a, b) { return b.k - a.k; });
 
-    var crecimiento = catsConTasa.filter(function(c) { return c.k > 0; }).slice(0, 5);
-    var decrecimiento = catsConTasa.filter(function(c) { return c.k < 0; }).slice(0, 5);
+    var crecimiento = catsConTasa.filter(function (c) { return c.k > 0; }).slice(0, 5);
+    var decrecimiento = catsConTasa.filter(function (c) { return c.k < 0; }).slice(0, 5);
 
     var htmlCrec = '';
     if (crecimiento.length === 0) {
         htmlCrec = '<li class="empty">No hay categorias en crecimiento por ahora</li>';
     } else {
-        crecimiento.forEach(function(c) {
+        crecimiento.forEach(function (c) {
             var pct = tasaAPorcentaje(c.k);
             var ultimo = c.prestamos[c.prestamos.length - 1];
             htmlCrec += '<li><span class="reco-titulo">' + c.nombre + '<small>' + ultimo + ' prestamos el ultimo mes</small></span>';
@@ -269,7 +273,7 @@ function renderResumen() {
     if (decrecimiento.length === 0) {
         htmlDec = '<li class="empty">No hay categorias en descenso por ahora</li>';
     } else {
-        decrecimiento.forEach(function(c) {
+        decrecimiento.forEach(function (c) {
             var pct = tasaAPorcentaje(c.k);
             var ultimo = c.prestamos[c.prestamos.length - 1];
             htmlDec += '<li><span class="reco-titulo">' + c.nombre + '<small>' + ultimo + ' prestamos el ultimo mes</small></span>';
@@ -283,7 +287,7 @@ function renderResumen() {
 function renderLibros() {
     if (!DATA || DATA.libros.length === 0) return;
 
-    var librosConTasa = DATA.libros.map(function(l) {
+    var librosConTasa = DATA.libros.map(function (l) {
         var k = calcularTasaPromedio(l.prestamos, DATA.meses);   // Corregido
         var x0 = l.prestamos[l.prestamos.length - 1] || 0;
         var anterior = l.prestamos.length >= 2 ? l.prestamos[l.prestamos.length - 2] : 0;
@@ -300,17 +304,17 @@ function renderLibros() {
         };
     });
 
-    librosConTasa.sort(function(a, b) { return b.k - a.k; });
+    librosConTasa.sort(function (a, b) { return b.k - a.k; });
 
     // Recomendaciones
-    var crecimiento = librosConTasa.filter(function(l) { return l.k > 0; }).slice(0, 6);
-    var decrecimiento = librosConTasa.filter(function(l) { return l.k < 0; }).slice(0, 6);
+    var crecimiento = librosConTasa.filter(function (l) { return l.k > 0; }).slice(0, 6);
+    var decrecimiento = librosConTasa.filter(function (l) { return l.k < 0; }).slice(0, 6);
 
     var htmlCrec = '';
     if (crecimiento.length === 0) {
         htmlCrec = '<li class="empty">No hay libros en crecimiento por ahora</li>';
     } else {
-        crecimiento.forEach(function(l) {
+        crecimiento.forEach(function (l) {
             var pct = tasaAPorcentaje(l.k);
             htmlCrec += '<li><span class="reco-titulo">' + l.nombre + '<small>' + l.categoria + ' - ' + l.actual + ' prestamos el ultimo mes</small></span>';
             htmlCrec += '<span class="reco-cambio up">+' + pct + '% / mes</span></li>';
@@ -322,7 +326,7 @@ function renderLibros() {
     if (decrecimiento.length === 0) {
         htmlDec = '<li class="empty">No hay libros en descenso por ahora</li>';
     } else {
-        decrecimiento.forEach(function(l) {
+        decrecimiento.forEach(function (l) {
             var pct = tasaAPorcentaje(l.k);
             htmlDec += '<li><span class="reco-titulo">' + l.nombre + '<small>' + l.categoria + ' - ' + l.actual + ' prestamos el ultimo mes</small></span>';
             htmlDec += '<span class="reco-cambio down">' + pct + '% / mes</span></li>';
@@ -332,7 +336,7 @@ function renderLibros() {
 
     // Tabla
     var tbodyHTML = '';
-    librosConTasa.forEach(function(libro) {
+    librosConTasa.forEach(function (libro) {
         var reco = obtenerRecomendacion(libro.k);
         tbodyHTML += '<tr>' +
             '<td><strong>' + libro.nombre + '</strong></td>' +
@@ -351,17 +355,17 @@ function renderLibros() {
     chartInstances['chartTopLibros'] = new Chart(document.getElementById('chartTopLibros'), {
         type: 'bar',
         data: {
-            labels: top10.map(function(l) { return l.nombre; }),
+            labels: top10.map(function (l) { return l.nombre; }),
             datasets: [
                 {
                     label: 'Mes anterior',
-                    data: top10.map(function(l) { return l.anterior; }),
+                    data: top10.map(function (l) { return l.anterior; }),
                     backgroundColor: colorAlpha('#BC955B', 0.7),
                     borderRadius: 6, borderSkipped: false
                 },
                 {
                     label: 'Mes actual',
-                    data: top10.map(function(l) { return l.actual; }),
+                    data: top10.map(function (l) { return l.actual; }),
                     backgroundColor: colorAlpha('#A02142', 0.85),
                     borderRadius: 6, borderSkipped: false
                 }
@@ -390,7 +394,7 @@ function renderCategorias() {
         type: 'line',
         data: {
             labels: mesesLabel,
-            datasets: DATA.categorias.map(function(c, i) {
+            datasets: DATA.categorias.map(function (c, i) {
                 var color = PALETTE[i % PALETTE.length];
                 return {
                     label: c.nombre,
@@ -416,19 +420,19 @@ function renderCategorias() {
     });
 
     // Tabla
-    var catsConTasa = DATA.categorias.map(function(c) {
+    var catsConTasa = DATA.categorias.map(function (c) {
         var k = calcularTasaPromedio(c.prestamos, DATA.meses);   // Corregido
-        var total = c.prestamos.reduce(function(s, v) { return s + v; }, 0);
+        var total = c.prestamos.reduce(function (s, v) { return s + v; }, 0);
         var prom = (total / c.prestamos.length).toFixed(1);
         var reco = obtenerRecomendacion(k);
         var tendencia = obtenerTendenciaTexto(k);
         return { nombre: c.nombre, total: total, promedio: prom, k: k, reco: reco, tendencia: tendencia, prestamos: c.prestamos };
     });
 
-    catsConTasa.sort(function(a, b) { return b.k - a.k; });
+    catsConTasa.sort(function (a, b) { return b.k - a.k; });
 
     var tbHTML = '';
-    catsConTasa.forEach(function(c) {
+    catsConTasa.forEach(function (c) {
         var color = c.k >= 0 ? '#2E7D32' : '#E65100';
         tbHTML += '<tr>' +
             '<td><strong>' + c.nombre + '</strong></td>' +
@@ -445,17 +449,17 @@ function renderCategorias() {
     chartInstances['chartRadar'] = new Chart(document.getElementById('chartRadar'), {
         type: 'radar',
         data: {
-            labels: DATA.categorias.map(function(c) { return c.nombre; }),
+            labels: DATA.categorias.map(function (c) { return c.nombre; }),
             datasets: [{
                 label: 'Mes actual',
-                data: DATA.categorias.map(function(c) { return c.prestamos[c.prestamos.length - 1] || 0; }),
+                data: DATA.categorias.map(function (c) { return c.prestamos[c.prestamos.length - 1] || 0; }),
                 borderColor: '#A02142',
                 backgroundColor: colorAlpha('#A02142', 0.15),
                 borderWidth: 2,
                 pointBackgroundColor: '#A02142'
             }, {
                 label: 'Estimacion proximo mes',
-                data: DATA.categorias.map(function(c) {
+                data: DATA.categorias.map(function (c) {
                     var k = calcularTasaPromedio(c.prestamos, DATA.meses);  // Corregido
                     var x0 = c.prestamos[c.prestamos.length - 1] || 0;
                     return Math.round(proyectar(x0, k, 1));
@@ -479,11 +483,11 @@ function renderCategorias() {
     chartInstances['chartKCategorias'] = new Chart(document.getElementById('chartKCategorias'), {
         type: 'bar',
         data: {
-            labels: catsConTasa.map(function(c) { return c.nombre; }),
+            labels: catsConTasa.map(function (c) { return c.nombre; }),
             datasets: [{
                 label: 'Cambio mensual %',
-                data: catsConTasa.map(function(c) { return parseFloat(tasaAPorcentaje(c.k)); }),
-                backgroundColor: catsConTasa.map(function(c) {
+                data: catsConTasa.map(function (c) { return parseFloat(tasaAPorcentaje(c.k)); }),
+                backgroundColor: catsConTasa.map(function (c) {
                     return c.k >= 0 ? colorAlpha('#2E7D32', 0.7) : colorAlpha('#E65100', 0.7);
                 }),
                 borderRadius: 8,
@@ -497,7 +501,7 @@ function renderCategorias() {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) {
+                        label: function (ctx) {
                             var v = ctx.parsed.x;
                             return (v >= 0 ? '+' : '') + v + '% por mes';
                         }
@@ -505,7 +509,7 @@ function renderCategorias() {
                 }
             },
             scales: {
-                x: { grid: { color: '#E0D8D0' }, ticks: { callback: function(v) { return (v >= 0 ? '+' : '') + v + '%'; }} },
+                x: { grid: { color: '#E0D8D0' }, ticks: { callback: function (v) { return (v >= 0 ? '+' : '') + v + '%'; } } },
                 y: { grid: { display: false } }
             }
         }
@@ -520,7 +524,7 @@ function llenarSeleccion() {
     sel.innerHTML = '';
 
     var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
-    items.forEach(function(item) {
+    items.forEach(function (item) {
         var opt = document.createElement('option');
         opt.value = item.nombre;
         opt.textContent = item.nombre;
@@ -535,14 +539,23 @@ function calcularProyeccion() {
     var periodos = parseInt(document.getElementById('projPeriodos').value) || 3;
 
     var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
-    var item = items.find(function(i) { return i.nombre === seleccion; });
+    var item = items.find(function (i) { return i.nombre === seleccion; });
     if (!item) return;
 
     var prestamos = item.prestamos;
-    var k = calcularTasaPromedio(prestamos, DATA.meses);   // Corregido
+    var k = calcularTasaPromedio(prestamos);
     var x0 = prestamos[prestamos.length - 1] || 0;
 
-    // ... (el resto de la función se mantiene igual)
+    // Caso libro nuevo / sin historial suficiente
+    if (k === 0 && puntosSoloUno) {
+        document.getElementById('resultadoTexto').innerHTML =
+            'Este ' + (tipo === 'libro' ? 'libro' : 'categoría') +
+            ' tiene <strong>' + x0 + ' préstamos</strong> en el último mes ' +
+            'pero <strong>no tiene historial previo suficiente</strong> para calcular una tendencia. ' +
+            'La proyección se mantiene plana en <strong>' + x0 + ' préstamos</strong> por mes.';
+        // ... igual el chart pero sin dispararse
+    }
+
     var proyecciones = [];
     var mesesFuturos = [];
     var ultimoMes = DATA.meses[DATA.meses.length - 1];
@@ -637,7 +650,7 @@ function calcularProyeccion() {
                 legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos'; }
+                        label: function (ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos'; }
                     }
                 }
             },
@@ -650,11 +663,11 @@ function calcularProyeccion() {
 }
 
 // INIT
-(function() {
+(function () {
     initTabs();
 
     cargarDatos()
-        .then(function() {
+        .then(function () {
             renderResumen();
             renderLibros();
             renderCategorias();
@@ -663,11 +676,11 @@ function calcularProyeccion() {
             document.getElementById('projTipo').addEventListener('change', llenarSeleccion);
             document.getElementById('btnCalcular').addEventListener('click', calcularProyeccion);
 
-            setTimeout(function() {
+            setTimeout(function () {
                 document.getElementById('loadingOverlay').classList.add('hidden');
             }, 400);
         })
-        .catch(function(error) {
+        .catch(function (error) {
             console.error('Error cargando reportes:', error);
             document.getElementById('loadingOverlay').classList.add('hidden');
             document.getElementById('errorMsg').style.display = 'block';
