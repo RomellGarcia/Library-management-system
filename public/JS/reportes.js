@@ -4,8 +4,6 @@ var STATS = null;
 var chartInstances = {};
 var PALETTE = ['#A02142', '#BC955B', '#7A1832', '#D4AF72', '#C4345A', '#5C3D2E', '#2E7D32', '#1565C0', '#6A1B9A', '#E65100'];
 
-// ====================== UTILIDADES ======================
-
 function proyectar(x0, k, t) {
     return x0 * Math.exp(k * t);
 }
@@ -52,8 +50,7 @@ function obtenerTendenciaTexto(k) {
     return               'Decrecimiento marcado';
 }
 
-// Obtener la tasa k de un item — usa tasa_k de la API si existe,
-// si no, calcula localmente con la Ley de Crecimiento/Decaimiento
+
 function obtenerK(item) {
     if (item.tasa_k !== undefined) return item.tasa_k;
     return calcularTasaKLocal(item.prestamos);
@@ -89,12 +86,12 @@ function calcularTasaKLocal(prestamos) {
     var resultado = sumaK / count;
     return Math.max(-1.1, Math.min(1.1, resultado));
 }
-// ====================== CHART.JS DEFAULTS ======================
+// CHART.JS DEFAULTS 
 Chart.defaults.font.family = "'Source Sans 3', sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#6B6B6B';
 
-// ====================== CARGA DE DATOS ======================
+//CARGA DE DATOS 
 function cargarDatos() {
     var urlPrestamos = '/api/reportes/prestamos-por-mes?meses=6';
     var urlStats = '/api/reportes/estadisticas';
@@ -117,7 +114,7 @@ function cargarDatos() {
     });
 }
 
-// ====================== TABS ======================
+//TABS
 function initTabs() {
     var tabs = document.querySelectorAll('.nav-tab');
     tabs.forEach(function(tab) {
@@ -130,7 +127,7 @@ function initTabs() {
     });
 }
 
-// ====================== SECCION: RESUMEN ======================
+//SECCION: RESUMEN 
 function renderResumen() {
     if (!DATA || !DATA.meses || DATA.meses.length === 0) return;
 
@@ -274,7 +271,7 @@ function renderResumen() {
     document.getElementById('categoriasDecrecimiento').innerHTML = htmlDec;
 }
 
-// ====================== SECCION: LIBROS ======================
+//SECCION: LIBROS 
 function renderLibros() {
     if (!DATA || DATA.libros.length === 0) return;
 
@@ -373,7 +370,7 @@ function renderLibros() {
     });
 }
 
-// ====================== SECCION: CATEGORIAS ======================
+//SECCION: CATEGORIAS 
 function renderCategorias() {
     if (!DATA || DATA.categorias.length === 0) return;
 
@@ -508,7 +505,7 @@ function renderCategorias() {
     });
 }
 
-// ====================== SECCION: PROYECCION ======================
+//SECCION: PROYECCION
 function llenarSeleccion() {
     if (!DATA) return;
     var tipo = document.getElementById('projTipo').value;
