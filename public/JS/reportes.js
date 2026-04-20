@@ -20,7 +20,7 @@ function calcularTasaPromedio(prestamos) {
 
     // Filtrar puntos con actividad guardando índice real
     var puntos = [];
-    prestamos.forEach(function(v, i) {
+    prestamos.forEach(function (v, i) {
         if (v > 0) puntos.push({ valor: v, idx: i });
     });
 
@@ -541,6 +541,15 @@ function calcularProyeccion() {
 
     var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
     var item = items.find(function (i) { return i.nombre === seleccion; });
+
+    if (!item.datos_suficientes) {
+        document.getElementById('resultadoTexto').innerHTML =
+            'Este ' + (tipo === 'libro' ? 'libro' : 'categoría') +
+            ' solo tiene actividad en <strong>1 mes</strong> — ' +
+            'no hay historial suficiente para calcular una tendencia confiable. ' +
+            'La proyección se mantiene en <strong>' + x0 + ' préstamos</strong> por mes.';
+        return;
+    }
     if (!item) return;
 
     var prestamos = item.prestamos;
