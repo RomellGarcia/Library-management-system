@@ -4,7 +4,6 @@ var STATS = null;
 var chartInstances = {};
 var PALETTE = ['#A02142', '#BC955B', '#7A1832', '#D4AF72', '#C4345A', '#5C3D2E', '#2E7D32', '#1565C0', '#6A1B9A', '#E65100'];
 
-// ====================== CALCULOS INTERNOS ======================
 
 function calcularTasa(x0, x1, deltaT) {
     if (x0 <= 0 || x1 <= 0 || deltaT <= 0) return 0;
@@ -15,7 +14,7 @@ function proyectar(x0, k, t) {
     return x0 * Math.exp(k * t);
 }
 
-// Versión principal: usa deltaT real entre meses (recomendada)
+
 function calcularTasaPromedio(prestamos, meses) {
     if (!meses || meses.length !== prestamos.length || meses.length < 2) {
         return calcularTasaPromedioSimple(prestamos);   // fallback
@@ -36,7 +35,7 @@ function calcularTasaPromedio(prestamos, meses) {
     return count > 0 ? suma / count : 0;
 }
 
-// Fallback simple (deltaT = 1) cuando no hay información de meses
+//(deltaT = 1) cuando no hay información de meses
 function calcularTasaPromedioSimple(prestamos) {
     var suma = 0;
     var count = 0;
@@ -81,7 +80,7 @@ function destruirChart(id) {
     }
 }
 
-// Determinar nivel de recomendacion basado en tasa
+//Determinar nivel de recomendacion basado en tasa
 function obtenerRecomendacion(k) {
     if (k > 0.1) return { texto: 'Adquirir mas ejemplares', clase: 'alta' };
     if (k > 0.02) return { texto: 'Mantener acervo', clase: 'media' };
@@ -97,12 +96,12 @@ function obtenerTendenciaTexto(k) {
     return 'Decrecimiento marcado';
 }
 
-// CHART.JS DEFAULTS
+//chart.js
 Chart.defaults.font.family = "'Source Sans 3', sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.color = '#6B6B6B';
 
-// CARGA DE DATOS
+
 function cargarDatos() {
     var urlPrestamos = '/api/reportes/prestamos-por-mes?meses=6';
     var urlStats = '/api/reportes/estadisticas';
@@ -138,7 +137,7 @@ function initTabs() {
     });
 }
 
-// SECCION: RESUMEN GENERAL
+// Seccion Resumen General
 function renderResumen() {
     if (!DATA || !DATA.meses || DATA.meses.length === 0) return;
 
@@ -156,7 +155,6 @@ function renderResumen() {
     var totalAnterior = totalesMes.length >= 2 ? totalesMes[totalesMes.length - 2] : 0;
     var cambio = totalAnterior > 0 ? ((totalActual - totalAnterior) / totalAnterior * 100).toFixed(1) : 0;
 
-    // Corregido: pasar DATA.meses
     var librosCrec = DATA.libros.filter(function(l) { 
         return calcularTasaPromedio(l.prestamos, DATA.meses) > 0; 
     }).length;
@@ -212,7 +210,7 @@ function renderResumen() {
         }
     });
 
-    // Chart categorias donut
+    // Chart categorias tbla de dona
     var catActual = DATA.categorias.map(function(c) {
         return c.prestamos[c.prestamos.length - 1] || 0;
     });
@@ -242,7 +240,7 @@ function renderResumen() {
         }
     });
 
-    // Recomendaciones de categorias
+    //recomendaciones de categorias
     var catsConTasa = DATA.categorias.map(function(c) {
         return { 
             nombre: c.nombre, 
@@ -282,7 +280,7 @@ function renderResumen() {
     document.getElementById('categoriasDecrecimiento').innerHTML = htmlDec;
 }
 
-// SECCION: LIBROS
+//seccion libros
 function renderLibros() {
     if (!DATA || DATA.libros.length === 0) return;
 
@@ -333,7 +331,7 @@ function renderLibros() {
     }
     document.getElementById('librosDecrecimiento').innerHTML = htmlDec;
 
-    // Tabla
+    //tabla
     var tbodyHTML = '';
     librosConTasa.forEach(function(libro) {
         var reco = obtenerRecomendacion(libro.k);
@@ -348,7 +346,7 @@ function renderLibros() {
     });
     document.getElementById('tablaLibros').innerHTML = tbodyHTML;
 
-    // Top 10
+    //top 10
     var top10 = librosConTasa.slice(0, 10);
     destruirChart('chartTopLibros');
     chartInstances['chartTopLibros'] = new Chart(document.getElementById('chartTopLibros'), {
@@ -382,7 +380,7 @@ function renderLibros() {
     });
 }
 
-// SECCION: CATEGORIAS
+//seccion categoria
 function renderCategorias() {
     if (!DATA || DATA.categorias.length === 0) return;
 
@@ -418,7 +416,7 @@ function renderCategorias() {
         }
     });
 
-    // Tabla
+    //tabla
     var catsConTasa = DATA.categorias.map(function(c) {
         var k = calcularTasaPromedio(c.prestamos, DATA.meses);   // Corregido
         var total = c.prestamos.reduce(function(s, v) { return s + v; }, 0);
@@ -443,7 +441,7 @@ function renderCategorias() {
     });
     document.getElementById('tablaCategorias').innerHTML = tbHTML;
 
-    // Radar y otros charts...
+    //chart.js
     destruirChart('chartRadar');
     chartInstances['chartRadar'] = new Chart(document.getElementById('chartRadar'), {
         type: 'radar',
@@ -515,7 +513,7 @@ function renderCategorias() {
     });
 }
 
-// SECCION: PROYECCION
+//seccion proyeccion
 function llenarSeleccion() {
     if (!DATA) return;
     var tipo = document.getElementById('projTipo').value;
@@ -545,7 +543,6 @@ function calcularProyeccion() {
     var k = calcularTasaPromedio(prestamos, DATA.meses);   // Corregido
     var x0 = prestamos[prestamos.length - 1] || 0;
 
-    // ... (el resto de la función se mantiene igual)
     var proyecciones = [];
     var mesesFuturos = [];
     var ultimoMes = DATA.meses[DATA.meses.length - 1];
@@ -562,7 +559,7 @@ function calcularProyeccion() {
         mesesFuturos.push(mesStr);
     }
 
-    // Resultado box (se mantiene igual)
+    //resultado box 
     var box = document.getElementById('resultadoBox');
     box.classList.add('visible');
     document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
@@ -592,7 +589,7 @@ function calcularProyeccion() {
 
     document.getElementById('resultadoReco').textContent = recomendacion;
 
-    // Chart de proyección (se mantiene igual)
+    //chart de proyección (se mantiene igual)
     var labelsHistoricos = DATA.meses.map(formatearMes);
     var labelsFuturos = mesesFuturos.map(formatearMes);
     var labelsAll = labelsHistoricos.concat(labelsFuturos);
