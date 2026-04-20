@@ -18,35 +18,36 @@ function proyectar(x0, k, t) {
 function calcularTasaPromedio(prestamos) {
     if (!prestamos || prestamos.length < 2) return 0;
 
-    // Filtrar puntos con actividad, guardando su índice (posición en el tiempo)
+    // Filtrar puntos con actividad guardando índice real
     var puntos = [];
-    prestamos.forEach(function (v, i) {
+    prestamos.forEach(function(v, i) {
         if (v > 0) puntos.push({ valor: v, idx: i });
     });
 
-    // Sin ningún punto con actividad
     if (puntos.length === 0) return 0;
+    if (puntos.length === 1) return 0;  // Sin historial suficiente
 
-    // Solo UN mes con datos (ej: Clean Code [0,0,0,0,0,5])
-    // No hay tasa calculable con ln — retornar 0 (sin tendencia definida)
-    if (puntos.length === 1) return 0;
+    var sumaPonderada = 0;
+    var sumaPesos = 0;
+    var n = puntos.length;
 
-    // Caso normal: calcular k entre cada par de puntos válidos consecutivos
-    var suma = 0;
-    var count = 0;
-    for (var i = 1; i < puntos.length; i++) {
+    for (var i = 1; i < n; i++) {
         var x0 = puntos[i - 1].valor;
         var x1 = puntos[i].valor;
-        var deltaT = puntos[i].idx - puntos[i - 1].idx;  // meses reales entre ambos
+        var deltaT = puntos[i].idx - puntos[i - 1].idx;
         if (deltaT <= 0) continue;
+
         var k = Math.log(x1 / x0) / deltaT;
-        if (isFinite(k) && Math.abs(k) < 5) {
-            suma += k;
-            count++;
-        }
+        if (!isFinite(k) || Math.abs(k) >= 5) continue;
+
+        // Peso exponencial: los pares más recientes pesan más
+        // i=1 es el primer par, i=n-1 es el último (más reciente)
+        var peso = Math.pow(2, i);   // 2, 4, 8, 16...
+        sumaPonderada += k * peso;
+        sumaPesos += peso;
     }
 
-    return count > 0 ? suma / count : 0;
+    return sumaPesos > 0 ? sumaPonderada / sumaPesos : 0;
 }
 
 
