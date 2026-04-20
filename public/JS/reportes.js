@@ -59,8 +59,6 @@ function obtenerK(item) {
     return calcularTasaKLocal(item.prestamos);
 }
 
-// Fallback local: solo se usa si la API no manda tasa_k
-// Ley de Crecimiento: k = ln(x1/x0) / deltaT, promedio ponderado por recencia
 function calcularTasaKLocal(prestamos) {
     if (!prestamos || prestamos.length < 2) return 0;
 
@@ -71,8 +69,8 @@ function calcularTasaKLocal(prestamos) {
 
     if (puntos.length < 2) return 0;
 
-    var sumaPonderada = 0;
-    var sumaPesos = 0;
+    var sumaK = 0;
+    var count = 0;
 
     for (var i = 1; i < puntos.length; i++) {
         var x0 = puntos[i - 1].valor;
@@ -83,16 +81,14 @@ function calcularTasaKLocal(prestamos) {
         var k = Math.log(x1 / x0) / deltaT;
         if (!isFinite(k) || Math.abs(k) >= 5) continue;
 
-        var peso = Math.pow(2, i);
-        sumaPonderada += k * peso;
-        sumaPesos += peso;
+        sumaK += k;
+        count++;
     }
 
-    if (sumaPesos === 0) return 0;
-    var resultado = sumaPonderada / sumaPesos;
+    if (count === 0) return 0;
+    var resultado = sumaK / count;
     return Math.max(-1.1, Math.min(1.1, resultado));
 }
-
 // ====================== CHART.JS DEFAULTS ======================
 Chart.defaults.font.family = "'Source Sans 3', sans-serif";
 Chart.defaults.font.size = 12;
