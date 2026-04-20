@@ -15,35 +15,38 @@ function proyectar(x0, k, t) {
     return x0 * Math.exp(k * t);
 }
 
-// Versión principal: usa deltaT real entre meses (recomendada)
 function calcularTasaPromedio(prestamos, meses) {
     if (!meses || meses.length !== prestamos.length || meses.length < 2) {
-        return calcularTasaPromedioSimple(prestamos);   // fallback
+        return calcularTasaPromedioSimple(prestamos);
     }
 
     var suma = 0;
     var count = 0;
 
     for (var i = 1; i < prestamos.length; i++) {
-        if (prestamos[i-1] > 0 && prestamos[i] > 0) {
-            var deltaT = calcularDeltaMeses(meses[i-1], meses[i]);
+        if (prestamos[i - 1] > 0 && prestamos[i] > 0) {
+            var deltaT = calcularDeltaMeses(meses[i - 1], meses[i]);
             if (deltaT > 0) {
-                suma += calcularTasa(prestamos[i-1], prestamos[i], deltaT);
-                count++;
+                var tasa = calcularTasa(prestamos[i - 1], prestamos[i], deltaT);
+                if (isFinite(tasa) && Math.abs(tasa) < 5) {
+                    suma += tasa;
+                    count++;
+                }
             }
         }
     }
     return count > 0 ? suma / count : 0;
 }
-
-// Fallback simple (deltaT = 1) cuando no hay información de meses
 function calcularTasaPromedioSimple(prestamos) {
     var suma = 0;
     var count = 0;
     for (var i = 1; i < prestamos.length; i++) {
-        if (prestamos[i-1] > 0 && prestamos[i] > 0) {
-            suma += calcularTasa(prestamos[i-1], prestamos[i], 1);
-            count++;
+        if (prestamos[i - 1] > 0 && prestamos[i] > 0) {
+            var tasa = calcularTasa(prestamos[i - 1], prestamos[i], 1);
+            if (isFinite(tasa) && Math.abs(tasa) < 5) {
+                suma += tasa;
+                count++;
+            }
         }
     }
     return count > 0 ? suma / count : 0;
