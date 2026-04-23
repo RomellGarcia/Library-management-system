@@ -398,17 +398,25 @@ function calcularProyeccion() {
     var anio = parseInt(partes[0], 10);
     var mes = parseInt(partes[1], 10);
 
-    for (var i = 1; i <= periodos; i++) {
+   for (var i = 1; i <= periodos; i++) {
 
-        // ✅ SOLO UN PUSH (aquí estaba tu bug)
-        var valor = proyectarSeguro(C, k, tFinal + i);
-        proyecciones.push(valor);
+    // valor real SIN ajustar todavía
+    var valor = C * Math.exp(k * (tFinal + i));
 
-        mes++;
-        if (mes > 12) { mes = 1; anio++; }
+    // ✅ redondeo correcto (>= .5 sube, < .5 baja)
+    var redondeado = Math.floor(valor + 0.5);
 
-        mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
-    }
+    // ajustar por el +1 que usas en modelo
+    redondeado = Math.max(0, redondeado - 1);
+
+    // ✅ SOLO UN PUSH (aquí estaba el bug)
+    proyecciones.push(redondeado);
+
+    mes++;
+    if (mes > 12) { mes = 1; anio++; }
+
+    mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
+}
 
     // ================== TEXTO ==================
     var box = document.getElementById('resultadoBox');
