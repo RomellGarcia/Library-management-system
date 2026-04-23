@@ -404,21 +404,17 @@ function calcularProyeccion() {
     var mes = parseInt(partes[1], 10);
 
     for (var i = 1; i <= periodos; i++) {
-        // 1. Calculamos el valor exacto primero
-        var valorReal = proyectar(C, k, tFinal + i);
-
-        // 2. Aplicamos el redondeo con la corrección de precisión (toFixed)
-        // Esto asegura que 2.49 sea 2 y 2.50 sea 3
-        var valorRedondeado = Math.round(Number(valorReal.toFixed(2)));
-
-        // 3. Metemos el valor al arreglo una sola vez
-        proyecciones.push(valorRedondeado);
-
-        // 4. Lógica de fechas (esta parte está perfecta)
-        mes++;
-        if (mes > 12) { mes = 1; anio++; }
-        mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
-    }
+    var valorReal = proyectar(C, k, tFinal + i);
+    
+    // Cambiamos round por floor para que 2.99 siga siendo 2
+    var valorTruncado = Math.floor(valorReal); 
+    
+    proyecciones.push(valorTruncado);
+    
+    mes++;
+    if (mes > 12) { mes = 1; anio++; }
+    mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
+}
 
     // ── Caja de resultado ──
     var box = document.getElementById('resultadoBox');
