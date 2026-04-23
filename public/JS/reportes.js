@@ -377,10 +377,8 @@ function calcularProyeccion() {
 
     var prestamos = item.prestamos;
     var tFinal = prestamos.length - 1;
-    var x0 = prestamos[tFinal] || 0; // Último valor real
+    var x0 = prestamos[tFinal] || 0; 
 
-    // --- MEJORA MATEMÁTICA: Tasa de crecimiento promediada ---
-    // En lugar de usar solo el inicio y fin, calculamos k basado en el historial completo
     var k = obtenerK(item); 
     var C = obtenerC(item);
 
@@ -392,43 +390,38 @@ function calcularProyeccion() {
         return;
     }
 
-    var proyeccionesTexto = [];      // Para mostrar en la tabla/texto (Enteros)
-    var proyeccionesGrafica = [];    // Para la curva suave (Decimales)
+    var proyeccionesTexto = [];      
+    var proyeccionesGrafica = [];    
     var mesesFuturos = [];
     
     var partes = DATA.meses[DATA.meses.length - 1].split('-');
     var anio = parseInt(partes[0], 10);
     var mes = parseInt(partes[1], 10);
 
-    // --- GENERACIÓN DE PREDICCIÓN MES A MES ---
     for (var i = 1; i <= periodos; i++) {
-        // t es el tiempo actual + los meses hacia el futuro
         var tProyectado = tFinal + i;
-        
-        // Aplicamos el modelo: x(t) = C * e^(kt)
         var valorExacto = C * Math.exp(k * tProyectado);
-        
-        // Corregimos el redondeo: 0.5 debe subir al siguiente entero
         var valorRedondeado = Math.round(valorExacto + 0.00001);
 
         proyeccionesTexto.push(valorRedondeado);
-        proyeccionesGrafica.push(Number(valorExacto.toFixed(2))); // Guardamos decimales para la gráfica
+        proyeccionesGrafica.push(Number(valorExacto.toFixed(2))); 
 
-        // Manejo de fechas para las etiquetas
         mes++;
         if (mes > 12) { mes = 1; anio++; }
         mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
     }
 
-    // --- ACTUALIZACIÓN DE LA INTERFAZ (TEXTO) ---
     var box = document.getElementById('resultadoBox');
     box.classList.add('visible');
     document.getElementById('resultadoTitulo').textContent = 'Estimación para: ' + item.nombre;
 
-    var pctMensual = (tasaAPorcentaje(k)).toFixed(1);
+    // --- CORRECCIÓN DEL ERROR DE TIPO ---
+    var tasaRaw = tasaAPorcentaje(k);
+    var pctMensual = (parseFloat(tasaRaw) || 0).toFixed(1); 
+    // ------------------------------------
+
     var ultimaProy = proyeccionesTexto[proyeccionesTexto.length - 1];
     var diferencia = ultimaProy - x0;
-    
     var tendenciaTexto = k > 0 ? 'creciendo' : 'disminuyendo';
 
     document.getElementById('resultadoTexto').innerHTML = 
@@ -436,11 +429,9 @@ function calcularProyeccion() {
         'a un ritmo de <strong>' + (k >= 0 ? '+' : '') + pctMensual + '% mensual</strong>. ' +
         'En <strong>' + periodos + ' meses</strong> se estiman <strong>' + ultimaProy + ' préstamos</strong>.';
 
-    // --- CONFIGURACIÓN DE LA GRÁFICA (CHART.JS) ---
     var labelsAll = DATA.meses.map(formatearMes).concat(mesesFuturos.map(formatearMes));
     var datosReal = prestamos.slice().concat(new Array(periodos).fill(null));
 
-    // La línea de proyección debe nacer desde el último punto real para que sea continua
     var datosProyeccion = new Array(tFinal).fill(null);
     datosProyeccion.push(x0); 
     proyeccionesGrafica.forEach(function (v) { datosProyeccion.push(v); });
@@ -454,22 +445,22 @@ function calcularProyeccion() {
                 {
                     label: 'Préstamos reales',
                     data: datosReal,
-                    borderColor: '#A02142', // Color Vino UTHH
+                    borderColor: '#A02142', 
                     backgroundColor: 'rgba(160, 33, 66, 0.1)',
                     borderWidth: 3,
                     fill: true,
-                    tension: 0.3, // Suaviza la línea real
+                    tension: 0.3, 
                     pointRadius: 5
                 },
                 {
                     label: 'Tendencia Matemática (Modelo Exponencial)',
                     data: datosProyeccion,
-                    borderColor: '#BC955B', // Color Dorado UTHH
-                    borderDash: [5, 5],      // Línea punteada para indicar predicción
+                    borderColor: '#BC955B', 
+                    borderDash: [5, 5],      
                     backgroundColor: 'transparent',
                     borderWidth: 2,
                     fill: false,
-                    tension: 0.4,            // Curva más suave para el modelo
+                    tension: 0.4,            
                     pointStyle: 'triangle',
                     pointRadius: 6
                 }
@@ -480,7 +471,7 @@ function calcularProyeccion() {
             scales: {
                 y: { 
                     beginAtZero: true, 
-                    ticks: { precision: 0 }, // Solo mostrar números enteros en el eje Y
+                    ticks: { precision: 0 }, 
                     title: { display: true, text: 'Cantidad de Préstamos' }
                 }
             },
@@ -490,7 +481,6 @@ function calcularProyeccion() {
                         label: function(context) {
                             var label = context.dataset.label || '';
                             var value = context.parsed.y;
-                            // En el tooltip mostramos el redondeo para que el usuario no se confunda
                             return label + ': ~' + Math.round(value) + ' libros';
                         }
                     }
