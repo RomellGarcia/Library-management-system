@@ -209,7 +209,7 @@ function renderLibros() {
         var x0 = l.prestamos[l.prestamos.length - 1] || 0;
         var anterior = l.prestamos.length >= 2 ? l.prestamos[l.prestamos.length - 2] : 0;
         var tFinal = l.prestamos.length - 1;
-        var proy = C > 0 ? Math.round(proyectar(C, k, tFinal + 1)) : x0;
+        var proy = C > 0 ? proyectarSeguro(C, k, tFinal + 1) : x0;
 
         return { nombre: l.nombre, categoria: l.categoria || 'Sin categoria', anterior: anterior, actual: x0, k: k, proyeccion: proy, prestamos: l.prestamos };
     });
@@ -314,7 +314,7 @@ function renderCategorias() {
                         var k = obtenerK(c);
                         var C = obtenerC(c);
                         var tFinal = c.prestamos.length - 1;
-                        return C > 0 ? Math.round(proyectar(C, k, tFinal + 1)) : 0;
+                        return C > 0 ? proyectarSeguro(C, k, tFinal + 1) : 0;
                     }),
                     borderColor: '#BC955B', backgroundColor: colorAlpha('#BC955B', 0.1), borderWidth: 2, pointBackgroundColor: '#BC955B', borderDash: [5, 5]
                 }
@@ -578,7 +578,9 @@ function calcularCSeguro(prestamos) {
 // Proyección consistente
 function proyectarSeguro(C, k, t) {
     var valor = C * Math.exp(k * t);
-    return Math.max(0, Math.round(Number(valor.toFixed(2))) - 1);
+    var redondeado = Math.round(valor + Number.EPSILON);
+
+    return Math.max(0, redondeado - 1);
 }
 
 // ====================== INIT ======================
