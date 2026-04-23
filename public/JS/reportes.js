@@ -405,11 +405,9 @@ function calcularProyeccion() {
 
     for (var i = 1; i <= periodos; i++) {
         // 1. Calculamos el valor exacto primero
-        var valorReal = proyectar(C, k, tFinal + i);
+       var valorRedondeado = proyectarSeguro(C, k, tFinal + i);
 
-        // 2. Aplicamos el redondeo con la corrección de precisión (toFixed)
-        // Esto asegura que 2.49 sea 2 y 2.50 sea 3
-        var valorRedondeado = Math.round(Number(valorReal.toFixed(2)));
+        
 
         // 3. Metemos el valor al arreglo una sola vez
         proyecciones.push(valorRedondeado);
@@ -541,6 +539,46 @@ function calcularProyeccion() {
             }
         }
     });
+}
+
+
+function ajustarDatos(prestamos) {
+    return prestamos.map(function (x) {
+        return x + 1; // evita ceros
+    });
+}
+
+// Calcula k usando TODOS los meses (regresión logarítmica)
+function calcularKSeguro(prestamos) {
+    var datos = ajustarDatos(prestamos);
+
+    var n = datos.length;
+    var sumT = 0, sumLn = 0, sumTLn = 0, sumT2 = 0;
+
+    for (var t = 0; t < n; t++) {
+        var y = Math.log(datos[t]);
+        sumT += t;
+        sumLn += y;
+        sumTLn += t * y;
+        sumT2 += t * t;
+    }
+
+    var denominador = (n * sumT2 - sumT * sumT);
+    if (denominador === 0) return 0;
+
+    return (n * sumTLn - sumT * sumLn) / denominador;
+}
+
+// Calcula C correctamente (promedio ajustado)
+function calcularCSeguro(prestamos) {
+    var datos = ajustarDatos(prestamos);
+    return datos[0]; // puedes cambiar a promedio si quieres más estabilidad
+}
+
+// Proyección consistente
+function proyectarSeguro(C, k, t) {
+    var valor = C * Math.exp(k * t);
+    return Math.max(0, Math.round(Number(valor.toFixed(2))) - 1);
 }
 
 // ====================== INIT ======================
