@@ -424,8 +424,7 @@ function calcularProyeccion() {
         mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
     }
 
-    // Valor que se muestra en el texto = último mes proyectado
-    var tPedido = tFinal + nFuturos;   // ← t del último mes futuro
+    var tPedido = tFinal + nFuturos;           // ← t del último mes futuro (ej: 5+13=18)
     var valorPedido = proyectar(C, k, tPedido, t0);
     var ultimaProy = redondear(valorPedido);
     var diferencia = ultimaProy - x0;
@@ -449,7 +448,8 @@ function calcularProyeccion() {
         'Actualmente este ' + (tipo === 'libro' ? 'libro' : 'categoria') +
         ' tiene <strong>' + x0 + ' prestamos</strong> en el ultimo mes y ' + textoCambio +
         ' a un ritmo de <strong>' + (k >= 0 ? '+' : '') + pctMensual + '% mensual</strong>. ' +
-        'En <strong>t=' + tPedido + '</strong> (mes ' + tPedido + ' desde ' + formatearMes(DATA.meses[0]) + ') ' +
+        'En <strong>' + periodos + ' mes(es)</strong> a futuro ' +
+        '(t=' + tPedido + ' desde ' + formatearMes(DATA.meses[0]) + ') ' +
         'se esperan cerca de <strong>' + ultimaProy + ' prestamos</strong> (' +
         (diferencia >= 0 ? 'aumento' : 'reduccion') + ' de ' + Math.abs(diferencia) + ' respecto al mes actual).';
 
