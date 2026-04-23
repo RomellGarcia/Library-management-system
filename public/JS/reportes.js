@@ -209,7 +209,7 @@ function renderLibros() {
         var x0 = l.prestamos[l.prestamos.length - 1] || 0;
         var anterior = l.prestamos.length >= 2 ? l.prestamos[l.prestamos.length - 2] : 0;
         var tFinal = l.prestamos.length - 1;
-        var proy = C > 0 ? proyectarSeguro(C, k, tFinal + 1) : x0;
+        var proy = C > 0 ? Math.round(proyectar(C, k, tFinal + 1)) : x0;
 
         return { nombre: l.nombre, categoria: l.categoria || 'Sin categoria', anterior: anterior, actual: x0, k: k, proyeccion: proy, prestamos: l.prestamos };
     });
@@ -314,7 +314,7 @@ function renderCategorias() {
                         var k = obtenerK(c);
                         var C = obtenerC(c);
                         var tFinal = c.prestamos.length - 1;
-                        return C > 0 ? proyectarSeguro(C, k, tFinal + 1) : 0;
+                        return C > 0 ? Math.round(proyectar(C, k, tFinal + 1)) : 0;
                     }),
                     borderColor: '#BC955B', backgroundColor: colorAlpha('#BC955B', 0.1), borderWidth: 2, pointBackgroundColor: '#BC955B', borderDash: [5, 5]
                 }
@@ -365,15 +365,8 @@ function llenarSeleccion() {
     });
 }
 
-// Proyección consistente con buen redondeo
-function proyectarSeguro(C, k, t) {
-    var valor = C * Math.exp(k * t);
-    return Math.max(0, Math.round(valor) - 1); // >= .5 sube
-}
-
 function calcularProyeccion() {
     if (!DATA) return;
-
     var tipo = document.getElementById('projTipo').value;
     var seleccion = document.getElementById('projSeleccion').value;
     var periodos = parseInt(document.getElementById('projPeriodos').value) || 3;
@@ -383,153 +376,171 @@ function calcularProyeccion() {
     if (!item) return;
 
     var prestamos = item.prestamos;
+    var k = obtenerK(item);         // k = ln(xFinal/C) / tFinal
+    var C = obtenerC(item);         // condición inicial
+    var t0 = item.t0 || 0;           // t donde está C
+    var tFinal = prestamos.length - 1;   // = 5 para 6 meses
+    var x0 = prestamos[tFinal] || 0; // último valor real
 
-    // 🔥 VALIDAR TODOS LOS MESES (sin cambiar tu modelo)
-    var k = calcularKSeguro(prestamos);
-    var C = calcularCSeguro(prestamos);
+    // Sin datos suficientes
+    if (item.datos_suficientes === false) {
+        var box = document.getElementById('resultadoBox');
+        box.classList.add('visible');
+        document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
+        document.getElementById('resultadoTexto').innerHTML =
+            'Este ' + (tipo === 'libro' ? 'libro' : 'categoría') +
+            ' solo tiene actividad en <strong>1 mes</strong>. ' +
+            'No hay historial suficiente para calcular una tendencia confiable.';
+        document.getElementById('resultadoReco').textContent = '';
+        if (document.getElementById('tablaModelo')) document.getElementById('tablaModelo').innerHTML = '';
+        return;
+    }
 
-    var tFinal = prestamos.length - 1;
-    var x0 = prestamos[tFinal] || 0;
-
+    // ── Proyecciones: x(tFinal+i) = C · e^(k·(tFinal+i)) ──
     var proyecciones = [];
     var mesesFuturos = [];
-
     var partes = DATA.meses[DATA.meses.length - 1].split('-');
     var anio = parseInt(partes[0], 10);
     var mes = parseInt(partes[1], 10);
 
-   for (var i = 1; i <= periodos; i++) {
+    for (var i = 1; i <= periodos; i++) {
+        // 1. Calculamos el valor exacto primero
+        var valorReal = proyectar(C, k, tFinal + i);
 
-    // valor real SIN ajustar todavía
-    var valor = C * Math.exp(k * (tFinal + i));
+        // 2. Aplicamos el redondeo con la corrección de precisión (toFixed)
+        // Esto asegura que 2.49 sea 2 y 2.50 sea 3
+        var valorRedondeado = Math.round(Number(valorReal.toFixed(2)));
 
-    // ✅ redondeo correcto (>= .5 sube, < .5 baja)
-    var redondeado = Math.floor(valor + 0.5);
+        // 3. Metemos el valor al arreglo una sola vez
+        proyecciones.push(valorRedondeado);
 
-    // ajustar por el +1 que usas en modelo
-    redondeado = Math.max(0, redondeado - 1);
+        // 4. Lógica de fechas (esta parte está perfecta)
+        mes++;
+        if (mes > 12) { mes = 1; anio++; }
+        mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
+    }
 
-    // ✅ SOLO UN PUSH (aquí estaba el bug)
-    proyecciones.push(redondeado);
-
-    mes++;
-    if (mes > 12) { mes = 1; anio++; }
-
-    mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
-}
-
-    // ================== TEXTO ==================
+    // ── Caja de resultado ──
     var box = document.getElementById('resultadoBox');
     box.classList.add('visible');
+    document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
 
-    document.getElementById('resultadoTitulo').textContent =
-        'Estimacion para: ' + item.nombre;
+    var pctMensual = item.porcentaje_mensual !== undefined
+        ? parseFloat(item.porcentaje_mensual).toFixed(1)
+        : tasaAPorcentaje(k);
 
-    var pctMensual = tasaAPorcentaje(k);
     var ultimaProy = proyecciones[proyecciones.length - 1];
     var diferencia = ultimaProy - x0;
 
+    var textoCambio =
+        k > 0.05 ? 'esta creciendo de manera notable' :
+            k > 0 ? 'esta creciendo de forma moderada' :
+                k > -0.05 ? 'esta disminuyendo levemente' :
+                    'esta disminuyendo de manera marcada';
+
     document.getElementById('resultadoTexto').innerHTML =
-        'Actualmente tiene <strong>' + x0 + ' prestamos</strong> y una tasa de <strong>' +
-        (k >= 0 ? '+' : '') + pctMensual + '% mensual</strong>. ' +
-        'En <strong>' + periodos + ' meses</strong> se estiman <strong>' +
-        ultimaProy + '</strong> prestamos.';
+        'Actualmente este ' + (tipo === 'libro' ? 'libro' : 'categoria') +
+        ' tiene <strong>' + x0 + ' prestamos</strong> en el ultimo mes y ' + textoCambio +
+        ' a un ritmo de <strong>' + (k >= 0 ? '+' : '') + pctMensual + '% mensual</strong>. ' +
+        'En <strong>' + periodos + ' mes(es)</strong> se esperan cerca de ' +
+        '<strong>' + ultimaProy + ' prestamos</strong> (' +
+        (diferencia >= 0 ? 'aumento' : 'reduccion') + ' de ' + Math.abs(diferencia) + ' respecto al mes actual).';
 
-    // ================== GRAFICA ==================
+    document.getElementById('resultadoReco').textContent =
+        k > 0.1 ? 'Recomendacion: Conviene adquirir mas ejemplares lo antes posible.' :
+            k > 0.02 ? 'Recomendacion: La demanda es estable y creciente. Mantener el acervo actual.' :
+                k > -0.02 ? 'Recomendacion: La demanda esta estable. No se requiere accion inmediata.' :
+                    k > -0.1 ? 'Recomendacion: Vigilar la tendencia. Evaluar si el material sigue siendo relevante.' :
+                        'Recomendacion: Considerar dar de baja este material o reasignar el espacio.';
 
-    var labelsAll = DATA.meses.map(formatearMes)
-        .concat(mesesFuturos.map(formatearMes));
+    // ── Tabla: CI y K con columnas X y T ──
+    if (document.getElementById('tablaModelo')) {
+        document.getElementById('tablaModelo').innerHTML =
+            '<table class="tabla-modelo">' +
+            '<thead><tr><th></th><th>X</th><th>T</th></tr></thead>' +
+            '<tbody>' +
+            '<tr><td><strong>CI</strong></td><td>' + C + '</td><td>' + t0 + '</td></tr>' +
+            '<tr><td><strong>K</strong></td><td>' + k.toFixed(4) + '</td><td>' + tFinal + '</td></tr>' +
+            '</tbody>' +
+            '</table>';
+    }
 
-    var datosReal = prestamos.slice()
-        .concat(new Array(periodos).fill(null));
+    // ── Gráfica: una sola línea continua (real → proyección) ──
+    // La línea vino cubre Nov→Abr (datos reales)
+    // La línea dorada empalma en el último punto real y continúa hacia el futuro
+    // Ambas se ven como UNA sola línea que cambia de estilo en Abr
+    var labelsAll = DATA.meses.map(formatearMes).concat(mesesFuturos.map(formatearMes));
 
-    var datosProyeccion = new Array(tFinal).fill(null);
-    datosProyeccion.push(x0);
+    // Segmento real: valores históricos + nulls para los meses futuros
+    var datosReal = prestamos.slice().concat(new Array(periodos).fill(null));
 
-    proyecciones.forEach(function (v) {
-        datosProyeccion.push(v);
-    });
+    // Segmento proyección: nulls para t=0..tFinal-1, empalme en tFinal, luego proyecciones
+    var datosProyeccion = new Array(tFinal).fill(null);  // nulls histórico
+    datosProyeccion.push(x0);                            // empalme = último valor real
+    proyecciones.forEach(function (v) { datosProyeccion.push(v); });
 
     destruirChart('chartProyeccion');
-
-    chartInstances['chartProyeccion'] = new Chart(
-        document.getElementById('chartProyeccion'),
-        {
-            type: 'line',
-            data: {
-                labels: labelsAll,
-                datasets: [
-                    {
-                        label: 'Reales',
-                        data: datosReal,
-                        borderColor: '#A02142',
-                        backgroundColor: colorAlpha('#A02142', 0.1),
-                        tension: 0.3,
-                        pointRadius: 5
-                    },
-                    {
-                        label: 'Proyección',
-                        data: datosProyeccion,
-                        borderColor: '#BC955B',
-                        borderDash: [8, 4],
-                        tension: 0.3,
-                        pointRadius: 5
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
+    chartInstances['chartProyeccion'] = new Chart(document.getElementById('chartProyeccion'), {
+        type: 'line',
+        data: {
+            labels: labelsAll,
+            datasets: [
+                {
+                    label: 'Prestamos reales',
+                    data: datosReal,
+                    borderColor: '#A02142',
+                    backgroundColor: colorAlpha('#A02142', 0.1),
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#A02142',
+                    spanGaps: false  // no conectar sobre los nulls futuros
                 },
-                scales: {
-                    y: { beginAtZero: true }
+                {
+                    label: 'Proyeccion x(t) = C·e^(kt)',
+                    data: datosProyeccion,
+                    borderColor: '#BC955B',
+                    backgroundColor: colorAlpha('#BC955B', 0.08),
+                    borderWidth: 2.5,
+                    borderDash: [8, 4],
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#BC955B',
+                    pointStyle: 'triangle',
+                    spanGaps: false  // no conectar sobre los nulls del histórico
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } },
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) {
+                            return ctx.parsed.y !== null
+                                ? ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos'
+                                : null;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#E0D8D0' },
+                    ticks: { precision: 0 },
+                    title: { display: true, text: 'x(t)', font: { weight: 600 } }
+                },
+                x: {
+                    grid: { display: false },
+                    title: { display: true, text: 't (meses)', font: { weight: 600 } }
                 }
             }
         }
-    );
-}
-
-
-function ajustarDatos(prestamos) {
-    return prestamos.map(function (x) {
-        return x + 1; // evita ceros
     });
-}
-
-// Calcula k usando TODOS los meses (regresión logarítmica)
-function calcularKSeguro(prestamos) {
-    var datos = ajustarDatos(prestamos);
-
-    var n = datos.length;
-    var sumT = 0, sumLn = 0, sumTLn = 0, sumT2 = 0;
-
-    for (var t = 0; t < n; t++) {
-        var y = Math.log(datos[t]);
-        sumT += t;
-        sumLn += y;
-        sumTLn += t * y;
-        sumT2 += t * t;
-    }
-
-    var denominador = (n * sumT2 - sumT * sumT);
-    if (denominador === 0) return 0;
-
-    return (n * sumTLn - sumT * sumLn) / denominador;
-}
-
-// Calcula C correctamente (promedio ajustado)
-function calcularCSeguro(prestamos) {
-    var datos = ajustarDatos(prestamos);
-    return datos[0]; // puedes cambiar a promedio si quieres más estabilidad
-}
-
-// Proyección consistente
-function proyectarSeguro(C, k, t) {
-    var valor = C * Math.exp(k * t);
-    var redondeado = Math.round(valor + Number.EPSILON);
-
-    return Math.max(0, redondeado - 1);
 }
 
 // ====================== INIT ======================
