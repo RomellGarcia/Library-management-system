@@ -6,13 +6,16 @@ var PALETTE = ['#A02142', '#BC955B', '#7A1832', '#D4AF72', '#C4345A', '#5C3D2E',
 
 // ====================== UTILIDADES ======================
 
-// x(t) = C · e^(kt)
-function proyectar(C, k, t) {
-    return C * Math.exp(k * t);
+// x(t) = C · e^(k · (t - t0))
+function proyectar(item, t) {
+    var k = obtenerK(item);
+    var C = obtenerC(item);
+    var t0 = item.t0 || 0;
+    return C * Math.exp(k * (t - t0));
 }
 
-// Porcentaje mensual de cambio: (e^k - 1) * 100
 function tasaAPorcentaje(k) {
+    // Calculamos el cambio relativo porcentual: (e^k - 1) * 100
     return ((Math.exp(k) - 1) * 100).toFixed(1);
 }
 
@@ -51,13 +54,13 @@ function obtenerTendenciaTexto(k) {
     return 'Decrecimiento marcado';
 }
 
-// k y C siempre desde la API (Método A: k = ln(xFinal/C) / tFinal)
 function obtenerK(item) {
     return item.tasa_k !== undefined ? item.tasa_k : 0;
 }
 
 function obtenerC(item) {
-    return item.C !== undefined ? item.C : (item.prestamos ? item.prestamos[0] : 0);
+    // El backend ahora envía el C adecuado (incluso si era 0, envía 1)
+    return item.C !== undefined ? item.C : 1;
 }
 
 // ====================== CHART.JS DEFAULTS ======================
@@ -204,14 +207,15 @@ function renderLibros() {
     if (!DATA || DATA.libros.length === 0) return;
 
     var librosConTasa = DATA.libros.map(function (l) {
-        var k = obtenerK(l);
-        var C = obtenerC(l);
-        var x0 = l.prestamos[l.prestamos.length - 1] || 0;
-        var anterior = l.prestamos.length >= 2 ? l.prestamos[l.prestamos.length - 2] : 0;
         var tFinal = l.prestamos.length - 1;
-        var proy = C > 0 ? Math.round(proyectar(C, k, tFinal + 1) + 0.00001) : x0;
+        var x0 = l.prestamos[tFinal] || 0;
+        var anterior = l.prestamos.length >= 2 ? l.prestamos[tFinal - 1] : 0;
+        
+        // Calculamos proyección para el mes t+1
+        var valProy = proyectar(l, tFinal + 1);
+        var proy = Math.round(valProy + 0.00001);
 
-        return { nombre: l.nombre, categoria: l.categoria || 'Sin categoria', anterior: anterior, actual: x0, k: k, proyeccion: proy, prestamos: l.prestamos };
+        return { nombre: l.nombre, categoria: l.categoria || 'Sin categoria', anterior: anterior, actual: x0, k: obtenerK(l), proyeccion: proy, prestamos: l.prestamos };
     });
     librosConTasa.sort(function (a, b) { return b.k - a.k; });
 
@@ -311,10 +315,7 @@ function renderCategorias() {
                 {
                     label: 'Estimacion proximo mes',
                     data: DATA.categorias.map(function (c) {
-                        var k = obtenerK(c);
-                        var C = obtenerC(c);
-                        var tFinal = c.prestamos.length - 1;
-                        return C > 0 ? Math.round(proyectar(C, k, tFinal + 1)) : 0;
+                        return Math.round(proyectar(c, c.prestamos.length) + 0.00001);
                     }),
                     borderColor: '#BC955B', backgroundColor: colorAlpha('#BC955B', 0.1), borderWidth: 2, pointBackgroundColor: '#BC955B', borderDash: [5, 5]
                 }
@@ -378,9 +379,7 @@ function calcularProyeccion() {
     var prestamos = item.prestamos;
     var tFinal = prestamos.length - 1;
     var x0 = prestamos[tFinal] || 0; 
-
     var k = obtenerK(item); 
-    var C = obtenerC(item);
 
     if (item.datos_suficientes === false) {
         var box = document.getElementById('resultadoBox');
@@ -400,7 +399,7 @@ function calcularProyeccion() {
 
     for (var i = 1; i <= periodos; i++) {
         var tProyectado = tFinal + i;
-        var valorExacto = C * Math.exp(k * tProyectado);
+        var valorExacto = proyectar(item, tProyectado);
         var valorRedondeado = Math.round(valorExacto + 0.00001);
 
         proyeccionesTexto.push(valorRedondeado);
@@ -415,13 +414,9 @@ function calcularProyeccion() {
     box.classList.add('visible');
     document.getElementById('resultadoTitulo').textContent = 'Estimación para: ' + item.nombre;
 
-    // --- CORRECCIÓN DEL ERROR DE TIPO ---
-    var tasaRaw = tasaAPorcentaje(k);
-    var pctMensual = (parseFloat(tasaRaw) || 0).toFixed(1); 
-    // ------------------------------------
+    var pctMensual = (parseFloat(tasaAPorcentaje(k)) || 0).toFixed(1);
 
     var ultimaProy = proyeccionesTexto[proyeccionesTexto.length - 1];
-    var diferencia = ultimaProy - x0;
     var tendenciaTexto = k > 0 ? 'creciendo' : 'disminuyendo';
 
     document.getElementById('resultadoTexto').innerHTML = 
