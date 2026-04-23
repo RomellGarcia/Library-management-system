@@ -435,13 +435,12 @@ function calcularProyeccion() {
     if (!item) return;
 
     var prestamos = item.prestamos;
-    var k      = obtenerK(item);          // k = ln(xFinal/C) / tFinal
-    var C      = obtenerC(item);          // condición inicial (x en t=t0)
-    var t0     = item.t0 || 0;            // índice donde está C
-    var tFinal = prestamos.length - 1;    // = 5 para 6 meses
-    var x0     = prestamos[tFinal] || 0;  // valor real del último mes
+    var k      = obtenerK(item);
+    var C      = obtenerC(item);
+    var t0     = item.t0 || 0;
+    var tFinal = prestamos.length - 1;   // = 5
+    var x0     = prestamos[tFinal] || 0;
 
-    // Sin datos suficientes
     if (item.datos_suficientes === false) {
         var box = document.getElementById('resultadoBox');
         box.classList.add('visible');
@@ -455,25 +454,46 @@ function calcularProyeccion() {
         return;
     }
 
-    // ── Proyecciones con x(t) = C · e^(kt) ──
-    // t avanza desde tFinal+1, tFinal+2, ...
-    var proyecciones = [];   // valores redondeados para texto
-    var proyGrafica  = [];   // valores exactos para la gráfica (más suave)
+    // ── Proyecciones: t va de 1 a periodos (absoluto desde t=0=Nov) ──
+    // x(t) = C · e^(k·t)
+    // periodos=13 → último t proyectado = 13 → x(13) = 6 para Clean Code
+    var proyecciones = [];
+    var proyGrafica  = [];
     var mesesFuturos = [];
 
+    // Calcular el mes calendario de t=tFinal y avanzar desde ahí
+    // Los meses futuros empiezan DESPUÉS de tFinal
     var partes = DATA.meses[DATA.meses.length - 1].split('-');
     var anio = parseInt(partes[0], 10);
     var mes  = parseInt(partes[1], 10);
 
-    for (var i = 1; i <= periodos; i++) {
-        var tProy    = tFinal + i;
-        var valorExacto = proyectar(C, k, tProy);  // C · e^(k · tProy)
-        proyecciones.push(redondear(valorExacto));  // >= .5 sube, < .5 baja
-        proyGrafica.push(parseFloat(valorExacto.toFixed(2)));
+    // Necesitamos generar mesesFuturos para t = tFinal+1 .. periodos
+    // (los t del 1 al tFinal son históricos, del tFinal+1 al periodos son futuros)
+    var mesesFuturoCount = periodos - tFinal;  // cuántos meses caen después de Abr
+
+    if (mesesFuturoCount <= 0) {
+        // Todos los periodos pedidos caen dentro del rango histórico
+        // Mostrar proyección hasta el último t histórico disponible
+        mesesFuturoCount = 1;
+    }
+
+    for (var i = 1; i <= mesesFuturoCount; i++) {
         mes++;
         if (mes > 12) { mes = 1; anio++; }
         mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
     }
+
+    // Calcular todos los valores proyectados t=1..periodos
+    for (var t = 1; t <= periodos; t++) {
+        var valorExacto = proyectar(C, k, t);
+        if (t > tFinal) {
+            proyecciones.push(redondear(valorExacto));
+            proyGrafica.push(parseFloat(valorExacto.toFixed(2)));
+        }
+    }
+    // El valor en t=periodos es la predicción final
+    var valorFinal = proyectar(C, k, periodos);
+    var ultimaProy = redondear(valorFinal);
 
     // ── Caja de resultado ──
     var box = document.getElementById('resultadoBox');
@@ -484,7 +504,6 @@ function calcularProyeccion() {
         ? parseFloat(item.porcentaje_mensual).toFixed(1)
         : tasaAPorcentaje(k);
 
-    var ultimaProy = proyecciones[proyecciones.length - 1];
     var diferencia = ultimaProy - x0;
 
     var textoCambio =
@@ -497,7 +516,7 @@ function calcularProyeccion() {
         'Actualmente este ' + (tipo === 'libro' ? 'libro' : 'categoria') +
         ' tiene <strong>' + x0 + ' prestamos</strong> en el ultimo mes y ' + textoCambio +
         ' a un ritmo de <strong>' + (k >= 0 ? '+' : '') + pctMensual + '% mensual</strong>. ' +
-        'En <strong>' + periodos + ' mes(es)</strong> se esperan cerca de ' +
+        'En <strong>t=' + periodos + '</strong> (desde Nov) se esperan cerca de ' +
         '<strong>' + ultimaProy + ' prestamos</strong> (' +
         (diferencia >= 0 ? 'aumento' : 'reduccion') + ' de ' + Math.abs(diferencia) + ' respecto al mes actual).';
 
@@ -520,17 +539,17 @@ function calcularProyeccion() {
             '</table>';
     }
 
-    // ── Gráfica: una sola línea (real → proyección) ──
-    // datosReal     : valores históricos (Nov→Abr) + null para meses futuros
-    // datosProyeccion: null para histórico excepto el punto de empalme, luego proyecciones exactas
+    // ── Gráfica ──
+    // Eje X: t=0(Nov)..t=5(Abr) histórico + t=6..periodos proyectado
+    // Si periodos <= tFinal solo mostramos histórico + 1 mes adelante
     var labelsAll = DATA.meses.map(formatearMes).concat(mesesFuturos.map(formatearMes));
 
-    // Segmento vino: datos reales, termina en Abr
-    var datosReal = prestamos.slice().concat(new Array(periodos).fill(null));
+    // Segmento vino: datos reales (t=0..tFinal) + null para futuros
+    var datosReal = prestamos.slice().concat(new Array(mesesFuturos.length).fill(null));
 
-    // Segmento dorado: empalma en el último valor real, continúa con proyecciones exactas
-    var datosProyeccion = new Array(tFinal).fill(null);  // null para t=0..tFinal-1
-    datosProyeccion.push(x0);                            // empalme en t=tFinal (Abr)
+    // Segmento dorado: null para t=0..tFinal-1, empalme en tFinal, luego proyecciones
+    var datosProyeccion = new Array(tFinal).fill(null);
+    datosProyeccion.push(x0);  // empalme = último valor real (Abr)
     proyGrafica.forEach(function(v) { datosProyeccion.push(v); });
 
     destruirChart('chartProyeccion');
@@ -549,7 +568,7 @@ function calcularProyeccion() {
                     tension: 0.3,
                     pointRadius: 5,
                     pointBackgroundColor: '#A02142',
-                    spanGaps: false   // NO conectar los nulls futuros
+                    spanGaps: false
                 },
                 {
                     label: 'Proyeccion x(t) = C·e^(kt)',
@@ -563,7 +582,7 @@ function calcularProyeccion() {
                     pointRadius: 5,
                     pointBackgroundColor: '#BC955B',
                     pointStyle: 'triangle',
-                    spanGaps: false   // NO conectar los nulls del histórico
+                    spanGaps: false
                 }
             ]
         },
@@ -589,13 +608,12 @@ function calcularProyeccion() {
                 },
                 x: {
                     grid: { display: false },
-                    title: { display: true, text: 't (meses)', font: { weight: 600 } }
+                    title: { display: true, text: 't (meses desde Nov)', font: { weight: 600 } }
                 }
             }
         }
     });
 }
-
 // ====================== INIT ======================
 (function() {
     initTabs();
