@@ -556,3 +556,5 @@ function calcularProyeccion() {
             document.getElementById('errorText').textContent = error.message || 'No se pudieron obtener los datos.';
         });
 })();
+
+
