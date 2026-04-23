@@ -41,7 +41,7 @@ function obtenerRecomendacion(k) {
     if (k > 0.02)  return { texto: 'Mantener acervo',        clase: 'media' };
     if (k > -0.02) return { texto: 'Sin cambios',            clase: 'media' };
     if (k > -0.1)  return { texto: 'Monitorear',             clase: 'baja' };
-    return              { texto: 'Considerar baja',          clase: 'critica' };
+    return               { texto: 'Considerar baja',         clase: 'critica' };
 }
 
 function obtenerTendenciaTexto(k) {
@@ -51,12 +51,11 @@ function obtenerTendenciaTexto(k) {
     return               'Decrecimiento marcado';
 }
 
-// Obtener k del item — siempre desde la API (ya calculado con Método A)
+// k y C siempre desde la API (Método A: k = ln(xFinal/C) / tFinal)
 function obtenerK(item) {
     return item.tasa_k !== undefined ? item.tasa_k : 0;
 }
 
-// Obtener C del item
 function obtenerC(item) {
     return item.C !== undefined ? item.C : (item.prestamos ? item.prestamos[0] : 0);
 }
@@ -110,12 +109,12 @@ function renderResumen() {
         return total;
     });
 
-    var totalActual = totalesMes[totalesMes.length - 1] || 0;
+    var totalActual   = totalesMes[totalesMes.length - 1] || 0;
     var totalAnterior = totalesMes.length >= 2 ? totalesMes[totalesMes.length - 2] : 0;
     var cambio = totalAnterior > 0 ? ((totalActual - totalAnterior) / totalAnterior * 100).toFixed(1) : 0;
 
-    var librosCrec = DATA.libros.filter(function(l) { return obtenerK(l) > 0; }).length;
-    var totalLibros = STATS ? STATS.total_libros : DATA.libros.length;
+    var librosCrec       = DATA.libros.filter(function(l) { return obtenerK(l) > 0; }).length;
+    var totalLibros      = STATS ? STATS.total_libros : DATA.libros.length;
     var prestamosActivos = STATS ? STATS.prestamos_activos : 0;
 
     var html = '';
@@ -140,13 +139,20 @@ function renderResumen() {
                 backgroundColor: totalesMes.map(function(_, i) {
                     return i === totalesMes.length - 1 ? '#A02142' : colorAlpha('#A02142', 0.55);
                 }),
-                borderRadius: 8, borderSkipped: false
+                borderRadius: 8,
+                borderSkipped: false
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y + ' prestamos'; } } } },
-            scales: { y: { beginAtZero: true, grid: { color: '#E0D8D0' }, ticks: { precision: 0 } }, x: { grid: { display: false } } }
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y + ' prestamos'; } } }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#E0D8D0' }, ticks: { precision: 0 } },
+                x: { grid: { display: false } }
+            }
         }
     });
 
@@ -156,11 +162,20 @@ function renderResumen() {
         type: 'doughnut',
         data: {
             labels: DATA.categorias.map(function(c) { return c.nombre; }),
-            datasets: [{ data: catActual, backgroundColor: DATA.categorias.map(function(_, i) { return PALETTE[i % PALETTE.length]; }), borderWidth: 3, borderColor: '#FFFFFF' }]
+            datasets: [{
+                data: catActual,
+                backgroundColor: DATA.categorias.map(function(_, i) { return PALETTE[i % PALETTE.length]; }),
+                borderWidth: 3,
+                borderColor: '#FFFFFF'
+            }]
         },
         options: {
-            responsive: true, cutout: '60%',
-            plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } }, tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + ctx.parsed + ' prestamos'; } } } }
+            responsive: true,
+            cutout: '60%',
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } },
+                tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + ctx.parsed + ' prestamos'; } } }
+            }
         }
     });
 
@@ -189,18 +204,15 @@ function renderLibros() {
     if (!DATA || DATA.libros.length === 0) return;
 
     var librosConTasa = DATA.libros.map(function(l) {
-        var k = obtenerK(l);
-        var C = obtenerC(l);
-        var t0 = l.t0 || 0;
-        var x0 = l.prestamos[l.prestamos.length - 1] || 0;
+        var k        = obtenerK(l);
+        var C        = obtenerC(l);
+        var x0       = l.prestamos[l.prestamos.length - 1] || 0;
         var anterior = l.prestamos.length >= 2 ? l.prestamos[l.prestamos.length - 2] : 0;
-        // Proyección próximo mes: x(t_final + 1) = C · e^(k·(tFinal+1))
-        var tFinal = l.prestamos.length - 1;
-        var proy = C > 0 && k !== 0 ? Math.round(proyectar(C, k, tFinal + 1)) : x0;
+        var tFinal   = l.prestamos.length - 1;
+        var proy     = C > 0 ? Math.round(proyectar(C, k, tFinal + 1)) : x0;
 
-        return { nombre: l.nombre, categoria: l.categoria || 'Sin categoria', anterior, actual: x0, k, proyeccion: proy, prestamos: l.prestamos };
+        return { nombre: l.nombre, categoria: l.categoria || 'Sin categoria', anterior: anterior, actual: x0, k: k, proyeccion: proy, prestamos: l.prestamos };
     });
-
     librosConTasa.sort(function(a, b) { return b.k - a.k; });
 
     var htmlCrec = librosConTasa.filter(function(l) { return l.k > 0; }).slice(0, 6).map(function(l) {
@@ -215,7 +227,7 @@ function renderLibros() {
     }).join('') || '<li class="empty">No hay libros en descenso por ahora</li>';
     document.getElementById('librosDecrecimiento').innerHTML = htmlDec;
 
-    var tbodyHTML = librosConTasa.map(function(libro) {
+    document.getElementById('tablaLibros').innerHTML = librosConTasa.map(function(libro) {
         var reco = obtenerRecomendacion(libro.k);
         return '<tr>' +
             '<td><strong>' + libro.nombre + '</strong></td>' +
@@ -226,7 +238,6 @@ function renderLibros() {
             '<td><span class="badge ' + reco.clase + '">' + reco.texto + '</span></td>' +
             '</tr>';
     }).join('');
-    document.getElementById('tablaLibros').innerHTML = tbodyHTML;
 
     var top10 = librosConTasa.slice(0, 10);
     destruirChart('chartTopLibros');
@@ -240,9 +251,13 @@ function renderLibros() {
             ]
         },
         options: {
-            responsive: true, indexAxis: 'y',
+            responsive: true,
+            indexAxis: 'y',
             plugins: { legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle' } } },
-            scales: { x: { beginAtZero: true, grid: { color: '#E0D8D0' }, ticks: { precision: 0 } }, y: { grid: { display: false } } }
+            scales: {
+                x: { beginAtZero: true, grid: { color: '#E0D8D0' }, ticks: { precision: 0 } },
+                y: { grid: { display: false } }
+            }
         }
     });
 }
@@ -273,7 +288,7 @@ function renderCategorias() {
     var catsConTasa = DATA.categorias.map(function(c) {
         var k = obtenerK(c);
         var total = c.prestamos.reduce(function(s, v) { return s + v; }, 0);
-        return { nombre: c.nombre, total, promedio: (total / c.prestamos.length).toFixed(1), k, reco: obtenerRecomendacion(k), tendencia: obtenerTendenciaTexto(k), prestamos: c.prestamos };
+        return { nombre: c.nombre, total: total, promedio: (total / c.prestamos.length).toFixed(1), k: k, reco: obtenerRecomendacion(k), tendencia: obtenerTendenciaTexto(k), prestamos: c.prestamos };
     });
     catsConTasa.sort(function(a, b) { return b.k - a.k; });
 
@@ -327,7 +342,10 @@ function renderCategorias() {
         options: {
             responsive: true, indexAxis: 'y',
             plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) { var v = ctx.parsed.x; return (v >= 0 ? '+' : '') + v + '% por mes'; } } } },
-            scales: { x: { grid: { color: '#E0D8D0' }, ticks: { callback: function(v) { return (v >= 0 ? '+' : '') + v + '%'; } } }, y: { grid: { display: false } } }
+            scales: {
+                x: { grid: { color: '#E0D8D0' }, ticks: { callback: function(v) { return (v >= 0 ? '+' : '') + v + '%'; } } },
+                y: { grid: { display: false } }
+            }
         }
     });
 }
@@ -336,7 +354,7 @@ function renderCategorias() {
 function llenarSeleccion() {
     if (!DATA) return;
     var tipo = document.getElementById('projTipo').value;
-    var sel = document.getElementById('projSeleccion');
+    var sel  = document.getElementById('projSeleccion');
     sel.innerHTML = '';
     var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
     items.forEach(function(item) {
@@ -349,21 +367,20 @@ function llenarSeleccion() {
 
 function calcularProyeccion() {
     if (!DATA) return;
-    var tipo = document.getElementById('projTipo').value;
+    var tipo      = document.getElementById('projTipo').value;
     var seleccion = document.getElementById('projSeleccion').value;
-    var periodos = parseInt(document.getElementById('projPeriodos').value) || 3;
+    var periodos  = parseInt(document.getElementById('projPeriodos').value) || 3;
 
     var items = tipo === 'libro' ? DATA.libros : DATA.categorias;
-    var item = items.find(function(i) { return i.nombre === seleccion; });
+    var item  = items.find(function(i) { return i.nombre === seleccion; });
     if (!item) return;
 
     var prestamos = item.prestamos;
-    // Valores del modelo x(t) = C·e^(kt)
-    var k = obtenerK(item);
-    var C = obtenerC(item);
-    var t0 = item.t0 || 0;          // t donde está C
-    var tFinal = prestamos.length - 1; // t del último mes conocido (t=5 para 6 meses)
-    var x0 = prestamos[tFinal] || 0;   // valor actual (último mes)
+    var k      = obtenerK(item);         // k = ln(xFinal/C) / tFinal
+    var C      = obtenerC(item);         // condición inicial
+    var t0     = item.t0 || 0;           // t donde está C
+    var tFinal = prestamos.length - 1;   // = 5 para 6 meses
+    var x0     = prestamos[tFinal] || 0; // último valor real
 
     // Sin datos suficientes
     if (item.datos_suficientes === false) {
@@ -379,20 +396,15 @@ function calcularProyeccion() {
         return;
     }
 
-    // ── Calcular proyecciones ──
-    // t sigue avanzando desde tFinal: tFinal+1, tFinal+2, ...
-    // x(t) = C · e^(k·t)
+    // ── Proyecciones: x(tFinal+i) = C · e^(k·(tFinal+i)) ──
     var proyecciones = [];
     var mesesFuturos = [];
-    var ultimoMes = DATA.meses[DATA.meses.length - 1];
-    var partes = ultimoMes.split('-');
+    var partes = DATA.meses[DATA.meses.length - 1].split('-');
     var anio = parseInt(partes[0], 10);
-    var mes = parseInt(partes[1], 10);
+    var mes  = parseInt(partes[1], 10);
 
     for (var i = 1; i <= periodos; i++) {
-        var tProy = tFinal + i;
-        var valor = proyectar(C, k, tProy);
-        proyecciones.push(Math.round(valor));
+        proyecciones.push(Math.round(proyectar(C, k, tFinal + i)));
         mes++;
         if (mes > 12) { mes = 1; anio++; }
         mesesFuturos.push(anio + '-' + (mes < 10 ? '0' + mes : '' + mes));
@@ -410,10 +422,11 @@ function calcularProyeccion() {
     var ultimaProy = proyecciones[proyecciones.length - 1];
     var diferencia = ultimaProy - x0;
 
-    var textoCambio = k > 0.05 ? 'esta creciendo de manera notable'
-        : k > 0 ? 'esta creciendo de forma moderada'
-        : k > -0.05 ? 'esta disminuyendo levemente'
-        : 'esta disminuyendo de manera marcada';
+    var textoCambio =
+        k > 0.05  ? 'esta creciendo de manera notable' :
+        k > 0     ? 'esta creciendo de forma moderada' :
+        k > -0.05 ? 'esta disminuyendo levemente' :
+                    'esta disminuyendo de manera marcada';
 
     document.getElementById('resultadoTexto').innerHTML =
         'Actualmente este ' + (tipo === 'libro' ? 'libro' : 'categoria') +
@@ -423,76 +436,38 @@ function calcularProyeccion() {
         '<strong>' + ultimaProy + ' prestamos</strong> (' +
         (diferencia >= 0 ? 'aumento' : 'reduccion') + ' de ' + Math.abs(diferencia) + ' respecto al mes actual).';
 
-    var recomendacion =
-        k > 0.1  ? 'Recomendacion: Conviene adquirir mas ejemplares lo antes posible.' :
-        k > 0.02 ? 'Recomendacion: La demanda es estable y creciente. Mantener el acervo actual.' :
+    document.getElementById('resultadoReco').textContent =
+        k > 0.1   ? 'Recomendacion: Conviene adquirir mas ejemplares lo antes posible.' :
+        k > 0.02  ? 'Recomendacion: La demanda es estable y creciente. Mantener el acervo actual.' :
         k > -0.02 ? 'Recomendacion: La demanda esta estable. No se requiere accion inmediata.' :
-        k > -0.1 ? 'Recomendacion: Vigilar la tendencia. Evaluar si el material sigue siendo relevante.' :
-                   'Recomendacion: Considerar dar de baja este material o reasignar el espacio.';
-    document.getElementById('resultadoReco').textContent = recomendacion;
+        k > -0.1  ? 'Recomendacion: Vigilar la tendencia. Evaluar si el material sigue siendo relevante.' :
+                    'Recomendacion: Considerar dar de baja este material o reasignar el espacio.';
 
-    // ── Tabla del modelo: t, C, k, x(t) = C·e^(kt) ──
-    // Muestra los 6 meses históricos + los periodos proyectados
+    // ── Tabla: CI y K con columnas X y T ──
     if (document.getElementById('tablaModelo')) {
-        var thead = '<thead><tr>' +
-            '<th>t</th>' +
-            '<th>Mes</th>' +
-            '<th>C (inicial)</th>' +
-            '<th>k</th>' +
-            '<th>x(t) = C·e<sup>kt</sup></th>' +
-            '<th>Real</th>' +
-            '</tr></thead>';
-
-        var tbody = '<tbody>';
-
-        // Filas históricas (t=0 a t=tFinal)
-        DATA.meses.forEach(function(mesStr, t) {
-            var xModelo = C > 0 ? proyectar(C, k, t) : 0;
-            var xReal = prestamos[t];
-            var esFila0 = (t === t0);
-            var esUltimo = (t === tFinal);
-            tbody += '<tr' + (esFila0 ? ' style="background:rgba(160,33,66,0.08)"' : '') + '>' +
-                '<td>' + t + (esFila0 ? ' <small>(C)</small>' : '') + '</td>' +
-                '<td>' + formatearMes(mesStr) + '</td>' +
-                '<td>' + (esFila0 ? '<strong>' + C + '</strong>' : C) + '</td>' +
-                '<td>' + k.toFixed(4) + '</td>' +
-                '<td>' + (C > 0 ? xModelo.toFixed(2) : '-') + '</td>' +
-                '<td>' + (xReal > 0 ? xReal : '—') + '</td>' +
-                '</tr>';
-        });
-
-        // Filas de proyección (t=tFinal+1 en adelante)
-        mesesFuturos.forEach(function(mesStr, i) {
-            var tProy = tFinal + i + 1;
-            var xModelo = proyectar(C, k, tProy);
-            tbody += '<tr style="background:rgba(188,149,91,0.08)">' +
-                '<td>' + tProy + '</td>' +
-                '<td>' + formatearMes(mesStr) + ' <small>(proj.)</small></td>' +
-                '<td>' + C + '</td>' +
-                '<td>' + k.toFixed(4) + '</td>' +
-                '<td><strong>' + xModelo.toFixed(2) + '</strong></td>' +
-                '<td>—</td>' +
-                '</tr>';
-        });
-
-        tbody += '</tbody>';
         document.getElementById('tablaModelo').innerHTML =
-            '<table class="tabla-modelo">' + thead + tbody + '</table>';
+            '<table class="tabla-modelo">' +
+                '<thead><tr><th></th><th>X</th><th>T</th></tr></thead>' +
+                '<tbody>' +
+                    '<tr><td><strong>CI</strong></td><td>' + C + '</td><td>' + t0 + '</td></tr>' +
+                    '<tr><td><strong>K</strong></td><td>' + k.toFixed(4) + '</td><td>' + tFinal + '</td></tr>' +
+                '</tbody>' +
+            '</table>';
     }
 
-    // ── Gráfica ──
+    // ── Gráfica: una sola línea continua (real → proyección) ──
+    // La línea vino cubre Nov→Abr (datos reales)
+    // La línea dorada empalma en el último punto real y continúa hacia el futuro
+    // Ambas se ven como UNA sola línea que cambia de estilo en Abr
     var labelsAll = DATA.meses.map(formatearMes).concat(mesesFuturos.map(formatearMes));
 
-    // Línea real
+    // Segmento real: valores históricos + nulls para los meses futuros
     var datosReal = prestamos.slice().concat(new Array(periodos).fill(null));
 
-    // Línea del modelo x(t) = C·e^(kt) para todos los t históricos + proyectados
-    var datosModelo = DATA.meses.map(function(_, t) {
-        return C > 0 ? Math.round(proyectar(C, k, t)) : null;
-    });
-    mesesFuturos.forEach(function(_, i) {
-        datosModelo.push(proyecciones[i]);
-    });
+    // Segmento proyección: nulls para t=0..tFinal-1, empalme en tFinal, luego proyecciones
+    var datosProyeccion = new Array(tFinal).fill(null);  // nulls histórico
+    datosProyeccion.push(x0);                            // empalme = último valor real
+    proyecciones.forEach(function(v) { datosProyeccion.push(v); });
 
     destruirChart('chartProyeccion');
     chartInstances['chartProyeccion'] = new Chart(document.getElementById('chartProyeccion'), {
@@ -505,20 +480,26 @@ function calcularProyeccion() {
                     data: datosReal,
                     borderColor: '#A02142',
                     backgroundColor: colorAlpha('#A02142', 0.1),
-                    borderWidth: 2.5, fill: true, tension: 0.3,
-                    pointRadius: 5, pointBackgroundColor: '#A02142',
-                    spanGaps: false
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#A02142',
+                    spanGaps: false  // no conectar sobre los nulls futuros
                 },
                 {
-                    label: 'x(t) = C\u00b7e^(kt)',
-                    data: datosModelo,
+                    label: 'Proyeccion x(t) = C·e^(kt)',
+                    data: datosProyeccion,
                     borderColor: '#BC955B',
                     backgroundColor: colorAlpha('#BC955B', 0.08),
-                    borderWidth: 2, borderDash: [8, 4],
-                    fill: true, tension: 0.3,
-                    pointRadius: 4, pointBackgroundColor: '#BC955B',
+                    borderWidth: 2.5,
+                    borderDash: [8, 4],
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#BC955B',
                     pointStyle: 'triangle',
-                    spanGaps: true
+                    spanGaps: false  // no conectar sobre los nulls del histórico
                 }
             ]
         },
@@ -526,11 +507,27 @@ function calcularProyeccion() {
             responsive: true,
             plugins: {
                 legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } },
-                tooltip: { callbacks: { label: function(ctx) { return ctx.parsed.y !== null ? ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos' : null; } } }
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.parsed.y !== null
+                                ? ctx.dataset.label + ': ' + ctx.parsed.y + ' prestamos'
+                                : null;
+                        }
+                    }
+                }
             },
             scales: {
-                y: { beginAtZero: true, grid: { color: '#E0D8D0' }, ticks: { precision: 0 }, title: { display: true, text: 'x(t)', font: { weight: 600 } } },
-                x: { grid: { display: false }, title: { display: true, text: 't (meses)', font: { weight: 600 } } }
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#E0D8D0' },
+                    ticks: { precision: 0 },
+                    title: { display: true, text: 'x(t)', font: { weight: 600 } }
+                },
+                x: {
+                    grid: { display: false },
+                    title: { display: true, text: 't (meses)', font: { weight: 600 } }
+                }
             }
         }
     });
@@ -556,5 +553,3 @@ function calcularProyeccion() {
             document.getElementById('errorText').textContent = error.message || 'No se pudieron obtener los datos.';
         });
 })();
-
-
