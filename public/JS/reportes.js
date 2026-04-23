@@ -209,7 +209,7 @@ function renderLibros() {
         var x0 = l.prestamos[l.prestamos.length - 1] || 0;
         var anterior = l.prestamos.length >= 2 ? l.prestamos[l.prestamos.length - 2] : 0;
         var tFinal = l.prestamos.length - 1;
-        var proy = C > 0 ? Math.round(proyectar(C, k, tFinal + 1)) : x0;
+        var proy = C > 0 ? Math.round(proyectar(C, k, tFinal + 1) + 0.00001) : x0;
 
         return { nombre: l.nombre, categoria: l.categoria || 'Sin categoria', anterior: anterior, actual: x0, k: k, proyeccion: proy, prestamos: l.prestamos };
     });
