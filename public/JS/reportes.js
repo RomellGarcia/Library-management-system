@@ -404,10 +404,10 @@ function calcularProyeccion() {
     var mes = parseInt(partes[1], 10);
 
     for (var i = 1; i <= periodos; i++) {
-        // 1. Calculamos el valor exacto primero
-       var valorRedondeado = proyectarSeguro(C, k, tFinal + i);
+        var valorReal = C * Math.exp(k * (tFinal + i)) - 1; // sin redondear
+        proyecciones.push(valorReal);
 
-        
+
 
         // 3. Metemos el valor al arreglo una sola vez
         proyecciones.push(valorRedondeado);
