@@ -276,8 +276,8 @@ function calcularProyeccion() {
 
   var tipo      = document.getElementById('projTipo').value;
   var seleccion = document.getElementById('projSeleccion').value;
-  // Maximo 4 meses, minimo 1
-  var periodos  = Math.min(Math.max(parseInt(document.getElementById('projPeriodos').value) || 4, 1), 4);
+  // Siempre 4 meses fijos
+  var periodos  = 4;
   var items     = tipo === 'libro' ? DATA.libros : DATA.categorias;
   var item      = items.find(function(i){ return i.nombre === seleccion; });
   if (!item) return;
@@ -292,14 +292,17 @@ function calcularProyeccion() {
   box.classList.add('visible');
   document.getElementById('resultadoTitulo').textContent = 'Estimacion para: ' + item.nombre;
 
-  // Sin datos suficientes
-  if (!item.datos_suficientes) {
+  // Sin datos suficientes — necesita al menos 2 meses con prestamos
+  if (!item.datos_suficientes || mesesConDatos < 2) {
     document.getElementById('resultadoTexto').innerHTML =
-      'Este ' + (tipo==='libro'?'libro':'categoría') +
-      ' solo tiene actividad en <strong>' + mesesConDatos + ' mes(es)</strong>. ' +
-      'Se necesitan al menos <strong>2 meses con préstamos</strong> para calcular una tendencia.';
+      '<span style="color:#A02142;font-weight:600">&#9888; Proyeccion no valida.</span> ' +
+      'Este ' + (tipo==='libro'?'libro':'categoria') +
+      ' solo tiene prestamos registrados en <strong>' + mesesConDatos + ' mes(es)</strong>. ' +
+      'Para aplicar la Ley de Crecimiento y Decrecimiento se necesitan al menos ' +
+      '<strong>2 meses con prestamos</strong> para poder calcular la constante k.';
     document.getElementById('resultadoReco').textContent = '';
     if (document.getElementById('tablaModelo')) document.getElementById('tablaModelo').innerHTML = '';
+    destruirChart('chartProyeccion');
     return;
   }
 
