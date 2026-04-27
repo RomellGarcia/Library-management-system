@@ -276,7 +276,8 @@ function calcularProyeccion() {
 
   var tipo      = document.getElementById('projTipo').value;
   var seleccion = document.getElementById('projSeleccion').value;
-  var periodos  = Math.min(parseInt(document.getElementById('projPeriodos').value) || 3, 4);
+  // Maximo 4 meses, minimo 1
+  var periodos  = Math.min(Math.max(parseInt(document.getElementById('projPeriodos').value) || 4, 1), 4);
   var items     = tipo === 'libro' ? DATA.libros : DATA.categorias;
   var item      = items.find(function(i){ return i.nombre === seleccion; });
   if (!item) return;
@@ -285,9 +286,7 @@ function calcularProyeccion() {
   var k             = obtenerK(item);
   var C             = obtenerC(item);
   var t0            = obtenerT0(item);
-  var tFinal        = prestamos.length - 1;
-  var x0            = prestamos[tFinal] || 0;
-  var mesesConDatos = item.meses_con_datos || prestamos.filter(function(v){ return v > 0; }).length;
+  var mesesConDatos = prestamos.filter(function(v){ return v > 0; }).length;
 
   var box = document.getElementById('resultadoBox');
   box.classList.add('visible');
@@ -304,68 +303,85 @@ function calcularProyeccion() {
     return;
   }
 
-  // Calcular proyecciones para los proximos 4 meses
-  var proyecciones = [];
-  var proyGrafica  = [];
-  var mesesFuturos = [];
+  // Filtrar solo meses desde enero 2026 en adelante para la grafica
+  var idxDesdeEnero = 0;
+  for (var mi = 0; mi < DATA.meses.length; mi++) {
+    if (DATA.meses[mi] >= '2026-01') { idxDesdeEnero = mi; break; }
+    idxDesdeEnero = DATA.meses.length; // si no hay ninguno desde enero, muestra todo
+  }
+  var mesesGrafica    = DATA.meses.slice(idxDesdeEnero);
+  var prestamosGrafica = prestamos.slice(idxDesdeEnero);
+  // tFinal relativo al array original (para la formula) y al slice (para la grafica)
+  var tFinal       = prestamos.length - 1;
+  var tFinalSlice  = prestamosGrafica.length - 1;
+  var x0           = prestamos[tFinal] || 0;
+
+  // Calcular proyecciones (siempre 4 meses fijos en grafica, periodos controla la tabla)
+  var proyecciones  = [];  // redondeados para tabla
+  var exactos       = [];  // sin redondear para tabla
+  var proyGrafica   = [];  // para la linea de la grafica (4 meses fijos)
+  var mesesFuturos  = [];
   var partes = DATA.meses[DATA.meses.length-1].split('-');
   var anio = parseInt(partes[0],10);
   var mes  = parseInt(partes[1],10);
 
-  for (var i = 1; i <= periodos; i++) {
+  for (var i = 1; i <= 4; i++) {
     var tAbs        = tFinal + i;
     var valorExacto = proyectar(C, k, tAbs, t0);
+    exactos.push(valorExacto);
     proyecciones.push(redondear(valorExacto));
-    proyGrafica.push(parseFloat(valorExacto.toFixed(2)));
+    proyGrafica.push(valorExacto); // sin redondear en la grafica
     mes++;
     if (mes > 12) { mes = 1; anio++; }
     mesesFuturos.push(anio + '-' + (mes < 10 ? '0'+mes : ''+mes));
   }
 
-  var tPedido    = tFinal + periodos;
-  var ultimaProy = redondear(proyectar(C, k, tPedido, t0));
+  var ultimaProy = proyecciones[periodos - 1];
   var diferencia = ultimaProy - x0;
 
-  // Tabla del modelo — muestra solo los 2 puntos usados para calcular k
+  // Tabla del modelo
   if (document.getElementById('tablaModelo')) {
-    // Encontrar los dos puntos reales usados
     var puntosReales = prestamos.map(function(v, t) {
       return { v: v, t: t };
     }).filter(function(p){ return p.v > 0; });
 
     var p0 = puntosReales.length >= 2 ? puntosReales[puntosReales.length - 2] : null;
     var p1 = puntosReales.length >= 1 ? puntosReales[puntosReales.length - 1] : null;
+    var deltaT = p0 && p1 ? p1.t - p0.t : 1;
 
     var filasPuntos = '';
-    if (p0) filasPuntos += '<tr><td>t='+p0.t+' (penultimo)</td><td>'+formatearMes(DATA.meses[p0.t])+'</td><td>'+p0.v+'</td></tr>';
-    if (p1) filasPuntos += '<tr><td>t='+p1.t+' (ultimo)</td><td>'+formatearMes(DATA.meses[p1.t])+'</td><td>'+p1.v+'</td></tr>';
-
-    var deltaT = p0 && p1 ? p1.t - p0.t : 1;
+    if (p0) filasPuntos += '<tr><td>t='+p0.t+' ('+formatearMes(DATA.meses[p0.t])+')</td><td>'+p0.v+'</td></tr>';
+    if (p1) filasPuntos += '<tr><td>t='+p1.t+' ('+formatearMes(DATA.meses[p1.t])+')</td><td>'+p1.v+'</td></tr>';
 
     document.getElementById('tablaModelo').innerHTML =
       '<p style="font-weight:600;margin-bottom:6px">Puntos usados para calcular k:</p>' +
       '<table class="tabla-modelo" style="margin-bottom:14px">' +
-      '<thead><tr><th>Punto</th><th>Mes</th><th>Préstamos (x)</th></tr></thead>' +
+      '<thead><tr><th>Punto</th><th>Préstamos (x)</th></tr></thead>' +
       '<tbody>' + filasPuntos + '</tbody>' +
       '</table>' +
 
       '<p style="font-weight:600;margin-bottom:6px">Cálculo de k:</p>' +
-      '<p style="margin-bottom:4px">C = x(t='+( p0 ? p0.t : 0)+') = <strong>'+ C +'</strong></p>' +
-      '<p style="margin-bottom:4px">k = ln(x₁ / C) / ΔT = ln('+(p1?p1.v:0)+' / '+C+') / '+deltaT+' = <strong>'+k.toFixed(4)+'</strong></p>' +
-      '<p style="margin-bottom:12px;font-size:0.87rem;color:#555">Fórmula aplicada: x(t) = '+C+' · e^('+k.toFixed(4)+' · (t - '+t0+'))</p>' +
+      '<p style="margin-bottom:4px">C = x(t='+(p0?p0.t:0)+') = <strong>'+C+'</strong></p>' +
+      '<p style="margin-bottom:4px">k = ln(x₁ / C) / ΔT = ln('+(p1?p1.v:0)+' / '+C+') / '+deltaT+' = <strong>'+k+'</strong></p>' +
+      '<p style="margin-bottom:12px;font-size:0.87rem;color:#555">Fórmula: x(t) = '+C+' · e^('+k+' · (t − '+t0+'))</p>' +
 
-      '<p style="font-weight:600;margin-bottom:6px">Proyecciones:</p>' +
+      '<p style="font-weight:600;margin-bottom:6px">Proyecciones ('+periodos+' mes(es)):</p>' +
       '<table class="tabla-modelo">' +
-      '<thead><tr><th>t</th><th>Mes</th><th>x(t) estimado</th></tr></thead>' +
+      '<thead><tr><th>t</th><th>Mes</th><th>x(t) exacto</th><th>x(t) redondeado</th></tr></thead>' +
       '<tbody>' +
-      proyecciones.map(function(proy, idx) {
-        return '<tr><td>t='+(tFinal+idx+1)+'</td><td>'+formatearMes(mesesFuturos[idx])+'</td><td><strong>'+proy+'</strong></td></tr>';
+      exactos.slice(0, periodos).map(function(exacto, idx) {
+        return '<tr>' +
+          '<td>t='+(tFinal+idx+1)+'</td>' +
+          '<td>'+formatearMes(mesesFuturos[idx])+'</td>' +
+          '<td>'+exacto+'</td>' +
+          '<td><strong>'+proyecciones[idx]+'</strong></td>' +
+          '</tr>';
       }).join('') +
       '</tbody></table>';
   }
 
   // Texto resultado
-  var pctMensual = item.porcentaje_mensual !== undefined ? parseFloat(item.porcentaje_mensual).toFixed(1) : tasaAPorcentaje(k);
+  var pctMensual  = item.porcentaje_mensual !== undefined ? parseFloat(item.porcentaje_mensual).toFixed(1) : tasaAPorcentaje(k);
   var textoCambio = k>0.05?'esta creciendo de manera notable':k>0?'esta creciendo de forma moderada':k>-0.05?'esta disminuyendo levemente':'esta disminuyendo de manera marcada';
 
   document.getElementById('resultadoTexto').innerHTML =
@@ -382,29 +398,46 @@ function calcularProyeccion() {
     k > -0.1  ? 'Recomendacion: Vigilar la tendencia. Evaluar si el material sigue siendo relevante.' :
                 'Recomendacion: Considerar dar de baja este material o reasignar el espacio.';
 
-  // Grafica con plugin para mostrar K en cada punto proyectado
-  var labelsAll       = DATA.meses.map(formatearMes).concat(mesesFuturos.map(formatearMes));
-  var datosReal       = prestamos.slice().concat(new Array(periodos).fill(null));
-  var datosProyeccion = new Array(tFinal).fill(null);
-  datosProyeccion.push(x0);
+  // Grafica: historico solo desde enero 2026 + 4 meses futuros fijos
+  var labelsAll       = mesesGrafica.map(formatearMes).concat(mesesFuturos.map(formatearMes));
+  var datosReal       = prestamosGrafica.slice().concat(new Array(4).fill(null));
+  var datosProyeccion = new Array(tFinalSlice).fill(null);
+  datosProyeccion.push(x0); // punto de empalme
   proyGrafica.forEach(function(v){ datosProyeccion.push(v); });
 
-  // Plugin que dibuja "k=X.XXXX" encima de cada punto de la proyeccion
+  // Plugin: muestra k exacto y x(t) exacto + redondeado encima de cada punto proyectado
+  var kCapturado = k;
+  var CCapturado = C;
+  var t0Capturado = t0;
+  var tFinalCapturado = tFinal;
+  var tFinalSliceCapturado = tFinalSlice;
+
   var pluginKLabels = {
     id: 'kLabels',
     afterDatasetsDraw: function(chart) {
       var ctx2    = chart.ctx;
-      var meta    = chart.getDatasetMeta(1); // dataset 1 = proyeccion
+      var meta    = chart.getDatasetMeta(1);
       var dataset = chart.data.datasets[1];
 
       meta.data.forEach(function(point, index) {
-        if (dataset.data[index] === null) return; // saltar puntos nulos
+        if (dataset.data[index] === null) return;
+        // Saltar el punto de empalme (x0), solo etiquetar los futuros
+        if (index <= tFinalSliceCapturado) return;
+
+        var pasoFuturo  = index - tFinalSliceCapturado; // 1, 2, 3, 4
+        var tAbs        = tFinalCapturado + pasoFuturo;
+        var valorExacto = proyectar(CCapturado, kCapturado, tAbs, t0Capturado);
+        var valorRedondeado = redondear(valorExacto);
 
         ctx2.save();
-        ctx2.font      = 'bold 11px sans-serif';
-        ctx2.fillStyle = '#BC955B';
         ctx2.textAlign = 'center';
-        ctx2.fillText('k=' + k.toFixed(4), point.x, point.y - 14);
+        ctx2.font      = 'bold 10px sans-serif';
+        ctx2.fillStyle = '#7A1832';
+        ctx2.fillText('k=' + kCapturado, point.x, point.y - 36);
+        ctx2.fillStyle = '#BC955B';
+        ctx2.fillText('x(t)=' + valorExacto, point.x, point.y - 24);
+        ctx2.fillStyle = '#5C3D2E';
+        ctx2.fillText('≈' + valorRedondeado, point.x, point.y - 12);
         ctx2.restore();
       });
     }
@@ -417,26 +450,29 @@ function calcularProyeccion() {
     data: { labels: labelsAll, datasets: [
       { label: 'Prestamos reales', data: datosReal,
         borderColor: '#A02142', backgroundColor: colorAlpha('#A02142',0.1),
-        borderWidth: 2.5, fill: true, tension: 0.3, pointRadius: 5, pointBackgroundColor: '#A02142', spanGaps: false },
+        borderWidth: 2.5, fill: true, tension: 0.3, pointRadius: 5,
+        pointBackgroundColor: '#A02142', spanGaps: false },
       { label: 'Proyeccion x(t) = C·e^(k·t)', data: datosProyeccion,
         borderColor: '#BC955B', backgroundColor: colorAlpha('#BC955B',0.08),
         borderWidth: 2.5, borderDash: [8,4], fill: true, tension: 0.3,
         pointRadius: 5, pointBackgroundColor: '#BC955B', pointStyle: 'triangle', spanGaps: false }
     ] },
     options: { responsive: true,
-      layout: { padding: { top: 28 } },
+      layout: { padding: { top: 55 } },
       plugins: {
         legend: { position: 'bottom', labels: { usePointStyle: true, padding: 16 } },
         tooltip: { callbacks: { label: function(ctx){
-          if (ctx.parsed.y===null) return null;
-          return ctx.dataset.label+': '+redondear(ctx.parsed.y)+' prestamos';
+          if (ctx.parsed.y === null) return null;
+          var etiqueta = ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(4) + ' (exacto)';
+          if (ctx.datasetIndex === 1) etiqueta += ' ≈ ' + redondear(ctx.parsed.y) + ' (redondeado)';
+          return etiqueta;
         } } }
       },
       scales: {
         y: { beginAtZero: true, grid: { color: '#E0D8D0' }, ticks: { precision: 0 },
           title: { display: true, text: 'x(t)', font: { weight: 600 } } },
         x: { grid: { display: false },
-          title: { display: true, text: 't (meses desde '+formatearMes(DATA.meses[0])+')', font: { weight: 600 } } }
+          title: { display: true, text: 'Mes', font: { weight: 600 } } }
       }
     }
   });
