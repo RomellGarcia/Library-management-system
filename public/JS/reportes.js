@@ -276,7 +276,7 @@ function calcularProyeccion() {
 
   var tipo      = document.getElementById('projTipo').value;
   var seleccion = document.getElementById('projSeleccion').value;
-  var periodos  = parseInt(document.getElementById('projPeriodos').value) || 3;
+  var periodos  = Math.min(parseInt(document.getElementById('projPeriodos').value) || 3, 4);
   var items     = tipo === 'libro' ? DATA.libros : DATA.categorias;
   var item      = items.find(function(i){ return i.nombre === seleccion; });
   if (!item) return;
